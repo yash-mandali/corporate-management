@@ -1,0 +1,64 @@
+<div class="signup-container">
+    <div class="signup-card">
+        <h2>Sign Up</h2>
+
+        <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" formControlName="userName" />
+                <small *ngIf="f['userName'].touched && f['userName'].invalid">
+                    Username is required
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" formControlName="email" />
+                <small *ngIf="f['email'].touched && f['email'].invalid">
+                    Enter valid email
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" formControlName="password" />
+                <small *ngIf="f['password'].touched && f['password'].invalid">
+                    Minimum 6 characters required
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text" formControlName="phoneNumber" />
+                <small *ngIf="f['phoneNumber'].touched && f['phoneNumber'].invalid">
+                    Enter valid 10 digit phone number
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label>Gender</label>
+                <select formControlName="gender">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+                <small *ngIf="f['gender'].touched && f['gender'].invalid">
+                    Gender is required
+                </small>
+            </div>
+
+            <button type="submit" [disabled]="signupForm.invalid">
+                Sign Up
+            </button>
+
+            <p class="login-link">
+                Already have an account?
+                <a routerLink="">Login</a>
+            </p>
+
+            <p class="message">{{ errorMessage() }}</p>
+
+        </form>
+    </div>
+</div>

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Firstpage } from './firstpage';
+import { ApplyLeave } from './apply-leave';
 
-describe('Firstpage', () => {
-  let component: Firstpage;
-  let fixture: ComponentFixture<Firstpage>;
+describe('ApplyLeave', () => {
+  let component: ApplyLeave;
+  let fixture: ComponentFixture<ApplyLeave>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Firstpage]
+      imports: [ApplyLeave]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Firstpage);
+    fixture = TestBed.createComponent(ApplyLeave);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

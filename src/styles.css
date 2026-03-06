@@ -1,5 +1,531 @@
-/* You can add global styles to this file, and also import other style files */
-* {
+/* ── Global CSS Variables ────────────────────────── */
+
+
+:root {
+    --sidebar-bg: #1e3a8a;
+    --sidebar-active: #2563eb;
+    --sidebar-hover: rgba(255, 255, 255, 0.1);
+    --sidebar-w: 240px;
+    --bg: #f0f4f8;
+    --white: #ffffff;
+    --border: #e2e8f0;
+    --border2: #cbd5e1;
+    --text: #1e293b;
+    --text2: #64748b;
+    --text3: #94a3b8;
+    --accent: #2563eb;
+    --accent-light: #dbeafe;
+    --green: #16a34a;
+    --green-light: #dcfce7;
+    --red: #dc2626;
+    --red-light: #fee2e2;
+    --yellow: #d97706;
+    --yellow-light: #fef3c7;
+    --purple: #7c3aed;
+    --purple-light: #ede9fe;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 8px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Reset ───────────────────────────────────────── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ── Typography ──────────────────────────────────── */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+a {
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* ── Form Elements ───────────────────────────────── */
+input,
+select,
+textarea {
+    width: 100%;
+    background: var(--white);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 9px 11px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 85px;
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    margin-bottom: 5px;
+}
+
+/* ── Buttons ─────────────────────────────────────── */
+button {
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 18px;
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+}
+
+.btn-outline {
+    background: white;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+}
+
+.btn-outline:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.btn-new {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 9px 18px;
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-new:hover {
+    background: #1d4ed8;
+}
+
+/* ── Badges ──────────────────────────────────────── */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-Approved {
+    background: var(--green-light);
+    color: var(--green);
+}
+
+.badge-Pending {
+    background: var(--yellow-light);
+    color: var(--yellow);
+}
+
+.badge-Rejected {
+    background: var(--red-light);
+    color: var(--red);
+}
+
+.badge-present {
+    background: var(--green-light);
+    color: var(--green);
+}
+
+.badge-absent {
+    background: var(--red-light);
+    color: var(--red);
+}
+
+.badge-wfh {
+    background: var(--purple-light);
+    color: var(--purple);
+}
+
+.badge-late {
+    background: var(--yellow-light);
+    color: var(--yellow);
+}
+
+.badge-blue {
+    background: var(--accent-light);
+    color: var(--accent);
+}
+
+/* ── Cards ───────────────────────────────────────── */
+.card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+}
+
+/* ── Tables ──────────────────────────────────────── */
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text3);
+    padding: 0 11px 9px;
+    border-bottom: 1px solid var(--border);
+}
+
+td {
+    padding: 10px 11px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tbody tr:hover td {
+    background: var(--bg);
+}
+
+/* ── Progress Bars ───────────────────────────────── */
+.progress-bar {
+    height: 6px;
+    background: var(--bg);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 20px;
+    transition: width 0.8s ease;
+}
+
+.fill-blue {
+    background: var(--accent);
+}
+
+.fill-green {
+    background: var(--green);
+}
+
+.fill-yellow {
+    background: var(--yellow);
+}
+
+.fill-red {
+    background: var(--red);
+}
+
+.fill-purple {
+    background: var(--purple);
+}
+
+/* ── Page Layout ─────────────────────────────────── */
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.page-header-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.page-header-sub {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 2px;
+}
+
+/* ── Grid Utilities ──────────────────────────────── */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 18px;
+}
+
+.grid-3-1 {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 15px;
+    margin-bottom: 18px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+/* ── Modal Overlay ───────────────────────────────── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-box {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 26px;
+    width: 100%;
+    max-width: 490px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    animation: slideUp 0.25s ease;
+}
+
+.modal-box.wide {
+    max-width: 560px;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--bg);
+    border: none;
+    color: var(--text2);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.modal-sub {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 18px;
+}
+
+/* ── Form Groups ─────────────────────────────────── */
+.form-group {
+    margin-bottom: 14px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* ── Tab Navigation ──────────────────────────────── */
+.tab-nav {
+    display: flex;
+    gap: 2px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    width: fit-content;
+}
+
+.tab-btn {
+    padding: 7px 16px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.tab-btn.active {
+    background: var(--white);
+    color: var(--accent);
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+/* ── Scrollbar ───────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border2);
+    border-radius: 2px;
+}
+
+/* ── Animations ──────────────────────────────────── */
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-up {
+    animation: fadeUp 0.25s ease;
+}
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 1100px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .grid-3-1 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 360px) {
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
 }

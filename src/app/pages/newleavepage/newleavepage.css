@@ -1,0 +1,288 @@
+/* =============================================
+   NEW LEAVE PAGE – Enhanced CSS
+   ============================================= */
+
+.apply-container {
+    padding: 8px;
+    padding-top: 3px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1e3a3f;
+}
+
+/* ── Page Header ── */
+.page-header {
+    margin-bottom: 24px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.header-title h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f3d46;
+    margin: 0 0 2px;
+    line-height: 1.2;
+}
+
+.header-title p {
+    font-size: 13px;
+    color: #6c757d;
+    margin: 0;
+}
+
+/* ── Back Button ── */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #ffffff;
+    border: 1.5px solid #d0dfe2;
+    border-radius: 50%;
+    color: #0f6d7a;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.back-btn .icon {
+    font-size: 17px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-btn:hover {
+    background: #0f6d7a;
+    border-color: #0f6d7a;
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(15, 109, 122, 0.28);
+    transform: translateX(-2px);
+}
+
+/* ── Form Card ── */
+.form-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(15, 109, 122, 0.10);
+    overflow: hidden;
+    border: 1px solid #e8f2f4;
+}
+
+.form-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 28px;
+    background: linear-gradient(135deg, #09637E 0%, #1a7a8a 100%);
+}
+
+.card-icon {
+    font-size: 20px;
+}
+
+.card-title {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+/* ── Form Body ── */
+.form-body {
+    padding: 26px 28px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ── Form Grid ── */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group-full {
+    grid-column: 1 / -1;
+}
+
+/* ── Labels ── */
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2c4a50;
+}
+
+.required {
+    color: #dc3545;
+    margin-left: 2px;
+}
+
+/* ── Controls ── */
+.form-control {
+    width: 100%;
+    padding: 10px 13px;
+    font-size: 14px;
+    color: #1e3a3f;
+    background: #f8fbfc;
+    border: 1.5px solid #d8e9ec;
+    border-radius: 7px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.form-control::placeholder {
+    color: #aabec3;
+}
+
+.form-control:focus {
+    border-color: #0f6d7a;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(15, 109, 122, 0.10);
+}
+
+/* Select wrapper */
+.select-wrap {
+    position: relative;
+}
+
+.select-wrap select.form-control {
+    padding-right: 34px;
+    cursor: pointer;
+}
+
+.select-arrow {
+    position: absolute;
+    right: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #5a7d85;
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* Textarea */
+.textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.55;
+}
+
+/* ── Action Buttons ── */
+.btn-area {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 28px 26px;
+    border-top: 1px solid #eef4f5;
+    margin-top: 24px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 22px;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+}
+
+/* Reset Button */
+.btn-reset {
+    background: #ffffff;
+    color: #5a7d85;
+    border: 1.5px solid #d0dfe2;
+}
+
+.btn-reset:hover {
+    background: #f0f7f8;
+    border-color: #9ab8be;
+    color: #0f3d46;
+}
+
+/* Apply Button */
+.btn-apply {
+    background: linear-gradient(135deg, #0d5c6b 0%, #1a7a8a 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(13, 92, 107, 0.28);
+}
+
+.btn-apply:hover {
+    background: linear-gradient(135deg, #0a4d5a 0%, #156978 100%);
+    box-shadow: 0 4px 14px rgba(13, 92, 107, 0.38);
+    transform: translateY(-1px);
+}
+
+.btn-apply:active {
+    transform: translateY(0);
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group-full {
+        grid-column: auto;
+    }
+
+    .apply-container {
+        padding: 16px;
+    }
+
+    .form-body {
+        padding: 20px 18px 0;
+    }
+
+    .btn-area {
+        padding: 16px 18px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .btn-area {
+        flex-direction: column-reverse;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .form-control {
+        font-size: 15px;
+        /* prevent iOS zoom */
+    }
+}

@@ -1,0 +1,111 @@
+<div class="apply-container">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <button type="button" class="back-btn" (click)="goBack()" title="Go Back">
+                <i class="fas fa-arrow-left "></i>
+            </button>
+            <div class="header-title">
+                <h2>Apply Leave</h2>
+                <p>Submit your leave request</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="form-card">
+
+        <div class="form-card-header">
+            <span class="card-icon">&#128197;</span>
+            <span class="card-title">Leave Application Form</span>
+        </div>
+
+        <form [formGroup]="leaveForm" (ngSubmit)="submitLeave()">
+
+            <div class="form-body">
+
+                <div class="form-grid">
+
+                    <!-- Request Type -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            Request Type <span class="required">*</span>
+                        </label>
+                        <div class="select-wrap">
+                            <select formControlName="requestType" class="form-control">
+                                <option value="">Select Leave Type</option>
+                                <option>Annual Leave</option>
+                                <option>Sick Leave</option>
+                                <option>Comp Off</option>
+                                <option>Emergency</option>
+                            </select>
+                            <span class="select-arrow">&#8964;</span>
+                        </div>
+                    </div>
+
+                    <!-- Session -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            Session <span class="required">*</span>
+                        </label>
+                        <div class="select-wrap">
+                            <select formControlName="session" class="form-control">
+                                <option value="">Select Session</option>
+                                <option>Full Day</option>
+                                <option>Half Day</option>
+                            </select>
+                            <span class="select-arrow">&#8964;</span>
+                        </div>
+                    </div>
+
+                    <!-- From Date -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            From Date <span class="required">*</span>
+                        </label>
+                        <input type="date" formControlName="fromDate" class="form-control" />
+                    </div>
+
+                    <!-- To Date -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            To Date <span class="required">*</span>
+                        </label>
+                        <input type="date" formControlName="toDate" class="form-control" />
+                    </div>
+
+                    <!-- Handover To -->
+                    <div class="form-group form-group-full">
+                        <label class="form-label">Handover To</label>
+                        <input type="text" formControlName="handoverTo" class="form-control"
+                            placeholder="Enter employee name (optional)" />
+                    </div>
+
+                </div>
+
+                <!-- Reason -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Reason <span class="required">*</span>
+                    </label>
+                    <textarea rows="4" formControlName="reason" class="form-control textarea"
+                        placeholder="Describe the reason for your leave..."></textarea>
+                </div>
+
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="btn-area">
+                <button type="button" class="btn btn-reset" (click)="reset()">
+                    &#10226; Reset
+                </button>
+                <button type="submit" class="btn btn-apply">
+                    &#10003; Apply Leave
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+</div>

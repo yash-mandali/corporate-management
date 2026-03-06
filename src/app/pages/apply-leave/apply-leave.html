@@ -1,0 +1,317 @@
+<main class="main">
+  <div class="content">
+
+    <!-- SUMMARY CARDS -->
+    <div class="summary-row">
+      <div class="sum-card">
+        <div class="sum-icon teal"><i class="fas fa-umbrella-beach"></i></div>
+        <div>
+          <div class="sum-val">{{ totalRequests() }}</div>
+          <div class="sum-label">Total Leaves</div>
+        </div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-icon green"><i class="fas fa-check-circle"></i></div>
+        <div>
+          <div class="sum-val">{{ approvedleaves() }}</div>
+          <div class="sum-label">Approved</div>
+        </div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-icon amber"><i class="fas fa-hourglass-half"></i></div>
+        <div>
+          <div class="sum-val">{{ pendingleaves() }}</div>
+          <div class="sum-label">Pending</div>
+        </div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-icon red"><i class="fas fa-calendar-times"></i></div>
+        <div>
+          <div class="sum-val">{{ rejectedleaves() }}</div>
+          <div class="sum-label">Rejected</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEAVE BALANCE -->
+    <div class="balance-section">
+      <div class="section-bar">
+        <div class="section-bar-title">
+          <i class="fas fa-wallet"></i> Leave Balance
+        </div>
+      </div>
+      <div class="balance-grid">
+        <div class="bal-item">
+          <div class="bal-num">8</div>
+          <div class="bal-type">Annual Leave</div>
+          <div class="bal-used">Used: 7 / 15</div>
+          <div class="bal-bar">
+            <div class="bal-fill" style="width:47%"></div>
+          </div>
+        </div>
+        <div class="bal-item">
+          <div class="bal-num">4</div>
+          <div class="bal-type">Sick Leave</div>
+          <div class="bal-used">Used: 2 / 6</div>
+          <div class="bal-bar">
+            <div class="bal-fill" style="width:33%"></div>
+          </div>
+        </div>
+        <div class="bal-item">
+          <div class="bal-num">2</div>
+          <div class="bal-type">Comp Off</div>
+          <div class="bal-used">Used: 0 / 2</div>
+          <div class="bal-bar">
+            <div class="bal-fill" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="bal-item">
+          <div class="bal-num">0</div>
+          <div class="bal-type">Emergency</div>
+          <div class="bal-used">Used: 2 / 2</div>
+          <div class="bal-bar">
+            <div class="bal-fill" style="width:50%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- APPLICATIONS TABLE -->
+    <div class="table-section">
+      <div class="section-bar">
+        <div class="section-bar-title">
+          <i class="fas fa-list-alt"></i> Leave Applications
+        </div>
+        <a class="apply-btn" routerLink="/dashboard/newleave">
+          <i class="fas fa-plus"></i> Apply Leave
+        </a>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="filter-bar">
+        <button class="filter-tab" [class.active]="activeFilter() === 'all'" (click)="setFilter('all')">
+          All <span class="filter-count">{{ totalRequests() }}</span>
+        </button>
+        <button class="filter-tab pending" [class.active]="activeFilter() === 'pending'" (click)="setFilter('pending')">
+          Pending <span class="filter-count">{{ pendingleaves() }}</span>
+        </button>
+        <button class="filter-tab approved" [class.active]="activeFilter() === 'approved'"
+          (click)="setFilter('approved')">
+          Approved <span class="filter-count">{{ approvedleaves() }}</span>
+        </button>
+        <button class="filter-tab rejected" [class.active]="activeFilter() === 'rejected'"
+          (click)="setFilter('rejected')">
+          Rejected <span class="filter-count">{{ rejectedleaves() }}</span>
+        </button>
+        <button class="filter-tab withdrawn" [class.active]="activeFilter() === 'withdrawn'"
+          (click)="setFilter('withdrawn')">
+          Withdrawn <span class="filter-count">{{ withdrawnleaves() }}</span>
+        </button>
+      </div>
+
+      <!-- Scrollable Table -->
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Request Type</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Days</th>
+              <th>Session</th>
+              <th>Handover To</th>
+              <th>Applied On</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of pagedLeaves(); track r.leaveRequestId + r.fromDate) {
+            <tr>
+              <td>{{ r.leaveRequestId }}</td>
+              <td>
+                <span class="type-tag {{ typeClass(r.requestType) }}">
+                  {{ r.requestType.split(' ')[0] }}
+                </span>
+              </td>
+              <td>{{ formatDate(r.fromDate) }}</td>
+              <td>{{ formatDate(r.toDate) }}</td>
+              <td>{{ r.totalDays }}</td>
+              <td>{{ r.session }}</td>
+              <td>{{ r.handoverTo || '—' }}</td>
+              <td>{{ formatDate(r.appliedOn) }}</td>
+              <td>
+                <span class="status-badge {{ r.status.toLowerCase() }}">
+                  {{ r.status }}
+                </span>
+              </td>
+              <td>
+                @if (r.status.toLowerCase() == 'pending') {
+
+                  <div class="action-btns">
+                    <button class="action-btn edit-btn" (click)="editLeave(r)" title="Edit Leave"
+                      [disabled]="r.status.toLowerCase() !== 'pending'">
+                      <i class="fas fa-pen"></i>
+                    </button>
+                    <button class="action-btn delete-btn" (click)="deleteLeave(r.leaveRequestId)" title="Withdraw Leave">
+                    <i class="fas fa-undo text-warning"></i>
+                    </button>
+                  </div>
+                }
+              </td>
+            </tr>
+            } @empty {
+            <tr>
+              <td colspan="10" class="empty-row">No leave applications found.</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() >= 1) {
+      <div class="pagination">
+        <span class="page-info">
+          Page {{ pageStart() }} of {{ filteredLeaves().length }}
+        </span>
+        <div class="page-controls">
+          <button class="page-btn nav-btn" (click)="prevPage()" [disabled]="currentPage() === 1" title="Previous">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          @for (p of pageNumbers(); track $index) {
+          @if (p === '...') {
+          <span class="page-ellipsis">…</span>
+          } @else {
+          <button class="page-btn" [class.active]="p === currentPage()" (click)="goToPage(p)">
+            {{ p }}
+          </button>
+          }
+          }
+          <button class="page-btn nav-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()"
+            title="Next">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+      }
+
+    </div>
+  </div>
+</main>
+
+<!-- ── EDIT LEAVE MODAL ── -->
+@if (editModalOpen()) {
+<div class="modal-overlay" (click)="closeEditModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-header-icon">
+        <i class="fas fa-pen"></i>
+      </div>
+      <div>
+        <div class="modal-title">Edit Leave Request</div>
+        <div class="modal-sub">Only pending leaves can be updated</div>
+      </div>
+      <button class="modal-close" (click)="closeEditModal()" type="button">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <form [formGroup]="editForm" (ngSubmit)="submitEdit()">
+      <div class="modal-body">
+
+        <div class="mf-row">
+          <!-- Request Type -->
+          <div class="mf">
+            <label>Request Type <span>*</span></label>
+            <div class="mf-select-wrap">
+              <select formControlName="requestType"
+                [class.mf-error]="editForm.get('requestType')?.invalid && editForm.get('requestType')?.touched">
+                <option value="">Select Leave Type</option>
+                <option>Annual Leave</option>
+                <option>Sick Leave</option>
+                <option>Comp Off</option>
+                <option>Emergency</option>
+              </select>
+            </div>
+            @if (editForm.get('requestType')?.invalid && editForm.get('requestType')?.touched) {
+            <span class="mf-err-msg"><i class="fas fa-exclamation-circle"></i> Required</span>
+            }
+          </div>
+
+          <!-- Session -->
+          <div class="mf">
+            <label>Session <span>*</span></label>
+            <div class="mf-select-wrap">
+              <select formControlName="session"
+                [class.mf-error]="editForm.get('session')?.invalid && editForm.get('session')?.touched">
+                <option value="">Select Session</option>
+                <option>Full Day</option>
+                <option>Half Day</option>
+              </select>
+            </div>
+            @if (editForm.get('session')?.invalid && editForm.get('session')?.touched) {
+            <span class="mf-err-msg"><i class="fas fa-exclamation-circle"></i> Required</span>
+            }
+          </div>
+        </div>
+
+        <div class="mf-row">
+          <!-- From Date -->
+          <div class="mf">
+            <label>From Date <span>*</span></label>
+            <input type="date" formControlName="fromDate"
+              [class.mf-error]="editForm.get('fromDate')?.invalid && editForm.get('fromDate')?.touched" />
+            @if (editForm.get('fromDate')?.invalid && editForm.get('fromDate')?.touched) {
+            <span class="mf-err-msg"><i class="fas fa-exclamation-circle"></i> Required</span>
+            }
+          </div>
+
+          <!-- To Date -->
+          <div class="mf">
+            <label>To Date <span>*</span></label>
+            <input type="date" formControlName="toDate"
+              [class.mf-error]="editForm.get('toDate')?.invalid && editForm.get('toDate')?.touched" />
+            @if (editForm.get('toDate')?.invalid && editForm.get('toDate')?.touched) {
+            <span class="mf-err-msg"><i class="fas fa-exclamation-circle"></i> Required</span>
+            }
+          </div>
+        </div>
+
+        <!-- Handover To -->
+        <div class="mf">
+          <label>Handover To</label>
+          <input type="text" formControlName="handoverTo" placeholder="Enter employee name (optional)" />
+        </div>
+
+        <!-- Reason -->
+        <div class="mf">
+          <label>Reason <span>*</span></label>
+          <textarea rows="3" formControlName="reason" placeholder="Reason for leave..."
+            [class.mf-error]="editForm.get('reason')?.invalid && editForm.get('reason')?.touched"></textarea>
+          @if (editForm.get('reason')?.invalid && editForm.get('reason')?.touched) {
+          <span class="mf-err-msg"><i class="fas fa-exclamation-circle"></i> Required</span>
+          }
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="closeEditModal()">
+          Cancel
+        </button>
+        <button type="submit" class="btn-submit" [disabled]="isSubmitting">
+          @if (isSubmitting) {
+          <i class="fas fa-spinner fa-spin"></i> Saving...
+          } @else {
+          <i class="fas fa-check"></i> Save Changes
+          }
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+}

@@ -1,0 +1,59 @@
+<aside class="sidebar" [class.mobile-open]="emp.sidebarOpen()">
+    <div class="sidebar-logo">
+        <span class="logo-text">{{role() && role() === 'Employee' ? 'Employee Portal':'Manager Portal'}}</span>
+    </div>
+
+    <nav class="sidebar-nav">
+        @if (role() === 'Employee') {
+        <a class="nav-item" routerLink="/dashboard/dashboardpage" routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }" (click)="emp.closeSidebar()">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Dashboard</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/Leavepage" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon">➕</span>
+            <span class="nav-label">My Requests</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/attendance" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">Attendance</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/attendance" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">TimeSheet</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/profile" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">Profile</span>
+        </a>
+        }@else {
+        <a class="nav-item" routerLink="/dashboard" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Dashboard</span>
+        </a>
+        <a class="nav-item" routerLink="/manager/users" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Manage Users</span>
+        </a>
+        <a class="nav-item" routerLink="/manager/reports" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Reports</span>
+        </a>
+        <a class="nav-item" routerLink="profile" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Profile</span>
+        </a>
+        }
+
+    </nav>
+    <div class="sidebar-logout">
+        <button class="logout-btn" (click)="logout()">Logout</button>
+    </div>
+</aside>
+<!-- Logout Loader -->
+<div class="page-loader" *ngIf="isLoggingOut">
+    <div class="loader-content">
+        <div class="spinner"></div>
+        <p>Logging you out...</p>
+    </div>
+</div>

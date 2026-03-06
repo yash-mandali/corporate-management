@@ -46,12 +46,15 @@ export class Signup {
     }
     this.userservice.signup(data).subscribe({
       next: (res: any) => {
-        this.errorMessage.set('Signup successful' + res);
+        this.errorMessage.set('Signup successful');
+        console.log(res); 
         this.signupForm.reset();
         this.router.navigate(['/']);
       },
       error: (err) => {
-        this.errorMessage.set('Signup failed. Please try again.' + err.error.message);
+        this.errorMessage.set('Signup failed. Please try again.');
+        console.log(err.error.message);
+        
       }
     })
   }

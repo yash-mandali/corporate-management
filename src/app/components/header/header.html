@@ -1,0 +1,21 @@
+<header class="topbar">
+    <button class="menu-btn"  (click)="emp.toggleSidebar()" aria-label="Toggle menu">
+        ☰
+    </button>
+    <span class="welcome">Welcome, Employee</span>
+    <span class="top-date">{{ currentDate }}</span>
+    <!-- <button class="notif-btn" (click)="toggleNotif(); $event.stopPropagation()">
+        🔔
+        @if (unreadCount() > 0) {
+        <span class="notif-dot"></span>
+        }
+    </button> -->
+    <button class="logout-top-btn" (click)="logout()">Logout</button>
+
+</header>
+<div class="page-loader" *ngIf="isLoggingOut">
+    <div class="loader-content">
+        <div class="spinner"></div>
+        <p>Logging out...</p>
+    </div>
+</div>

@@ -1,18 +1,38 @@
 <header class="topbar">
-    <button class="menu-btn"  (click)="emp.toggleSidebar()" aria-label="Toggle menu">
+    <button class="menu-btn" (click)="emp.toggleSidebar()" aria-label="Toggle menu">
         ☰
     </button>
     <span class="welcome">Welcome, Employee</span>
     <span class="top-date">{{ currentDate }}</span>
-    <!-- <button class="notif-btn" (click)="toggleNotif(); $event.stopPropagation()">
-        🔔
-        @if (unreadCount() > 0) {
-        <span class="notif-dot"></span>
-        }
-    </button> -->
-    <button class="logout-top-btn" (click)="logout()">Logout</button>
 
+    <!-- Profile Avatar with Dropdown -->
+    <div class="profile-wrap" (click)="profileOpen = !profileOpen">
+        <div class="profile-avatar">
+            <span>E</span>
+        </div>
+        @if (profileOpen) {
+        <div class="profile-dropdown" (click)="$event.stopPropagation()">
+            <div class="profile-dropdown-header">
+                <div class="profile-avatar-lg"><span>E</span></div>
+                <div>
+                    <div class="profile-name">Employee</div>
+                    <div class="profile-email">{{userEmail()}}</div>
+                </div>
+            </div>
+            <div class="profile-dropdown-divider"></div>
+            <a class="profile-dropdown-item" routerLink="/dashboard/myprofile" (click)="profileOpen = false">
+                <i class="fas fa-user"></i>
+                My Profile
+            </a>
+            <button class="profile-dropdown-item danger" (click)="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+        }
+    </div>
 </header>
+
 <div class="page-loader" *ngIf="isLoggingOut">
     <div class="loader-content">
         <div class="spinner"></div>

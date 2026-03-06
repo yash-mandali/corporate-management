@@ -1,0 +1,31 @@
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #ffffff;
+    border: 1.5px solid #d0dfe2;
+    border-radius: 50%;
+    color: #0f6d7a;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.back-btn .icon {
+    font-size: 17px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-btn:hover {
+    background: #0f6d7a;
+    border-color: #0f6d7a;
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(15, 109, 122, 0.28);
+    transform: translateX(-2px);
+}

@@ -6,6 +6,7 @@ import { authGuard } from './guards/auth-guard';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { ApplyLeave } from './pages/apply-leave/apply-leave';
 import { Newleavepage } from './pages/newleavepage/newleavepage';
+import { MyProfile } from './pages/myprofile/myprofile';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -17,6 +18,7 @@ export const routes: Routes = [
         path: 'signup',
         component: Signup
     },
+    { path: 'dashboard', redirectTo: 'dashboard/dashboardpage', pathMatch: 'full' },
     {
         path: 'dashboard',
         component: DashboardLayout,
@@ -35,6 +37,11 @@ export const routes: Routes = [
             {
                 path: 'newleave',
                 component: Newleavepage,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'myprofile',
+                component:MyProfile,
                 canActivate: [authGuard],
             },
         ]

@@ -4,10 +4,11 @@ import { Router } from '@angular/router';
 import { Authservice } from '../../services/Auth-service/authservice';
 import { LeaveService } from '../../services/leave-service/leave-service'
 import { ToastrService } from 'ngx-toastr';
+import { Backbtn } from "../../components/backbtn/backbtn";
 
 @Component({
   selector: 'app-newleavepage',
-  imports: [ɵInternalFormsSharedModule, ReactiveFormsModule],
+  imports: [ɵInternalFormsSharedModule, ReactiveFormsModule, Backbtn],
   templateUrl: './newleavepage.html',
   styleUrl: './newleavepage.css',
 })
@@ -49,11 +50,6 @@ export class Newleavepage {
       this.toast.error("Please fill in all required fields.");
       return;
     } else {
-      if (data.requestType === 'Sick Leave' && !data.Reason) {
-        console.log("Please provide a reason for Sick Leave.");
-        this.toast.error("Please provide a reason for Sick Leave.");
-        return;
-      }
       this.leaveService.createNewLeave(data).subscribe({
         next: res => {
           this.message.set(res.message);

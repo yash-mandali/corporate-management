@@ -1,0 +1,262 @@
+<main class="main">
+    <div class="content">
+
+        <!-- HERO BANNER -->
+        <div class="profile-hero">
+            <div class="hero-bg"></div>
+            <div class="hero-body">
+                <div class="hero-avatar">
+                    <span>{{ initials() }}</span>
+                </div>
+                <div class="hero-info">
+                    <h1 class="hero-name">{{ profileData()?.userName || 'Employee' }}</h1>
+                    <div class="hero-meta">
+                        <span class="hero-badge"><i class="fas fa-briefcase"></i> {{ profileData()?.roleName }}</span>
+                        <span class="hero-badge"><i class="fas fa-envelope"></i> {{ profileData()?.email }}</span>
+                        <span class="hero-badge"><i class="fas fa-phone"></i> {{ profileData()?.phoneNumber }}</span>
+                    </div>
+                </div>
+                <div class="hero-status">
+                    <div class="status-pill" [class.active]="profileData()?.isActive">
+                        <span class="status-dot"></span>
+                        {{ profileData()?.isActive ? 'Active' : 'Inactive' }}
+                    </div>
+                    <div class="joined-text">
+                        <i class="fas fa-calendar-alt"></i>
+                        Joined {{ formatDate(profileData()?.createdAt) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB NAV -->
+        <div class="tab-nav">
+            <button class="tab-btn" [class.active]="activeTab === 'info'" (click)="activeTab = 'info'">
+                <i class="fas fa-user"></i> Personal Info
+            </button>
+            <button class="tab-btn" [class.active]="activeTab === 'security'" (click)="activeTab = 'security'">
+                <i class="fas fa-shield-alt"></i> Security
+            </button>
+        </div>
+
+        <!-- TAB: PERSONAL INFO -->
+        @if (activeTab === 'info') {
+        <div class="tab-panel">
+
+            @if (!editMode) {
+            <!-- VIEW MODE -->
+            <div class="section-card">
+                <div class="section-card-header">
+                    <span class="section-card-title">Personal Details</span>
+                    <button class="icon-edit-btn" (click)="enableEdit()" title="Edit">
+                        <i class="fas fa-pen"></i> Edit Profile
+                    </button>
+                </div>
+                <div class="details-rows">
+                    <div class="details-row">
+                        <div class="dr-left">
+                            <div class="dr-icon teal"><i class="fas fa-user"></i></div>
+                            <span class="dr-label">Full Name</span>
+                        </div>
+                        <div class="dr-value">{{ profileData()?.userName || '—' }}</div>
+                    </div>
+                    <div class="details-row">
+                        <div class="dr-left">
+                            <div class="dr-icon blue"><i class="fas fa-envelope"></i></div>
+                            <span class="dr-label">Email Address</span>
+                        </div>
+                        <div class="dr-value">{{ profileData()?.email || '—' }}</div>
+                    </div>
+                    <div class="details-row">
+                        <div class="dr-left">
+                            <div class="dr-icon green"><i class="fas fa-phone"></i></div>
+                            <span class="dr-label">Phone Number</span>
+                        </div>
+                        <div class="dr-value">{{ profileData()?.phoneNumber || '—' }}</div>
+                    </div>
+                    <div class="details-row">
+                        <div class="dr-left">
+                            <div class="dr-icon amber"><i class="fas fa-venus-mars"></i></div>
+                            <span class="dr-label">Gender</span>
+                        </div>
+                        <div class="dr-value">{{ profileData()?.gender || '—' }}</div>
+                    </div>
+                    <div class="details-row">
+                        <div class="dr-left">
+                            <div class="dr-icon red"><i class="fas fa-id-badge"></i></div>
+                            <span class="dr-label">Role</span>
+                        </div>
+                        <div class="dr-value">{{ profileData()?.roleName || '—' }}</div>
+                    </div>
+                    <div class="details-row last">
+                        <div class="dr-left">
+                            <div class="dr-icon purple"><i class="fas fa-map-marker-alt"></i></div>
+                            <span class="dr-label">Address</span>
+                        </div>
+                        <div class="dr-value">{{ profileData()?.address || '—' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            } @else {
+            <!-- EDIT MODE -->
+            <div class="section-card">
+                <div class="section-card-header">
+                    <span class="section-card-title">Edit Personal Details</span>
+                </div>
+                <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+                    <div class="edit-grid">
+
+                        <div class="ef">
+                            <label>Full Name <span>*</span></label>
+                            <input type="text" formControlName="username" placeholder="Enter full name"
+                                [class.ef-error]="profileForm.get('username')?.invalid && profileForm.get('username')?.touched" />
+                            @if (profileForm.get('username')?.invalid && profileForm.get('username')?.touched) {
+                            <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
+                            }
+                        </div>
+
+                        <div class="ef">
+                            <label>Email Address <span>*</span></label>
+                            <input type="email" formControlName="email" placeholder="Enter email"
+                                [class.ef-error]="profileForm.get('email')?.invalid && profileForm.get('email')?.touched" />
+                            @if (profileForm.get('email')?.invalid && profileForm.get('email')?.touched) {
+                            <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Valid email required</span>
+                            }
+                        </div>
+
+                        <div class="ef">
+                            <label>Phone Number <span>*</span></label>
+                            <input type="text" formControlName="phoneNumber" placeholder="Enter phone"
+                                [class.ef-error]="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched" />
+                            @if (profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched) {
+                            <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
+                            }
+                        </div>
+
+                        <div class="ef">
+                            <label>Gender <span>*</span></label>
+                            <div class="ef-select-wrap">
+                                <select formControlName="gender"
+                                    [class.ef-error]="profileForm.get('gender')?.invalid && profileForm.get('gender')?.touched">
+                                    <option value="">Select Gender</option>
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                            @if (profileForm.get('gender')?.invalid && profileForm.get('gender')?.touched) {
+                            <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
+                            }
+                        </div>
+
+                        <div class="ef full">
+                            <label>Address</label>
+                            <textarea rows="2" formControlName="address" placeholder="Enter your address"></textarea>
+                        </div>
+
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-ghost" (click)="cancelEdit()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn-primary" [disabled]="isSaving">
+                            @if (isSaving) { <i class="fas fa-spinner fa-spin"></i> Saving... }
+                            @else { <i class="fas fa-check"></i> Save Changes }
+                        </button>
+                    </div>
+                </form>
+            </div>
+            }
+        </div>
+        }
+
+        <!-- TAB: SECURITY -->
+        @if (activeTab === 'security') {
+        <div class="tab-panel">
+            <div class="section-card">
+                <div class="section-card-header">
+                    <span class="section-card-title">Change Password</span>
+                    @if (!pwdMode) {
+                    <button class="icon-edit-btn" (click)="pwdMode = true">
+                        <i class="fas fa-key"></i> Update Password
+                    </button>
+                    }
+                </div>
+
+                @if (!pwdMode) {
+                <div class="security-placeholder">
+                    <div class="security-icon"><i class="fas fa-lock"></i></div>
+                    <div class="security-text">
+                        <div class="security-heading">Password Protected</div>
+                        <div class="security-sub">Your password is encrypted and hidden. Click "Update Password" to
+                            change it.</div>
+                    </div>
+                </div>
+                } @else {
+                <form [formGroup]="pwdForm" (ngSubmit)="savePassword()">
+                    <div class="edit-grid">
+
+                        <div class="ef full">
+                            <label>Current Password <span>*</span></label>
+                            <div class="ef-pwd-wrap">
+                                <input [type]="showCurrent ? 'text' : 'password'" formControlName="currentPassword"
+                                    placeholder="Enter current password"
+                                    [class.ef-error]="pwdForm.get('currentPassword')?.invalid && pwdForm.get('currentPassword')?.touched" />
+                                <button type="button" class="eye-btn" (click)="showCurrent = !showCurrent">
+                                    <i class="fas" [class.fa-eye]="!showCurrent" [class.fa-eye-slash]="showCurrent"></i>
+                                </button>
+                            </div>
+                            @if (pwdForm.get('currentPassword')?.invalid && pwdForm.get('currentPassword')?.touched) {
+                            <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
+                            }
+                        </div>
+
+                        <div class="ef">
+                            <label>New Password <span>*</span></label>
+                            <div class="ef-pwd-wrap">
+                                <input [type]="showNew ? 'text' : 'password'" formControlName="newPassword"
+                                    placeholder="Min 6 characters"
+                                    [class.ef-error]="pwdForm.get('newPassword')?.invalid && pwdForm.get('newPassword')?.touched" />
+                                <button type="button" class="eye-btn" (click)="showNew = !showNew">
+                                    <i class="fas" [class.fa-eye]="!showNew" [class.fa-eye-slash]="showNew"></i>
+                                </button>
+                            </div>
+                            @if (pwdForm.get('newPassword')?.invalid && pwdForm.get('newPassword')?.touched) {
+                            <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Min 6 characters</span>
+                            }
+                        </div>
+
+                        <div class="ef">
+                            <label>Confirm Password <span>*</span></label>
+                            <div class="ef-pwd-wrap">
+                                <input [type]="showConfirm ? 'text' : 'password'" formControlName="confirmPassword"
+                                    placeholder="Re-enter new password"
+                                    [class.ef-error]="pwdForm.get('confirmPassword')?.invalid && pwdForm.get('confirmPassword')?.touched" />
+                                <button type="button" class="eye-btn" (click)="showConfirm = !showConfirm">
+                                    <i class="fas" [class.fa-eye]="!showConfirm" [class.fa-eye-slash]="showConfirm"></i>
+                                </button>
+                            </div>
+                            @if (pwdForm.hasError('mismatch') && pwdForm.get('confirmPassword')?.touched) {
+                            <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Passwords do not match</span>
+                            }
+                        </div>
+
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-ghost" (click)="cancelPwd()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn-primary" [disabled]="isPwdSaving">
+                            @if (isPwdSaving) { <i class="fas fa-spinner fa-spin"></i> Updating... }
+                            @else { <i class="fas fa-key"></i> Update Password }
+                        </button>
+                    </div>
+                </form>
+                }
+            </div>
+        </div>
+        }
+
+    </div>
+</main>

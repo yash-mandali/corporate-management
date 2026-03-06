@@ -20,6 +20,7 @@ export class ApplyLeave {
   pendingleaves = signal<number>(0);
   rejectedleaves = signal<number>(0);
   withdrawnleaves = signal<number>(0);
+  deletingId = signal<number | null>(null);
   isLoading = false;
 
   // ── Edit Modal ──
@@ -152,18 +153,24 @@ export class ApplyLeave {
     });
   }
 
-  // ── Delete / Withdraw ────────────────────────────────────────
-  deleteLeave(leaveRequestId: number) {
-    console.log('delete leave called');
-    this.leaveService.Withdrawleave(leaveRequestId).subscribe({
-      next: () => {
-        this.toast.success('Leave cancelled');
-        this.myLeaves.update(leaves => leaves.filter(l => l.leaveRequestId !== leaveRequestId));
-        this.recalculateCounts();
-        this.loadMyLeaves();
-      },
-      error: (err) => console.error('Delete failed:', err.message)
-    });
+  withdrawLeave(leaveRequestId: number) {
+    this.deletingId.set(leaveRequestId);
+
+    setTimeout(() => {
+      this.leaveService.Withdrawleave(leaveRequestId).subscribe({
+        next: () => {
+          this.toast.success('Leave cancelled');
+          this.deletingId.set(null);
+          this.myLeaves.update(leaves => leaves.filter(l => l.leaveRequestId !== leaveRequestId));
+          this.recalculateCounts();
+          this.loadMyLeaves();
+        },
+        error: (err) => {
+          this.deletingId.set(null);
+          console.error('Delete failed:', err.message);
+        }
+      });
+    }, 1000);
   }
 
   // ── Helpers ─────────────────────────────────────────────────

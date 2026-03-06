@@ -31,6 +31,13 @@
           <div class="sum-label">Rejected</div>
         </div>
       </div>
+      <div class="sum-card">
+        <div class="sum-icon red"><i class="fas fa-calendar-times"></i></div>
+        <div>
+          <div class="sum-val">{{ withdrawnleaves() }}</div>
+          <div class="sum-label">Withdrawn</div>
+        </div>
+      </div>
     </div>
 
     <!-- LEAVE BALANCE -->
@@ -114,13 +121,14 @@
         <table>
           <thead>
             <tr>
-              <th>#</th>
+             
               <th>Request Type</th>
               <th>From</th>
               <th>To</th>
               <th>Days</th>
               <th>Session</th>
               <th>Handover To</th>
+              <th>Reason</th>
               <th>Applied On</th>
               <th>Status</th>
               <th>Actions</th>
@@ -129,7 +137,7 @@
           <tbody>
             @for (r of pagedLeaves(); track r.leaveRequestId + r.fromDate) {
             <tr>
-              <td>{{ r.leaveRequestId }}</td>
+              
               <td>
                 <span class="type-tag {{ typeClass(r.requestType) }}">
                   {{ r.requestType.split(' ')[0] }}
@@ -140,6 +148,7 @@
               <td>{{ r.totalDays }}</td>
               <td>{{ r.session }}</td>
               <td>{{ r.handoverTo || '—' }}</td>
+              <td>{{ r.reason || '—' }}</td>
               <td>{{ formatDate(r.appliedOn) }}</td>
               <td>
                 <span class="status-badge {{ r.status.toLowerCase() }}">
@@ -154,9 +163,14 @@
                       [disabled]="r.status.toLowerCase() !== 'pending'">
                       <i class="fas fa-pen"></i>
                     </button>
-                    <button class="action-btn delete-btn" (click)="deleteLeave(r.leaveRequestId)" title="Withdraw Leave">
-                    <i class="fas fa-undo text-warning"></i>
-                    </button>
+                  <button class="action-btn delete-btn" (click)="withdrawLeave(r.leaveRequestId)" title="Withdraw Leave"
+                    [disabled]="deletingId() === r.leaveRequestId">
+                    @if (deletingId() === r.leaveRequestId) {
+                    <i class="fas fa-spinner fa-spin"></i>
+                    } @else {
+                    <i class="fas fa-trash"></i>
+                    }
+                  </button>
                   </div>
                 }
               </td>

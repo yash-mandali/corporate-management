@@ -4,11 +4,10 @@ import { EmployeeService } from '../../services/employee-service';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../services/user-service/user-service';
-import { Backbtn } from "../backbtn/backbtn";
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, RouterLink, Backbtn],
+  imports: [CommonModule, RouterLink],
   templateUrl: './header.html',
   styleUrl: './header.css',
 })

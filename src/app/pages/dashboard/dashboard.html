@@ -1,1 +1,257 @@
-<h1>dashboard works!</h1>
+<main class="main">
+    <div class="content">
+
+        <!-- GREETING BANNER -->
+        <div class="greeting-banner">
+            <div class="greeting-bg"></div>
+            <div class="greeting-body">
+                <div class="greeting-left">
+                    <div class="greeting-text">
+                        <span class="greeting-hey">{{ greeting }},</span>
+                        <span class="greeting-name">{{ userName() }}</span>
+                    </div>
+                    <div class="greeting-sub">Here's what's happening with your leaves today.</div>
+                </div>
+                <div class="greeting-right">
+                    <div class="greeting-date-box">
+                        <div class="gdb-day">{{ todayDay }}</div>
+                        <div class="gdb-date">{{ todayDate }}</div>
+                    </div>
+
+                    <!-- CHECK IN / OUT CARD -->
+                    <div class="checkin-card">
+                        <div class="checkin-times">
+                            <div class="ct-block">
+                                <div class="ct-label"><i class="fas fa-sign-in-alt"></i> In</div>
+                                <div class="ct-val">{{ checkInTime() || '—' }}</div>
+                            </div>
+                            <div class="ct-divider"></div>
+                            <div class="ct-block">
+                                <div class="ct-label"><i class="fas fa-sign-out-alt"></i> Out</div>
+                                <div class="ct-val">{{ checkOutTime() || '—' }}</div>
+                            </div>
+                        </div>
+
+                        <div class="checkin-actions">
+                            @if (!checkedIn()) {
+                            <button class="ci-btn in" (click)="checkIn()" [disabled]="attendanceLoading()">
+                                @if (attendanceLoading()) {
+                                <i class="fas fa-spinner fa-spin"></i>
+                                } @else {
+                                <i class="fas fa-sign-in-alt"></i>
+                                }
+                                Check In
+                            </button>
+                            } @else if (!checkedOut()) {
+                            <div class="ci-status-row">
+                                <span class="ci-live-dot"></span>
+                                <span class="ci-elapsed">{{ elapsedTime() }}</span>
+                            </div>
+                            <button class="ci-btn out" (click)="checkOut()" [disabled]="attendanceLoading()">
+                                @if (attendanceLoading()) {
+                                <i class="fas fa-spinner fa-spin"></i>
+                                } @else {
+                                <i class="fas fa-sign-out-alt"></i>
+                                }
+                                Check Out
+                            </button>
+                            } @else {
+                            <div class="ci-done">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Done for today · {{ workHours() }}</span>
+                            </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STAT CARDS -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-top">
+                    <div class="stat-icon-wrap teal">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-trend neutral"><i class="fas fa-minus"></i></div>
+                </div>
+                <div class="stat-val">{{ totalLeaves() }}</div>
+                <div class="stat-label">Total Requests</div>
+                <div class="stat-bar-wrap">
+                    <div class="stat-bar teal" [style.width]="barWidth(totalLeaves())"></div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-top">
+                    <div class="stat-icon-wrap amber">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="stat-trend up"><i class="fas fa-clock"></i></div>
+                </div>
+                <div class="stat-val">{{ pendingLeaves() }}</div>
+                <div class="stat-label">Pending</div>
+                <div class="stat-bar-wrap">
+                    <div class="stat-bar amber" [style.width]="barWidth(pendingLeaves())"></div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-top">
+                    <div class="stat-icon-wrap green">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-trend positive"><i class="fas fa-arrow-up"></i></div>
+                </div>
+                <div class="stat-val">{{ approvedLeaves() }}</div>
+                <div class="stat-label">Approved</div>
+                <div class="stat-bar-wrap">
+                    <div class="stat-bar green" [style.width]="barWidth(approvedLeaves())"></div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-top">
+                    <div class="stat-icon-wrap red">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-trend negative"><i class="fas fa-arrow-down"></i></div>
+                </div>
+                <div class="stat-val">{{ rejectedLeaves() }}</div>
+                <div class="stat-label">Rejected</div>
+                <div class="stat-bar-wrap">
+                    <div class="stat-bar red" [style.width]="barWidth(rejectedLeaves())"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN GRID -->
+        <div class="dash-grid">
+
+            <!-- LEAVE BALANCE -->
+            <div class="dash-card balance-card">
+                <div class="dash-card-header">
+                    <div class="dash-card-title"><i class="fas fa-wallet"></i> Leave Balance</div>
+                </div>
+                <div class="balance-list">
+                    <div class="bal-row">
+                        <div class="bal-row-left">
+                            <div class="bal-dot teal"></div>
+                            <span class="bal-name">Annual Leave</span>
+                        </div>
+                        <div class="bal-row-right">
+                            <div class="bal-track">
+                                <div class="bal-fill teal" style="width: 47%"></div>
+                            </div>
+                            <span class="bal-count">8 <small>/ 15</small></span>
+                        </div>
+                    </div>
+                    <div class="bal-row">
+                        <div class="bal-row-left">
+                            <div class="bal-dot red"></div>
+                            <span class="bal-name">Sick Leave</span>
+                        </div>
+                        <div class="bal-row-right">
+                            <div class="bal-track">
+                                <div class="bal-fill red" style="width: 67%"></div>
+                            </div>
+                            <span class="bal-count">4 <small>/ 6</small></span>
+                        </div>
+                    </div>
+                    <div class="bal-row">
+                        <div class="bal-row-left">
+                            <div class="bal-dot green"></div>
+                            <span class="bal-name">Comp Off</span>
+                        </div>
+                        <div class="bal-row-right">
+                            <div class="bal-track">
+                                <div class="bal-fill green" style="width: 100%"></div>
+                            </div>
+                            <span class="bal-count">2 <small>/ 2</small></span>
+                        </div>
+                    </div>
+                    <div class="bal-row">
+                        <div class="bal-row-left">
+                            <div class="bal-dot amber"></div>
+                            <span class="bal-name">Emergency</span>
+                        </div>
+                        <div class="bal-row-right">
+                            <div class="bal-track">
+                                <div class="bal-fill amber" style="width: 0%"></div>
+                            </div>
+                            <span class="bal-count">0 <small>/ 2</small></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUICK ACTIONS -->
+            <div class="dash-card actions-card">
+                <div class="dash-card-header">
+                    <div class="dash-card-title"><i class="fas fa-bolt"></i> Quick Actions</div>
+                </div>
+                <div class="quick-actions">
+                    <a class="qa-btn primary" routerLink="/dashboard/newleave">
+                        <div class="qa-icon"><i class="fas fa-plus"></i></div>
+                        <div>
+                            <div class="qa-label">Apply Leave</div>
+                            <div class="qa-sub">Submit a new request</div>
+                        </div>
+                    </a>
+                    <a class="qa-btn secondary" routerLink="/dashboard/applyleave">
+                        <div class="qa-icon"><i class="fas fa-list-alt"></i></div>
+                        <div>
+                            <div class="qa-label">My Requests</div>
+                            <div class="qa-sub">View all applications</div>
+                        </div>
+                    </a>
+                    <a class="qa-btn tertiary" routerLink="/dashboard/profile">
+                        <div class="qa-icon"><i class="fas fa-user-edit"></i></div>
+                        <div>
+                            <div class="qa-label">Edit Profile</div>
+                            <div class="qa-sub">Update your info</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- RECENT LEAVES -->
+            <div class="dash-card recent-card">
+                <div class="dash-card-header">
+                    <div class="dash-card-title"><i class="fas fa-history"></i> Recent Requests</div>
+                    <a class="view-all-link" routerLink="/dashboard/applyleave">View all <i
+                            class="fas fa-arrow-right"></i></a>
+                </div>
+
+                @if (isLoading) {
+                <div class="dash-loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading...
+                </div>
+                } @else if (recentLeaves().length === 0) {
+                <div class="dash-empty">
+                    <i class="fas fa-inbox"></i>
+                    <span>No leave requests yet</span>
+                </div>
+                } @else {
+                <div class="recent-list">
+                    @for (r of recentLeaves(); track r.leaveRequestId) {
+                    <div class="recent-row">
+                        <div class="recent-type-dot {{ typeColor(r.requestType) }}"></div>
+                        <div class="recent-info">
+                            <div class="recent-type">{{ r.requestType }}</div>
+                            <div class="recent-dates">{{ formatDate(r.fromDate) }} → {{ formatDate(r.toDate) }}</div>
+                        </div>
+                        <div class="recent-right">
+                            <span class="mini-badge {{ r.status.toLowerCase() }}">{{ r.status }}</span>
+                            <div class="recent-days">{{ r.totalDays }}d</div>
+                        </div>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+
+        </div>
+    </div>
+</main>

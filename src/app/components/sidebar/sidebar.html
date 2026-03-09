@@ -14,7 +14,7 @@
             <span class="nav-icon">➕</span>
             <span class="nav-label">My Requests</span>
         </a>
-        <a class="nav-item" routerLink="/dashboard/attendance" routerLinkActive="active" (click)="emp.closeSidebar()">
+        <a class="nav-item" routerLink="/dashboard/Attendance" routerLinkActive="active" (click)="emp.closeSidebar()">
             <span class="nav-icon">📅</span>
             <span class="nav-label">Attendance</span>
         </a>
@@ -53,7 +53,7 @@
 <!-- Logout Loader -->
 <div class="page-loader" *ngIf="isLoggingOut">
     <div class="loader-content">
-        <div class="spinner"></div>
-        <p>Logging you out...</p>
+        <div class="fas fa-spinner fa-spin"></div>
+        <p>Logging out...</p>
     </div>
 </div>

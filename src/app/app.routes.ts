@@ -7,6 +7,7 @@ import { Dashboard } from './pages/dashboard/dashboard';
 import { ApplyLeave } from './pages/apply-leave/apply-leave';
 import { Newleavepage } from './pages/newleavepage/newleavepage';
 import { MyProfile } from './pages/myprofile/myprofile';
+import { AttendancePage } from './pages/attendance-page/attendance-page';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -42,6 +43,11 @@ export const routes: Routes = [
             {
                 path: 'myprofile',
                 component:MyProfile,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'Attendance',
+                component: AttendancePage,
                 canActivate: [authGuard],
             },
         ]

@@ -1,0 +1,202 @@
+<main class="main">
+    <div class="content">
+
+        <!-- HEADER -->
+        <div class="att-header">
+            <div class="att-header-left">
+                <div class="att-header-icon"><i class="fas fa-calendar-check"></i></div>
+                <div>
+                    <div class="att-title">Attendance</div>
+                    <div class="att-sub">Track your daily attendance and work hours</div>
+                </div>
+            </div>
+            <div class="month-nav">
+                <button class="month-btn" (click)="prevMonth()"><i class="fas fa-chevron-left"></i></button>
+                <span class="month-label">{{ monthLabel }}</span>
+                <button class="month-btn" (click)="nextMonth()" [disabled]="isCurrentMonth()"><i
+                        class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+
+        <!-- SUMMARY CARDS -->
+        <div class="att-stats">
+            <div class="att-stat-card present">
+                <div class="asc-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="asc-val">{{ presentCount() }}</div>
+                <div class="asc-label">Present</div>
+            </div>
+            <div class="att-stat-card absent">
+                <div class="asc-icon"><i class="fas fa-times-circle"></i></div>
+                <div class="asc-val">{{ absentCount() }}</div>
+                <div class="asc-label">Absent</div>
+            </div>
+            <div class="att-stat-card late">
+                <div class="asc-icon"><i class="fas fa-clock"></i></div>
+                <div class="asc-val">{{ lateCount() }}</div>
+                <div class="asc-label">Late</div>
+            </div>
+            <div class="att-stat-card hours">
+                <div class="asc-icon"><i class="fas fa-hourglass-half"></i></div>
+                <div class="asc-val">{{ totalHours() }}h</div>
+                <div class="asc-label">Total Hours</div>
+            </div>
+            <div class="att-stat-card rate">
+                <div class="asc-icon"><i class="fas fa-chart-pie"></i></div>
+                <div class="asc-val">{{ attendanceRate() }}%</div>
+                <div class="asc-label">Attendance Rate</div>
+                <div class="rate-bar-wrap">
+                    <div class="rate-bar" [style.width]="attendanceRate() + '%'"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CALENDAR + TABLE GRID -->
+        <div class="att-grid">
+
+            <!-- CALENDAR -->
+            <div class="cal-card">
+                <div class="cal-header">
+                    <span class="cal-title">{{ monthLabel }}</span>
+                </div>
+                <div class="cal-weekdays">
+                    <span>Sun</span><span>Mon</span><span>Tue</span>
+                    <span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                </div>
+                <div class="cal-days">
+                    @for (cell of calendarCells(); track $index) {
+                    @if (cell === null) {
+                    <div class="cal-cell empty"></div>
+                    } @else {
+                    <div class="cal-cell {{ cell.status }}" [class.today]="cell.isToday"
+                        [class.weekend]="cell.isWeekend" (click)="selectDay(cell)">
+                        <span class="cal-day-num">{{ cell.day }}</span>
+                        @if (cell.status && !cell.isWeekend) {
+                        <span class="cal-dot {{ cell.status }}"></span>
+                        }
+                    </div>
+                    }
+                    }
+                </div>
+                <!-- Legend -->
+                <div class="cal-legend">
+                    <div class="leg-item"><span class="leg-dot present"></span> Present</div>
+                    <div class="leg-item"><span class="leg-dot absent"></span> Absent</div>
+                    <div class="leg-item"><span class="leg-dot late"></span> Late</div>
+                    <div class="leg-item"><span class="leg-dot weekend"></span> Weekend</div>
+                </div>
+            </div>
+
+            <!-- DAY DETAIL PANEL -->
+            <div class="detail-card">
+                @if (selectedDay()) {
+                <div class="detail-header">
+                    <div class="detail-date-block">
+                        <div class="detail-day-num">{{ selectedDay()!.day }}</div>
+                        <div class="detail-day-info">
+                            <div class="detail-weekday">{{ selectedDay()!.weekday }}</div>
+                            <div class="detail-month">{{ monthLabel }}</div>
+                        </div>
+                    </div>
+                    <span class="detail-status-badge {{ selectedDay()!.status }}">
+                        {{ selectedDay()!.statusLabel }}
+                    </span>
+                </div>
+
+                @if (selectedDay()!.record) {
+                <div class="detail-times">
+                    <div class="time-block">
+                        <div class="time-icon in"><i class="fas fa-sign-in-alt"></i></div>
+                        <div>
+                            <div class="time-label">Clock In</div>
+                            <div class="time-val">{{ selectedDay()!.record!.clockIn || '—' }}</div>
+                        </div>
+                    </div>
+                    <div class="time-divider"></div>
+                    <div class="time-block">
+                        <div class="time-icon out"><i class="fas fa-sign-out-alt"></i></div>
+                        <div>
+                            <div class="time-label">Clock Out</div>
+                            <div class="time-val">{{ selectedDay()!.record!.clockOut || '—' }}</div>
+                        </div>
+                    </div>
+                    <div class="time-divider"></div>
+                    <div class="time-block">
+                        <div class="time-icon hours"><i class="fas fa-stopwatch"></i></div>
+                        <div>
+                            <div class="time-label">Work Hours</div>
+                            <div class="time-val">{{ selectedDay()!.record!.workHours || '—' }}</div>
+                        </div>
+                    </div>
+                </div>
+                } @else if (selectedDay()!.isWeekend) {
+                <div class="detail-placeholder">
+                    <i class="fas fa-umbrella-beach"></i>
+                    <span>Weekend — No attendance recorded</span>
+                </div>
+                } @else {
+                <div class="detail-placeholder">
+                    <i class="fas fa-calendar-times"></i>
+                    <span>No attendance record for this day</span>
+                </div>
+                }
+                } @else {
+                <div class="detail-placeholder tall">
+                    <i class="fas fa-hand-pointer"></i>
+                    <span>Click a day on the calendar to view details</span>
+                </div>
+                }
+            </div>
+
+        </div>
+
+        <!-- ATTENDANCE TABLE -->
+        <div class="table-card">
+            <div class="table-card-header">
+                <div class="table-card-title"><i class="fas fa-table"></i> Monthly Log</div>
+                <div class="table-filter">
+                    <button class="tf-btn" [class.active]="tableFilter === 'all'"
+                        (click)="tableFilter = 'all'">All</button>
+                    <button class="tf-btn present" [class.active]="tableFilter === 'present'"
+                        (click)="tableFilter = 'present'">Present</button>
+                    <button class="tf-btn absent" [class.active]="tableFilter === 'absent'"
+                        (click)="tableFilter = 'absent'">Absent</button>
+                    <button class="tf-btn late" [class.active]="tableFilter === 'late'"
+                        (click)="tableFilter = 'late'">Late</button>
+                </div>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Day</th>
+                            <th>Clock In</th>
+                            <th>Clock Out</th>
+                            <th>Work Hours</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (r of filteredRecords(); track r.date) {
+                        <tr>
+                            <td>{{ formatDate(r.date) }}</td>
+                            <td class="day-col">{{ r.weekday }}</td>
+                            <td>{{ r.clockIn || '—' }}</td>
+                            <td>{{ r.clockOut || '—' }}</td>
+                            <td>{{ r.workHours || '—' }}</td>
+                            <td>
+                                <span class="status-badge {{ r.status }}">{{ r.statusLabel }}</span>
+                            </td>
+                        </tr>
+                        } @empty {
+                        <tr>
+                            <td colspan="6" class="empty-row">No records found</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</main>

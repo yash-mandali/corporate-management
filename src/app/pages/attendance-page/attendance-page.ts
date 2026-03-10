@@ -1,44 +1,33 @@
 import { Component, computed, signal } from '@angular/core';
+import { LowerCasePipe, SlicePipe } from '@angular/common';
 import { Authservice } from '../../services/Auth-service/authservice';
 import { AttendanceService } from '../../services/attendance-service';
 
 export interface AttendanceRecord {
+  aId: number;
   date: string;       // 'YYYY-MM-DD'
-  weekday: string;
-  clockIn: string;    // '09:02 AM'
-  clockOut: string;   // '06:15 PM'
-  workHours: string;  // '9h 13m'
-  status: 'present' | 'absent' | 'late' | 'weekend';
-  statusLabel: string;
-}
-
-export interface CalendarCell {
-  day: number;
-  date: string;
-  weekday: string;
-  isToday: boolean;
-  isWeekend: boolean;
-  status: string;
-  statusLabel: string;
-  record: AttendanceRecord | null;
+  day: string;        // 'Monday'
+  checkIn: string;    // '09:02:00.000'
+  checkOut: string;   // '18:15:00.000'
+  hours: string;      // '9h 13m'
+  status: string;     // 'Present' | 'Absent' | 'Late' | 'Weekend'
 }
 
 @Component({
   selector: 'app-attendance-page',
-  imports: [],
+  imports: [LowerCasePipe, SlicePipe],
   templateUrl: './attendance-page.html',
   styleUrl: './attendance-page.css',
 })
-  
 export class AttendancePage {
-  userId = signal<any>(null);
-  records = signal<AttendanceRecord[]>([]);
-  selectedDay = signal<CalendarCell | null>(null);
-  tableFilter = 'all';
 
-  // Current viewed month
+  Id = signal<any | number | null>(null);
+  records = signal<AttendanceRecord[]>([]);
+  selectedRecord = signal<AttendanceRecord | null>(null);
+  tableFilter = signal('all');
+
   viewYear = new Date().getFullYear();
-  viewMonth = new Date().getMonth(); // 0-indexed
+  viewMonth = new Date().getMonth();
 
   get monthLabel(): string {
     return new Date(this.viewYear, this.viewMonth).toLocaleDateString('en-IN', {
@@ -46,66 +35,51 @@ export class AttendancePage {
     });
   }
 
-  // ── Computed stats ──
-  presentCount = computed(() => this.records().filter(r => r.status === 'present').length);
-  absentCount = computed(() => this.records().filter(r => r.status === 'absent').length);
-  lateCount = computed(() => this.records().filter(r => r.status === 'late').length);
+  // ── Computed stats (status is Capitalized from API) ──
+  presentCount = computed(() => this.records().filter(r => r.status === 'Present').length);
+  absentCount = computed(() => this.records().filter(r => r.status === 'Absent').length);
+  lateCount = computed(() => this.records().filter(r => r.status === 'Late').length);
 
   totalHours = computed(() => {
-    let total = 0;
+    let totalMins = 0;
     this.records().forEach(r => {
-      if (r.workHours) {
-        const hMatch = r.workHours.match(/(\d+)h/);
-        const mMatch = r.workHours.match(/(\d+)m/);
-        total += (hMatch ? parseInt(hMatch[1]) : 0) * 60 + (mMatch ? parseInt(mMatch[1]) : 0);
+      if (!r.hours) return;
+      const val = String(r.hours).trim();
+
+      if (val.includes('h') || val.includes('m')) {
+        // "9h 13m" or "9h" or "45m"
+        const h = val.match(/(\d+)\s*h/);
+        const m = val.match(/(\d+)\s*m/);
+        totalMins += (h ? parseInt(h[1]) : 0) * 60 + (m ? parseInt(m[1]) : 0);
+      } else if (val.includes(':')) {
+        // "09:13" HH:MM
+        const parts = val.split(':');
+        totalMins += parseInt(parts[0]) * 60 + parseInt(parts[1]);
+      } else if (!isNaN(Number(val))) {
+        // decimal "9.5" or plain minutes "550"
+        const num = parseFloat(val);
+        totalMins += num < 24 ? Math.round(num * 60) : num;
       }
     });
-    const h = Math.floor(total / 60);
-    const m = total % 60;
-    return m > 0 ? `${h}.${Math.round(m / 60 * 10)}` : `${h}`;
+    const h = Math.floor(totalMins / 60);
+    const m = totalMins % 60;
+    return m > 0 ? h + 'h ' + m + 'm' : h + 'h';
   });
 
   attendanceRate = computed(() => {
-    const workdays = this.records().filter(r => r.status !== 'weekend').length;
+    const workdays = this.records().filter(r => r.status !== 'Weekend').length;
     if (!workdays) return 0;
-    const attended = this.records().filter(r => r.status === 'present' || r.status === 'late').length;
+    const attended = this.records().filter(r => r.status === 'Present' || r.status === 'Late').length;
     return Math.round((attended / workdays) * 100);
   });
 
-  // ── Calendar cells ──
-  calendarCells = computed(() => {
-    const firstDay = new Date(this.viewYear, this.viewMonth, 1).getDay();
-    const daysInMonth = new Date(this.viewYear, this.viewMonth + 1, 0).getDate();
-    const today = new Date();
-    const cells: (CalendarCell | null)[] = [];
-
-    // leading empty cells
-    for (let i = 0; i < firstDay; i++) cells.push(null);
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = `${this.viewYear}-${String(this.viewMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      const dateObj = new Date(this.viewYear, this.viewMonth, d);
-      const dow = dateObj.getDay();
-      const isWeekend = dow === 0 || dow === 6;
-      const isToday = today.getFullYear() === this.viewYear && today.getMonth() === this.viewMonth && today.getDate() === d;
-      const record = this.records().find(r => r.date === dateStr) || null;
-      const status = isWeekend ? 'weekend' : (record?.status || '');
-      cells.push({
-        day: d, date: dateStr,
-        weekday: dateObj.toLocaleDateString('en-IN', { weekday: 'long' }),
-        isToday, isWeekend, status,
-        statusLabel: record?.statusLabel || (isWeekend ? 'Weekend' : ''),
-        record
-      });
-    }
-    return cells;
-  });
-
-  // ── Filtered table records ──
   filteredRecords = computed(() => {
-    const recs = this.records().filter(r => r.status !== 'weekend');
-    if (this.tableFilter === 'all') return recs;
-    return recs.filter(r => r.status === this.tableFilter);
+    const recs = this.records()
+      .filter(r => r.status !== 'Weekend')
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // ascending by date
+    const filter = this.tableFilter();
+    if (filter === 'all') return recs;
+    return recs.filter(r => r.status === filter);
   });
 
   constructor(
@@ -116,41 +90,33 @@ export class AttendancePage {
   ngOnInit() {
     const id = this.auth.getUserId();
     if (id) {
-      this.userId.set(id);
-      // this.loadAttendance();
+      this.Id.set(id);
+      this.getAllAttendance();
     }
   }
 
-  // loadAttendance() {
-  //   this.attendanceService.getMyAttendance(this.userId(), this.viewMonth + 1, this.viewYear).subscribe({
-  //     next: (res: any[]) => {
-  //       const mapped: AttendanceRecord[] = res.map(r => ({
-  //         date: r.date?.split('T')[0] ?? r.date,
-  //         weekday: new Date(r.date).toLocaleDateString('en-IN', { weekday: 'short' }),
-  //         clockIn: r.clockIn ?? '',
-  //         clockOut: r.clockOut ?? '',
-  //         workHours: r.workHours ?? '',
-  //         status: r.status?.toLowerCase() as any,
-  //         statusLabel: r.status ?? '',
-  //       }));
-  //       this.records.set(mapped);
-  //       this.selectedDay.set(null);
-  //     },
-  //     error: err => console.error(err)
-  //   });
-  // }
+  getAllAttendance() {
+    this.attendanceService.getByUID(this.Id()).subscribe({
+      next: (res: AttendanceRecord[]) => {
+        this.records.set(res);
+      },
+      error: err => console.error('Attendance fetch error:', err)
+    });
+  }
+
+  selectRecord(r: AttendanceRecord) {
+    this.selectedRecord.set(r);
+  }
 
   prevMonth() {
     if (this.viewMonth === 0) { this.viewMonth = 11; this.viewYear--; }
     else this.viewMonth--;
-    // this.loadAttendance();
   }
 
   nextMonth() {
     if (this.isCurrentMonth()) return;
     if (this.viewMonth === 11) { this.viewMonth = 0; this.viewYear++; }
     else this.viewMonth++;
-    // this.loadAttendance();
   }
 
   isCurrentMonth(): boolean {
@@ -158,12 +124,21 @@ export class AttendancePage {
     return this.viewYear === now.getFullYear() && this.viewMonth === now.getMonth();
   }
 
-  selectDay(cell: CalendarCell) {
-    this.selectedDay.set(cell);
-  }
-
   formatDate(dateStr: string): string {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    return new Date(dateStr).toLocaleDateString('en-IN', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    });
+  }
+
+  formatTime(timeStr: string): string {
+    if (!timeStr) return '—';
+    const time = timeStr.split('.')[0];
+    const parts = time.split(':');
+    let hour = Number(parts[0]);
+    const min = parts[1];
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12 || 12;
+    return `${hour}:${min} ${ampm}`;
   }
 }

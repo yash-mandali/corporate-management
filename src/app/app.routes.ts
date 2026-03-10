@@ -3,11 +3,11 @@ import { Login } from './components/login/login';
 import { Signup } from './components/signup/signup';
 import { DashboardLayout } from './Layout/dashboard-layout/dashboard-layout';
 import { authGuard } from './guards/auth-guard';
-import { Dashboard } from './pages/dashboard/dashboard';
 import { ApplyLeave } from './pages/apply-leave/apply-leave';
 import { Newleavepage } from './pages/newleavepage/newleavepage';
 import { MyProfile } from './pages/myprofile/myprofile';
 import { AttendancePage } from './pages/attendance-page/attendance-page';
+import { Dashboardpage } from './pages/dashboard/dashboard';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -27,7 +27,7 @@ export const routes: Routes = [
         children: [
             {
                 path: 'dashboardpage',
-                component: Dashboard,
+                component: Dashboardpage,
                 canActivate: [authGuard],
             },
             {

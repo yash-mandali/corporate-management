@@ -188,7 +188,7 @@
       @if (totalPages() >= 1) {
       <div class="pagination">
         <span class="page-info">
-          Page {{ pageStart() }} of {{ filteredLeaves().length }}
+          Page {{ pageStart() }} of {{ filteredLeaves().length }} 
         </span>
         <div class="page-controls">
           <button class="page-btn nav-btn" (click)="prevPage()" [disabled]="currentPage() === 1" title="Previous">

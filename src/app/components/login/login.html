@@ -1,38 +1,118 @@
-<div class="login-container">
-    <div class="login-card">
-        <h2>Login</h2>
+<div class="login-root">
 
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <!-- LEFT BRAND PANEL -->
+    <div class="brand-panel">
+        <div class="brand-bg"></div>
+        <div class="brand-orb orb1"></div>
+        <div class="brand-orb orb2"></div>
+        <div class="brand-orb orb3"></div>
 
-            <!-- Email -->
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" placeholder="Enter email" formControlName="email" />
-                <small *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid">
-                    Enter valid email
-                </small>
+        <div class="brand-content">
+            <div class="brand-logo">
+                <div class="logo-icon"><i class="fas fa-business-time"></i></div>
+                <span class="logo-text">HRMS</span>
             </div>
 
-            <!-- Password -->
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" placeholder="Enter password" formControlName="password" />
-                <small *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
-                    Password is required
-                </small>
+            <div class="brand-headline">
+                <h1>Manage your<br /><span class="headline-accent">time, effortlessly.</span></h1>
+                <p class="brand-sub">Track attendance, apply for leaves, and stay on top of your schedule — all in one
+                    place.</p>
             </div>
 
-            <button type="submit" [disabled]="loginForm.invalid">
-                Login
-            </button>
-
-            <p class="signup-link">
-                Don't have an account?
-                <a routerLink="/signup">Sign Up</a>
-            </p>
-
-            <p class="message">{{ errorMessage() }}</p>
-
-        </form>
+            <div class="brand-stats">
+                <div class="bstat">
+                    <div class="bstat-val">98%</div>
+                    <div class="bstat-label">Uptime</div>
+                </div>
+                <div class="bstat-divider"></div>
+                <div class="bstat">
+                    <div class="bstat-val">5k+</div>
+                    <div class="bstat-label">Employees</div>
+                </div>
+                <div class="bstat-divider"></div>
+                <div class="bstat">
+                    <div class="bstat-val">24/7</div>
+                    <div class="bstat-label">Support</div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- RIGHT FORM PANEL -->
+    <div class="form-panel">
+        <div class="form-card">
+
+            <div class="form-header">
+                <div class="form-title">Welcome back</div>
+                <div class="form-sub">Sign in to your account to continue</div>
+            </div>
+
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+
+                <!-- Email -->
+                <div class="field-group"
+                    [class.has-error]="loginForm.get('email')?.touched && loginForm.get('email')?.invalid">
+                    <label class="field-label">Email Address</label>
+                    <div class="field-wrap">
+                        <span class="field-icon"><i class="fas fa-envelope"></i></span>
+                        <input class="field-input" type="email" placeholder="you@company.com" formControlName="email"
+                            autocomplete="email" />
+                    </div>
+                    <span class="field-error"
+                        *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid">
+                        <i class="fas fa-exclamation-circle"></i> Enter a valid email address
+                    </span>
+                </div>
+
+                <!-- Password -->
+                <div class="field-group"
+                    [class.has-error]="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
+                    <label class="field-label">Password</label>
+                    <div class="field-wrap">
+                        <span class="field-icon"><i class="fas fa-lock"></i></span>
+                        <input class="field-input" [type]="showPassword ? 'text' : 'password'"
+                            placeholder="Enter your password" formControlName="password"
+                            autocomplete="current-password" />
+                        <button type="button" class="toggle-pw" (click)="showPassword = !showPassword" tabindex="-1">
+                            <i class="fas" [class.fa-eye]="!showPassword" [class.fa-eye-slash]="showPassword"></i>
+                        </button>
+                    </div>
+                    <span class="field-error"
+                        *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
+                        <i class="fas fa-exclamation-circle"></i> Password is required
+                    </span>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="submit-btn" [disabled]="loginForm.invalid || isLoading">
+                    @if (isLoading) {
+                    <i class="fas fa-spinner fa-spin"></i> Signing in…
+                    } @else {
+                    <span>Sign In</span>
+                    <i class="fas fa-arrow-right"></i>
+                    }
+                </button>
+
+                <!-- Feedback message -->
+                @if (errorMessage()) {
+                <div class="msg-box" [class.success]="errorMessage().includes('successful')"
+                    [class.error]="!errorMessage().includes('successful')">
+                    <i class="fas" [class.fa-check-circle]="errorMessage().includes('successful')"
+                        [class.fa-times-circle]="!errorMessage().includes('successful')"></i>
+                    {{ errorMessage() }}
+                </div>
+                }
+
+            </form>
+
+            <div class="form-footer">
+                Don't have an account?
+                <a routerLink="/signup" class="signup-link">
+                    Create one <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+        </div>
+    </div>
+
 </div>

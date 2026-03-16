@@ -54,7 +54,7 @@
 }
 
 .nav-item.active {
-    /* background: var(--sidebar-active); */
+    background:#3689a2;
     color: #fff;
     font-weight: 500;
 }

@@ -4,6 +4,7 @@ import { LeaveService } from '../../services/leave-service/leave-service';
 import { Authservice } from '../../services/Auth-service/authservice';
 import { UserService } from '../../services/user-service/user-service';
 import { AttendanceService } from '../../services/attendance-service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-dashboardpage',
@@ -33,6 +34,9 @@ export class Dashboardpage implements OnInit, OnDestroy {
   elapsedTime = signal('00:00:00');
   workHours = signal<string | null>(null);
 
+  // ── Auto checkout timer ──
+  private autoCheckoutTimeout: any;
+
   // ── Computed leave stats ──
   totalLeaves = computed(() => this.myLeaves().length);
   pendingLeaves = computed(() => this.myLeaves().filter(l => l.status?.toLowerCase() === 'pending').length);
@@ -55,7 +59,8 @@ export class Dashboardpage implements OnInit, OnDestroy {
     private auth: Authservice,
     private leaveService: LeaveService,
     private userService: UserService,
-    private attendanceService: AttendanceService
+    private attendanceService: AttendanceService,
+    private toast: ToastrService
   ) { }
 
   ngOnInit() {
@@ -65,14 +70,20 @@ export class Dashboardpage implements OnInit, OnDestroy {
       this.userId.set(id);
       this.loadLeaves();
       this.loadUser();
+      this.attendanceService.autoCheckout().subscribe();
       this.restoreTodayAttendance();
     }
   }
 
   ngOnDestroy() {
     this.stopTimer();
+    if (this.autoCheckoutTimeout) {
+      clearTimeout(this.autoCheckoutTimeout);
+      this.autoCheckoutTimeout = null;
+    }
   }
 
+  // ── Greeting + date ──
   setGreeting() {
     const hour = new Date().getHours();
     this.greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
@@ -81,6 +92,7 @@ export class Dashboardpage implements OnInit, OnDestroy {
     this.todayDate = now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
+  // ── Data loaders ──
   loadLeaves() {
     this.isLoading = true;
     this.leaveService.getMyleaveList(this.userId()).subscribe({
@@ -96,10 +108,10 @@ export class Dashboardpage implements OnInit, OnDestroy {
     });
   }
 
+  // ── Restore today's attendance on page load ──
   restoreTodayAttendance() {
     this.attendanceService.getByUID(this.userId()).subscribe({
       next: (records: any[]) => {
-        // Use LOCAL date to avoid UTC/IST timezone mismatch
         const now = new Date();
         const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
@@ -112,16 +124,14 @@ export class Dashboardpage implements OnInit, OnDestroy {
         const aid = todayRecord.aId ?? todayRecord.attendanceId ?? todayRecord.id;
         if (aid) this.attendanceId.set(aid);
 
-        // Use isCheckIn boolean flag — more reliable than checking string value
         if (todayRecord.isCheckIn && todayRecord.checkIn) {
-          const ciClean = todayRecord.checkIn.toString().split('.')[0]; // "18:16:31"
+          const ciClean = todayRecord.checkIn.toString().split('.')[0];
           const ciDate = new Date(`${todayStr}T${ciClean}`);
           this.checkInDate = isNaN(ciDate.getTime()) ? now : ciDate;
           this.checkInTime.set(this.formatTime(todayRecord.checkIn));
           this.checkedIn.set(true);
         }
 
-        // Use isCheckOut boolean flag — checkOut is null when not yet checked out
         if (todayRecord.isCheckOut && todayRecord.checkOut) {
           const coClean = todayRecord.checkOut.toString().split('.')[0];
           const coDate = new Date(`${todayStr}T${coClean}`);
@@ -134,8 +144,9 @@ export class Dashboardpage implements OnInit, OnDestroy {
             ));
           }
         } else if (todayRecord.isCheckIn) {
-          // Checked in but not out → resume live timer
+          // Still checked in — resume timer and schedule auto checkout
           this.startTimer();
+          this.scheduleAutoCheckout();
         }
       },
       error: (err) => console.error('restoreTodayAttendance error:', err)
@@ -149,10 +160,8 @@ export class Dashboardpage implements OnInit, OnDestroy {
 
     this.attendanceService.checkIn(this.userId()).subscribe({
       next: (res: any) => {
-        // SP returns: SELECT CAST(SCOPE_IDENTITY() AS INT) AS AttendanceId
         const aid = res?.attendanceId ?? res?.AttendanceId ?? res?.aId;
         if (aid) this.attendanceId.set(aid);
-        console.log('CheckIn — attendanceId stored:', aid);
 
         const now = new Date();
         this.checkInDate = now;
@@ -160,9 +169,12 @@ export class Dashboardpage implements OnInit, OnDestroy {
         this.checkedIn.set(true);
         this.attendanceLoading.set(false);
         this.startTimer();
+        this.scheduleAutoCheckout(); // schedule 11 PM auto checkout
+        // this.toast.success('Checked in successfully!');
       },
       error: (err) => {
         console.error('CheckIn error:', err);
+        this.toast.error(err?.error?.message ?? 'Check-in failed. Please try again.');
         this.attendanceLoading.set(false);
       }
     });
@@ -173,10 +185,8 @@ export class Dashboardpage implements OnInit, OnDestroy {
     if (this.attendanceLoading()) return;
     this.attendanceLoading.set(true);
 
-    // SP param is @AttendenceId — pass the stored aId from checkIn
     this.attendanceService.checkOut(this.attendanceId()).subscribe({
       next: (res: any) => {
-        console.log('CheckOut response:', res);
         const now = new Date();
         this.checkOutTime.set(this.formatTime(now.toISOString()));
         this.checkedOut.set(true);
@@ -185,15 +195,84 @@ export class Dashboardpage implements OnInit, OnDestroy {
           this.workHours.set(this.calcWorkHours(this.checkInDate, now));
         }
         this.stopTimer();
+        // Cancel the scheduled auto checkout since user checked out manually
+        if (this.autoCheckoutTimeout) {
+          clearTimeout(this.autoCheckoutTimeout);
+          this.autoCheckoutTimeout = null;
+        }
+        // this.toast.success('Checked out successfully!');
       },
       error: (err) => {
         console.error('CheckOut error:', err);
+        this.toast.error(err?.error?.message ?? 'Check-out failed. Please try again.');
         this.attendanceLoading.set(false);
       }
     });
   }
 
-  // ── Timer ──
+
+  // ── Auto Checkout at 11 PM ──
+  scheduleAutoCheckout() {
+    // Clear any existing auto-checkout timer first
+    if (this.autoCheckoutTimeout) {
+      clearTimeout(this.autoCheckoutTimeout);
+      this.autoCheckoutTimeout = null;
+    }
+
+    const now = new Date();
+    const cutoff = new Date();
+    cutoff.setHours(23, 0, 0, 0); // 11:00 PM today
+
+    const msUntilCutoff = cutoff.getTime() - now.getTime();
+
+    if (msUntilCutoff <= 0) {
+      // Already past 11 PM — checkout immediately
+      this.performAutoCheckout();
+    } else {
+      // Schedule checkout at exactly 11 PM
+      this.autoCheckoutTimeout = setTimeout(() => {
+        this.performAutoCheckout();
+      }, msUntilCutoff);
+
+      console.log(`Auto checkout scheduled in ${Math.round(msUntilCutoff / 60000)} minutes.`);
+    }
+  }
+
+  performAutoCheckout() {
+    // Guard: only run if checked in but not yet checked out
+    if (!this.checkedIn() || this.checkedOut()) return;
+    // Guard: must have a valid attendance ID to call the API
+    if (!this.attendanceId()) {
+      console.warn('Auto checkout: no attendanceId available.');
+      return;
+    }
+
+    this.attendanceService.checkOut(this.attendanceId()).subscribe({
+      next: () => {
+        const now = new Date();
+        this.checkOutTime.set(this.formatTime(now.toISOString()));
+        this.checkedOut.set(true);
+        if (this.checkInDate) {
+          this.workHours.set(this.calcWorkHours(this.checkInDate, now));
+        }
+        this.stopTimer();
+        this.autoCheckoutTimeout = null;
+        this.toast.info('You were automatically checked out at 11:00 PM.', 'Auto Checkout', {
+          timeOut: 8000,
+          progressBar: true,
+        });
+      },
+      error: (err) => {
+        console.error('Auto checkout error:', err);
+        this.toast.warning('Auto check-out failed. Please check out manually.', 'Auto Checkout Failed', {
+          timeOut: 10000,
+          progressBar: true,
+        });
+      }
+    });
+  }
+
+  // ── Timer helpers ──
   startTimer() {
     this.stopTimer();
     this.updateElapsed();
@@ -201,7 +280,10 @@ export class Dashboardpage implements OnInit, OnDestroy {
   }
 
   stopTimer() {
-    if (this.elapsedInterval) { clearInterval(this.elapsedInterval); this.elapsedInterval = null; }
+    if (this.elapsedInterval) {
+      clearInterval(this.elapsedInterval);
+      this.elapsedInterval = null;
+    }
   }
 
   updateElapsed() {
@@ -211,7 +293,7 @@ export class Dashboardpage implements OnInit, OnDestroy {
     const m = Math.floor((diffMs % 3600000) / 60000);
     const s = Math.floor((diffMs % 60000) / 1000);
     this.elapsedTime.set(
-      `${String(h).padStart(2, '0')}:${String(m).padStart(2, '00')}:${String(s).padStart(2, '0')}`
+      `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
     );
   }
 

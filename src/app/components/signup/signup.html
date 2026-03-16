@@ -1,64 +1,170 @@
-<div class="signup-container">
-    <div class="signup-card">
-        <h2>Sign Up</h2>
+<div class="signup-root">
 
-        <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+    <!-- LEFT BRAND PANEL -->
+    <div class="brand-panel">
+        <div class="brand-bg"></div>
+        <div class="brand-orb orb1"></div>
+        <div class="brand-orb orb2"></div>
+        <div class="brand-orb orb3"></div>
 
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" formControlName="userName" />
-                <small *ngIf="f['userName'].touched && f['userName'].invalid">
-                    Username is required
-                </small>
+        <div class="brand-content">
+            <div class="brand-logo">
+                <div class="logo-icon"><i class="fas fa-business-time"></i></div>
+                <span class="logo-text">HRMS</span>
             </div>
 
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" formControlName="email" />
-                <small *ngIf="f['email'].touched && f['email'].invalid">
-                    Enter valid email
-                </small>
+            <div class="brand-headline">
+                <h1>Join your team<br /><span class="headline-accent">in minutes.</span></h1>
+                <p class="brand-sub">Create your account and start managing attendance, leaves, and schedules the smart
+                    way.</p>
             </div>
 
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" formControlName="password" />
-                <small *ngIf="f['password'].touched && f['password'].invalid">
-                    Minimum 6 characters required
-                </small>
+            <div class="brand-features">
+                <div class="bf-item">
+                    <div class="bf-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="bf-text">
+                        <div class="bf-title">Leave Management</div>
+                        <div class="bf-sub">Apply and track leave requests instantly</div>
+                    </div>
+                </div>
+                <div class="bf-item">
+                    <div class="bf-icon"><i class="fas fa-clock"></i></div>
+                    <div class="bf-text">
+                        <div class="bf-title">Attendance Tracking</div>
+                        <div class="bf-sub">Clock in and out with a single tap</div>
+                    </div>
+                </div>
+                <div class="bf-item">
+                    <div class="bf-icon"><i class="fas fa-chart-bar"></i></div>
+                    <div class="bf-text">
+                        <div class="bf-title">Insights & Reports</div>
+                        <div class="bf-sub">Monthly summaries at a glance</div>
+                    </div>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label>Phone Number</label>
-                <input type="text" formControlName="phoneNumber" />
-                <small *ngIf="f['phoneNumber'].touched && f['phoneNumber'].invalid">
-                    Enter valid 10 digit phone number
-                </small>
-            </div>
-
-            <div class="form-group">
-                <label>Gender</label>
-                <select formControlName="gender">
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                </select>
-                <small *ngIf="f['gender'].touched && f['gender'].invalid">
-                    Gender is required
-                </small>
-            </div>
-
-            <button type="submit" [disabled]="signupForm.invalid">
-                Sign Up
-            </button>
-
-            <p class="login-link">
-                Already have an account?
-                <a routerLink="">Login</a>
-            </p>
-
-            <p class="message">{{ errorMessage() }}</p>
-
-        </form>
+        </div>
     </div>
+
+    <!-- RIGHT FORM PANEL -->
+    <div class="form-panel">
+        <div class="form-card">
+
+            <div class="form-header">
+                <div class="form-title">Create an account</div>
+                <div class="form-sub">Fill in your details to get started</div>
+            </div>
+
+            <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="signup-form">
+
+                <!-- Row: Username + Email -->
+                <div class="field-row">
+
+                    <div class="field-group" [class.has-error]="f['userName'].touched && f['userName'].invalid">
+                        <label class="field-label">Username</label>
+                        <div class="field-wrap">
+                            <span class="field-icon"><i class="fas fa-user"></i></span>
+                            <input class="field-input" type="text" placeholder="e.g. john_doe"
+                                formControlName="userName" autocomplete="username" />
+                        </div>
+                        <span class="field-error" *ngIf="f['userName'].touched && f['userName'].invalid">
+                            <i class="fas fa-exclamation-circle"></i> Username is required
+                        </span>
+                    </div>
+
+                    <div class="field-group" [class.has-error]="f['email'].touched && f['email'].invalid">
+                        <label class="field-label">Email Address</label>
+                        <div class="field-wrap">
+                            <span class="field-icon"><i class="fas fa-envelope"></i></span>
+                            <input class="field-input" type="email" placeholder="you@company.com"
+                                formControlName="email" autocomplete="email" />
+                        </div>
+                        <span class="field-error" *ngIf="f['email'].touched && f['email'].invalid">
+                            <i class="fas fa-exclamation-circle"></i> Enter a valid email
+                        </span>
+                    </div>
+
+                </div>
+
+                <!-- Password -->
+                <div class="field-group" [class.has-error]="f['password'].touched && f['password'].invalid">
+                    <label class="field-label">Password</label>
+                    <div class="field-wrap">
+                        <span class="field-icon"><i class="fas fa-lock"></i></span>
+                        <input class="field-input" [type]="showPassword ? 'text' : 'password'"
+                            placeholder="Minimum 6 characters" formControlName="password" autocomplete="new-password" />
+                        <button type="button" class="toggle-pw" (click)="showPassword = !showPassword" tabindex="-1">
+                            <i class="fas" [class.fa-eye]="!showPassword" [class.fa-eye-slash]="showPassword"></i>
+                        </button>
+                    </div>
+                    <span class="field-error" *ngIf="f['password'].touched && f['password'].invalid">
+                        <i class="fas fa-exclamation-circle"></i> Minimum 6 characters required
+                    </span>
+                </div>
+
+                <!-- Row: Phone + Gender -->
+                <div class="field-row">
+
+                    <div class="field-group" [class.has-error]="f['phoneNumber'].touched && f['phoneNumber'].invalid">
+                        <label class="field-label">Phone Number</label>
+                        <div class="field-wrap">
+                            <span class="field-icon"><i class="fas fa-phone"></i></span>
+                            <input class="field-input" type="text" placeholder="10-digit number"
+                                formControlName="phoneNumber" maxlength="10" autocomplete="tel" />
+                        </div>
+                        <span class="field-error" *ngIf="f['phoneNumber'].touched && f['phoneNumber'].invalid">
+                            <i class="fas fa-exclamation-circle"></i> Enter a valid 10-digit number
+                        </span>
+                    </div>
+
+                    <div class="field-group" [class.has-error]="f['gender'].touched && f['gender'].invalid">
+                        <label class="field-label">Gender</label>
+                        <div class="field-wrap">
+                            <span class="field-icon"><i class="fas fa-venus-mars"></i></span>
+                            <select class="field-input field-select" formControlName="gender">
+                                <option value="" disabled selected>Select gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <span class="select-arrow"><i class="fas fa-chevron-down"></i></span>
+                        </div>
+                        <span class="field-error" *ngIf="f['gender'].touched && f['gender'].invalid">
+                            <i class="fas fa-exclamation-circle"></i> Gender is required
+                        </span>
+                    </div>
+
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="submit-btn" [disabled]="signupForm.invalid || isLoading">
+                    @if (isLoading) {
+                    <i class="fas fa-spinner fa-spin"></i> Creating account…
+                    } @else {
+                    <span>Create Account</span>
+                    <i class="fas fa-arrow-right"></i>
+                    }
+                </button>
+
+                <!-- Feedback message -->
+                @if (errorMessage()) {
+                <div class="msg-box" [class.success]="errorMessage().includes('successful')"
+                    [class.error]="!errorMessage().includes('successful')">
+                    <i class="fas" [class.fa-check-circle]="errorMessage().includes('successful')"
+                        [class.fa-times-circle]="!errorMessage().includes('successful')"></i>
+                    {{ errorMessage() }}
+                </div>
+                }
+
+            </form>
+
+            <div class="form-footer">
+                Already have an account?
+                <a routerLink="/" class="login-link">
+                    Sign in <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+        </div>
+    </div>
+
 </div>

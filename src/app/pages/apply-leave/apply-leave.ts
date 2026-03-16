@@ -31,7 +31,7 @@ export class ApplyLeave {
 
   activeFilter = signal<string>('all');
   currentPage = signal<number>(1);
-  readonly pageSize = 10;
+  readonly pageSize = 5;
 
   filteredLeaves = computed(() => {
     const filter = this.activeFilter();

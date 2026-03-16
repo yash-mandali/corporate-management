@@ -8,6 +8,7 @@ import { Newleavepage } from './pages/newleavepage/newleavepage';
 import { MyProfile } from './pages/myprofile/myprofile';
 import { AttendancePage } from './pages/attendance-page/attendance-page';
 import { Dashboardpage } from './pages/dashboard/dashboard';
+import {Timesheetpage } from './pages/timesheetpage/timesheetpage';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -48,6 +49,11 @@ export const routes: Routes = [
             {
                 path: 'Attendance',
                 component: AttendancePage,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'timesheet',
+                component: Timesheetpage,
                 canActivate: [authGuard],
             },
         ]

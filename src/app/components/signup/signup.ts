@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from '../../services/user-service/user-service';
-import { take } from 'rxjs';
 import { Router, RouterLink } from '@angular/router';
 
 @Component({
@@ -14,6 +13,8 @@ import { Router, RouterLink } from '@angular/router';
 export class Signup {
   signupForm!: FormGroup;
   errorMessage = signal('');
+  isLoading = false;
+  showPassword = false;
 
   constructor(
     private fb: FormBuilder,
@@ -23,42 +24,41 @@ export class Signup {
 
   ngOnInit() {
     this.signupForm = this.fb.group({
+      Id:[''],
       userName: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      phoneNumber: ['', [Validators.maxLength(10), Validators.pattern(/^[0-9]{10}$/)]],
+      phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
       gender: ['', [Validators.required]],
       address: ['empty'],
       roleId: ['2']
     });
   }
-  get userName() { return this.signupForm.get('userName'); }
-  get email() { return this.signupForm.get('email'); }
-  get password() { return this.signupForm.get('password'); }
-  get phoneNumber() { return this.signupForm.get('phoneNumber'); }
-  get gender() { return this.signupForm.get('gender'); }
+
+  get f() { return this.signupForm.controls; }
 
   onSubmit() {
-    const data = this.signupForm.value;
     if (this.signupForm.invalid) {
+      this.signupForm.markAllAsTouched();
       this.errorMessage.set('Please fill in all required fields with valid data.');
       return;
     }
+
+    this.isLoading = true;
+    this.errorMessage.set('');
+    const data = this.signupForm.value;
+
     this.userservice.signup(data).subscribe({
       next: (res: any) => {
-        this.errorMessage.set('Signup successful');
-        console.log(res); 
+        this.errorMessage.set('Account created successfully! Redirecting…');
+        this.isLoading = false;
         this.signupForm.reset();
-        this.router.navigate(['/']);
+        setTimeout(() => this.router.navigate(['/']), 900);
       },
       error: (err) => {
-        this.errorMessage.set('Signup failed. Please try again.');
-        console.log(err.error.message);
-        
+        this.errorMessage.set(err?.error?.message ?? 'Signup failed. Please try again.');
+        this.isLoading = false;
       }
-    })
-  }
-  get f() {
-    return this.signupForm.controls;
+    });
   }
 }

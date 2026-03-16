@@ -26,37 +26,58 @@ export class AttendancePage {
   selectedRecord = signal<AttendanceRecord | null>(null);
   tableFilter = signal('all');
 
-  viewYear = new Date().getFullYear();
-  viewMonth = new Date().getMonth();
+  // ── Month navigation (signals for reactivity) ──
+  viewYear = signal(new Date().getFullYear());
+  viewMonth = signal(new Date().getMonth());
+
+  // ── Pagination ──
+  currentPage = signal(1);
+  readonly pageSize = 5;
 
   get monthLabel(): string {
-    return new Date(this.viewYear, this.viewMonth).toLocaleDateString('en-IN', {
+    return new Date(this.viewYear(), this.viewMonth()).toLocaleDateString('en-IN', {
       month: 'long', year: 'numeric'
     });
   }
 
-  // ── Computed stats (status is Capitalized from API) ──
-  presentCount = computed(() => this.records().filter(r => r.status === 'Present').length);
-  absentCount = computed(() => this.records().filter(r => r.status === 'Absent').length);
-  lateCount = computed(() => this.records().filter(r => r.status === 'Late').length);
+  // ── Computed stats filtered by selected month ──
+  presentCount = computed(() =>
+    this.records().filter(r =>
+      r.status === 'Present' &&
+      new Date(r.date).getFullYear() === this.viewYear() &&
+      new Date(r.date).getMonth() === this.viewMonth()
+    ).length
+  );
+
+  absentCount = computed(() =>
+    this.records().filter(r =>
+      r.status === 'Absent' &&
+      new Date(r.date).getFullYear() === this.viewYear() &&
+      new Date(r.date).getMonth() === this.viewMonth()
+    ).length
+  );
+
+  lateCount = computed(() =>
+    this.records().filter(r =>
+      r.status === 'Late' &&
+      new Date(r.date).getFullYear() === this.viewYear() &&
+      new Date(r.date).getMonth() === this.viewMonth()
+    ).length
+  );
 
   totalHours = computed(() => {
     let totalMins = 0;
-    this.records().forEach(r => {
+    this.filteredRecords().forEach(r => {
       if (!r.hours) return;
       const val = String(r.hours).trim();
-
       if (val.includes('h') || val.includes('m')) {
-        // "9h 13m" or "9h" or "45m"
         const h = val.match(/(\d+)\s*h/);
         const m = val.match(/(\d+)\s*m/);
         totalMins += (h ? parseInt(h[1]) : 0) * 60 + (m ? parseInt(m[1]) : 0);
       } else if (val.includes(':')) {
-        // "09:13" HH:MM
         const parts = val.split(':');
         totalMins += parseInt(parts[0]) * 60 + parseInt(parts[1]);
       } else if (!isNaN(Number(val))) {
-        // decimal "9.5" or plain minutes "550"
         const num = parseFloat(val);
         totalMins += num < 24 ? Math.round(num * 60) : num;
       }
@@ -67,20 +88,50 @@ export class AttendancePage {
   });
 
   attendanceRate = computed(() => {
-    const workdays = this.records().filter(r => r.status !== 'Weekend').length;
+    const workdays = this.filteredRecords().filter(r => r.status !== 'Weekend').length;
     if (!workdays) return 0;
-    const attended = this.records().filter(r => r.status === 'Present' || r.status === 'Late').length;
+    const attended = this.filteredRecords().filter(r => r.status === 'Present' || r.status === 'Late').length;
     return Math.round((attended / workdays) * 100);
   });
 
+  // All records for selected month, filtered by status, sorted ascending
   filteredRecords = computed(() => {
     const recs = this.records()
-      .filter(r => r.status !== 'Weekend')
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // ascending by date
+      .filter(r => {
+        const d = new Date(r.date);
+        return (
+          r.status !== 'Weekend' &&
+          d.getFullYear() === this.viewYear() &&
+          d.getMonth() === this.viewMonth()
+        );
+      })
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // latest first
+
     const filter = this.tableFilter();
     if (filter === 'all') return recs;
+
     return recs.filter(r => r.status === filter);
   });
+
+  // ── Pagination computed ──
+  totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredRecords().length / this.pageSize))
+  );
+
+  pageNumbers = computed(() =>
+    Array.from({ length: this.totalPages() }, (_, i) => i + 1)
+  );
+
+  pagedRecords = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return this.filteredRecords().slice(start, start + this.pageSize);
+  });
+
+  pageRangeStart = computed(() => (this.currentPage() - 1) * this.pageSize + 1);
+
+  pageRangeEnd = computed(() =>
+    Math.min(this.currentPage() * this.pageSize, this.filteredRecords().length)
+  );
 
   constructor(
     private auth: Authservice,
@@ -104,24 +155,42 @@ export class AttendancePage {
     });
   }
 
+  // Reset page to 1 when filter changes
+  setFilter(f: string) {
+    this.tableFilter.set(f);
+    this.currentPage.set(1);
+  }
+
   selectRecord(r: AttendanceRecord) {
     this.selectedRecord.set(r);
   }
 
   prevMonth() {
-    if (this.viewMonth === 0) { this.viewMonth = 11; this.viewYear--; }
-    else this.viewMonth--;
+    if (this.viewMonth() === 0) {
+      this.viewMonth.set(11);
+      this.viewYear.update(y => y - 1);
+    } else {
+      this.viewMonth.update(m => m - 1);
+    }
+    this.currentPage.set(1);
+    this.selectedRecord.set(null);
   }
 
   nextMonth() {
     if (this.isCurrentMonth()) return;
-    if (this.viewMonth === 11) { this.viewMonth = 0; this.viewYear++; }
-    else this.viewMonth++;
+    if (this.viewMonth() === 11) {
+      this.viewMonth.set(0);
+      this.viewYear.update(y => y + 1);
+    } else {
+      this.viewMonth.update(m => m + 1);
+    }
+    this.currentPage.set(1);
+    this.selectedRecord.set(null);
   }
 
   isCurrentMonth(): boolean {
     const now = new Date();
-    return this.viewYear === now.getFullYear() && this.viewMonth === now.getMonth();
+    return this.viewYear() === now.getFullYear() && this.viewMonth() === now.getMonth();
   }
 
   formatDate(dateStr: string): string {

@@ -14,43 +14,50 @@ import { Authservice } from '../../services/Auth-service/authservice';
 export class Login {
   loginForm!: FormGroup;
   errorMessage = signal('');
+  isLoading = false;
+  showPassword = false;
 
   constructor(
     private fb: FormBuilder,
     private userservice: UserService,
-    private authService:Authservice,
-    private router:Router
+    private authService: Authservice,
+    private router: Router
   ) { }
 
   ngOnInit() {
     this.loginForm = this.fb.group({
-      email: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
     });
   }
 
-
   onSubmit() {
-    const data = this.loginForm.value;
-    
     if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
       this.errorMessage.set('Please fill in all required fields.');
       return;
     }
-    
+
+    this.isLoading = true;
+    this.errorMessage.set('');
+
+    const data = this.loginForm.value;
+
     this.userservice.login(data).subscribe({
       next: (res: any) => {
-        this.authService.setToken(res.token)
-        this.authService.setUserId(res.userId)
-        this.errorMessage.set('login successful');
-        this.router.navigate(['/dashboard/dashboardpage']);
-        this.loginForm.reset();
+        this.authService.setToken(res.token);
+        this.authService.setUserId(res.userId);
+        this.errorMessage.set('Login successful! Redirecting…');
+        this.isLoading = false;
+        setTimeout(() => {
+          this.router.navigate(['/dashboard/dashboardpage']);
+          this.loginForm.reset();
+        }, 800);
       },
-      error: (err) => {
-        this.errorMessage.set('Invalid email or password.');
+      error: () => {
+        this.errorMessage.set('Invalid email or password. Please try again.');
+        this.isLoading = false;
       }
-    })
-
+    });
   }
 }
-

@@ -11,7 +11,8 @@ export class AttendanceService {
   apiurl = environment.ApiUrl;
   checkInApi = `${this.apiurl}/Attendance/CheckIn`;
   checkOutApi = `${this.apiurl}/Attendance/CheckOut`;
-  getAllAttendance = `${this.apiurl}/Attendance/GetAllAttendance`;
+  AutoCheckOutApi = `${this.apiurl}/Attendance/AutoCheckout`;
+  getAllAttendance = `${this.apiurl}/Attendance/GetAllAttendance`; //for Admin
   getByUserId = `${this.apiurl}/Attendance/getByUserId`;
   getByAttendanceId = `${this.apiurl}/Attendance/getByAttendanceId`;
 
@@ -28,7 +29,11 @@ export class AttendanceService {
       params: { Id: Id.toString() }
     })
   }
-  
+
+  autoCheckout() {
+    return this.http.put<any>(this.AutoCheckOutApi, {});
+  }
+
   getByAID(Id: number) {
     return this.http.get<any[]>(this.getByAttendanceId, {
       params:{Id:Id.toString()}

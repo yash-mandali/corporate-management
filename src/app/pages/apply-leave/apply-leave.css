@@ -21,7 +21,7 @@
 body {
     font-family: 'Nunito', sans-serif;
     background: #ebf4f6;
-    color: var(--text);
+    color: #0d2d36;
 }
 
 /* ── MAIN ── */
@@ -92,7 +92,7 @@ body {
 .sum-val {
     font-size: 24px;
     font-weight: 800;
-    color: var(--text);
+    color: #0d2d36;
     line-height: 1;
 }
 
@@ -124,7 +124,7 @@ body {
 .section-bar-title {
     font-size: 14px;
     font-weight: 800;
-    color: var(--text);
+    color: #0d2d36;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -279,7 +279,7 @@ tbody tr:hover {
 tbody td {
     padding: 13px 16px;
     font-size: 13px;
-    color: var(--text);
+    color: #0d2d36;
     font-weight: 500;
     white-space: nowrap;
 }
@@ -895,7 +895,7 @@ tbody td {
     border-radius: 9px;
     font-family: 'Nunito', sans-serif;
     font-size: 13px;
-    color: var(--text);
+    color: #0d2d36;
     background: #ebf4f6;
     outline: none;
     width: 100%;

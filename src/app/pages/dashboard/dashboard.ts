@@ -69,7 +69,7 @@ export class Dashboardpage implements OnInit, OnDestroy {
     return [...this.myTimesheets()]
       .filter(t => { const d = this.dateStr(t.workDate); return d >= start && d <= end; })
       .sort((a, b) => this.dateStr(b.workDate).localeCompare(this.dateStr(a.workDate)))
-      .slice(0, 4);
+      .slice(0, 3);
   });
 
   // ── Today header ──
@@ -87,7 +87,7 @@ export class Dashboardpage implements OnInit, OnDestroy {
   recentLeaves = computed(() =>
     [...this.myLeaves()]
       .sort((a, b) => new Date(b.appliedOn).getTime() - new Date(a.appliedOn).getTime())
-      .slice(0, 5)
+      .slice(0, 3)
   );
 
   // ── Attendance computed ──
@@ -135,6 +135,9 @@ export class Dashboardpage implements OnInit, OnDestroy {
       this.loadTimesheets();
       this.attendanceService.autoCheckout().subscribe();
       this.restoreTodayAttendance();
+
+      console.log("check userinfo: ",this.userInfo());
+      
     }
   }
 
@@ -163,7 +166,9 @@ export class Dashboardpage implements OnInit, OnDestroy {
 
   loadUser() {
     this.userService.getUserById(this.userId()).subscribe({
-      next: res => this.userInfo.set(res),
+      next: res => {
+        this.userInfo.set(res)
+      },
       error: err => console.error(err)
     });
   }

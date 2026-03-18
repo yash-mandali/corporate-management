@@ -11,18 +11,12 @@
                 </div>
             </div>
             <div class="ph-badge">
-                <i class="fas fa-circle ph-online"></i> Online
+                <i class="fas fa-circle ph-online"></i> {{ userInfo().isActive ?'Active':'Offline'}}
             </div>
         </div>
 
         <!-- ══ EMPLOYEE SUMMARY ══ -->
         <div class="section">
-            <div class="section-label">
-                <div class="sl-line"></div>
-                <span><i class="fas fa-user"></i> Employee Summary</span>
-                <div class="sl-line"></div>
-            </div>
-
             <div class="emp-summary-card">
                 <!-- Avatar + Info -->
                 <div class="emp-hero">
@@ -37,7 +31,7 @@
                                 'Engineering' }}</span>
                         </div>
                         <div class="emp-status-row">
-                            <span class="emp-status-badge active"><i class="fas fa-circle"></i> Active</span>
+                            <span class="emp-status-badge active"><i class="fas fa-circle"></i>{{ userInfo().isActive ?'Active':'Offline'}}</span>
                             <span class="emp-joined">Joined {{ userInfo()?.createdAt | date: 'MMM yyyy' }}</span>
                         </div>
                     </div>
@@ -123,7 +117,6 @@
                     }
                 </div>
             </div>
-
             <!-- Monthly attendance stats -->
             <div class="att-stats-grid">
                 <div class="att-stat-card present">
@@ -249,7 +242,6 @@
                 </div>
                 }
 
-               
             </div>
         </div>
 
@@ -319,7 +311,7 @@
                 </div>
                 }
 
-                
+
             </div>
         </div>
 

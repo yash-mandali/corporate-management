@@ -1,225 +1,225 @@
-<main class="main">
-    <div class="content">
+    <main class="main">
+        <div class="content">
 
-        <!-- HEADER -->
-        <div class="page-header">
-            <div class="page-header-left">
-                <div class="page-icon"><i class="fas fa-calendar-check"></i></div>
-                <div>
-                    <div class="page-title">Attendance</div>
-                    <div class="page-sub">{{ monthLabel }}</div>
-                </div>
-            </div>
-            <div class="month-nav">
-                <button class="mnav-btn" (click)="prevMonth()">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <span class="mnav-label">{{ monthLabel }}</span>
-                <button class="mnav-btn" (click)="nextMonth()" [disabled]="isCurrentMonth()">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- STAT CARDS -->
-        <div class="stat-row">
-            <div class="stat-card present">
-                <div class="sc-left">
-                    <div class="sc-icon"><i class="fas fa-user-check"></i></div>
-                </div>
-                <div class="sc-right">
-                    <div class="sc-val">{{ presentCount() }}</div>
-                    <div class="sc-label">Present</div>
-                </div>
-            </div>
-
-            <div class="stat-card absent">
-                <div class="sc-left">
-                    <div class="sc-icon"><i class="fas fa-user-times"></i></div>
-                </div>
-                <div class="sc-right">
-                    <div class="sc-val">{{ absentCount() }}</div>
-                    <div class="sc-label">Absent</div>
-                </div>
-            </div>
-
-            <div class="stat-card late">
-                <div class="sc-left">
-                    <div class="sc-icon"><i class="fas fa-user-clock"></i></div>
-                </div>
-                <div class="sc-right">
-                    <div class="sc-val">{{ lateCount() }}</div>
-                    <div class="sc-label">Late</div>
-                </div>
-            </div>
-
-            <div class="stat-card hours">
-                <div class="sc-left">
-                    <div class="sc-icon"><i class="fas fa-stopwatch"></i></div>
-                </div>
-                <div class="sc-right">
-                    <div class="sc-val">{{ totalHours() }}<span class="sc-unit"></span></div>
-                    <div class="sc-label">Total Hours</div>
-                </div>
-            </div>
-
-            <div class="stat-card rate">
-                <div class="sc-left">
-                    <div class="sc-icon"><i class="fas fa-chart-pie"></i></div>
-                </div>
-                <div class="sc-right">
-                    <div class="sc-val">{{ attendanceRate() }}<span class="sc-unit">%</span></div>
-                    <div class="sc-label">Attendance Rate</div>
-                    <div class="sc-track">
-                        <div class="sc-fill" [style.width]="attendanceRate() + '%'"></div>
+            <!-- HEADER -->
+            <div class="page-header">
+                <div class="page-header-left">
+                    <div class="page-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div>
+                        <div class="page-title">Attendance</div>
+                        <div class="page-sub">{{ monthLabel }}</div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- MAIN GRID: TABLE + DETAIL -->
-        <div class="main-grid">
-
-            <!-- TABLE CARD -->
-            <div class="table-card">
-                <div class="tc-header">
-                    <div class="tc-title"><i class="fas fa-list-ul"></i> Monthly Log</div>
-                    <div class="tc-filters">
-                        <button class="tf" [class.active]="tableFilter()==='all'"
-                            (click)="setFilter('all')">All</button>
-                        <button class="tf present" [class.active]="tableFilter()==='Present'"
-                            (click)="setFilter('Present')">Present</button>
-                        <button class="tf absent" [class.active]="tableFilter()==='Absent'"
-                            (click)="setFilter('Absent')">Absent</button>
-                        <button class="tf late" [class.active]="tableFilter()==='Late'"
-                            (click)="setFilter('Late')">Late</button>
-                    </div>
-                </div>
-
-                <div class="tbl-scroll">
-                    <table>
-                        <thead>
-                            <tr>
-                                <!-- <th>#</th> -->
-                                <th>Date</th>
-                                <th>Day</th>
-                                <th>Clock In</th>
-                                <th>Clock Out</th>
-                                <th>Hours</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for (r of pagedRecords(); track r.aId; let i = $index) {
-                            <tr class="tr-{{ r.status | lowercase }}" (click)="selectRecord(r)">
-                                <!-- <td class="td-idx">{{ pageRangeStart() + i }}</td> -->
-                                <td class="td-date">{{ formatDate(r.date) }}</td>
-                                <td class="td-day">{{ r.day }}</td>
-                                <td class="td-time in">{{ formatTime(r.checkIn) }}</td>
-                                <td class="td-time out">{{ formatTime(r.checkOut) }}</td>
-                                <td class="td-hours">{{ r.hours || '—' }}</td>
-                                <td>
-                                    <span class="s-badge s-{{ r.status | lowercase }}">{{ r.status }}</span>
-                                </td>
-                            </tr>
-                            } @empty {
-                            <tr>
-                                <td colspan="7" class="td-empty">
-                                    <i class="fas fa-inbox"></i> No records found
-                                </td>
-                            </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- PAGINATION -->
-                @if (filteredRecords().length > 0) {
-                <div class="pagination">
-                    <button class="pg-btn" (click)="currentPage.set(1)" [disabled]="currentPage() === 1"
-                        title="First page">
-                        <i class="fas fa-angle-double-left"></i>
-                    </button>
-                    <button class="pg-btn" (click)="currentPage.set(currentPage() - 1)"
-                        [disabled]="currentPage() === 1">
+                <div class="month-nav">
+                    <button class="mnav-btn" (click)="prevMonth()">
                         <i class="fas fa-chevron-left"></i>
                     </button>
-
-                    @for (p of pageNumbers(); track p) {
-                    <button class="pg-num" [class.active]="p === currentPage()" (click)="currentPage.set(p)">
-                        {{ p }}
-                    </button>
-                    }
-
-                    <button class="pg-btn" (click)="currentPage.set(currentPage() + 1)"
-                        [disabled]="currentPage() === totalPages()">
+                    <span class="mnav-label">{{ monthLabel }}</span>
+                    <button class="mnav-btn" (click)="nextMonth()" [disabled]="isCurrentMonth()">
                         <i class="fas fa-chevron-right"></i>
                     </button>
-                    <button class="pg-btn" (click)="currentPage.set(totalPages())"
-                        [disabled]="currentPage() === totalPages()" title="Last page">
-                        <i class="fas fa-angle-double-right"></i>
-                    </button>
-
-                    <span class="pg-info">
-                        {{currentPage() }} of {{totalPages()}} Pages
-                    </span>
                 </div>
-                }
             </div>
 
-            <!-- DETAIL PANEL -->
-            <div class="detail-panel">
-                @if (selectedRecord()) {
-                <div class="dp-hero">
-                    <div class="dp-date-block">
-                        <div class="dp-day-num">{{ selectedRecord()!.date | slice:8:10 }}</div>
-                        <div class="dp-meta">
-                            <div class="dp-weekday">{{ selectedRecord()!.day }}</div>
-                            <div class="dp-month">{{ formatDate(selectedRecord()!.date) }}</div>
-                        </div>
+            <!-- STAT CARDS -->
+            <div class="stat-row">
+                <div class="stat-card present">
+                    <div class="sc-left">
+                        <div class="sc-icon"><i class="fas fa-user-check"></i></div>
                     </div>
-                    <span class="dp-badge s-{{ selectedRecord()!.status | lowercase }}">
-                        {{ selectedRecord()!.status }}
-                    </span>
-                </div>
-
-                <div class="dp-body">
-                    <div class="dp-time-row">
-                        <div class="dp-time-block in">
-                            <div class="dp-time-icon"><i class="fas fa-sign-in-alt"></i></div>
-                            <div class="dp-time-label">Clock In</div>
-                            <div class="dp-time-val">{{ formatTime(selectedRecord()!.checkIn) }}</div>
-                        </div>
-                        <div class="dp-time-sep">
-                            <div class="dp-time-line"></div>
-                            <i class="fas fa-arrow-right dp-arrow"></i>
-                            <div class="dp-time-line"></div>
-                        </div>
-                        <div class="dp-time-block out">
-                            <div class="dp-time-icon"><i class="fas fa-sign-out-alt"></i></div>
-                            <div class="dp-time-label">Clock Out</div>
-                            <div class="dp-time-val">{{ formatTime(selectedRecord()!.checkOut) }}</div>
-                        </div>
-                    </div>
-
-                    <div class="dp-hours-block">
-                        <i class="fas fa-hourglass-half"></i>
-                        <div>
-                            <div class="dp-hours-label">Total Work Hours</div>
-                            <div class="dp-hours-val">{{ selectedRecord()!.hours || '—' }}</div>
-                        </div>
+                    <div class="sc-right">
+                        <div class="sc-val">{{ presentCount() }}</div>
+                        <div class="sc-label">Present</div>
                     </div>
                 </div>
 
-                } @else {
-                <div class="dp-empty">
-                    <div class="dp-empty-icon"><i class="fas fa-hand-pointer"></i></div>
-                    <div class="dp-empty-text">Select a row to view details</div>
-                    <div class="dp-empty-sub">Click any record from the table</div>
+                <div class="stat-card absent">
+                    <div class="sc-left">
+                        <div class="sc-icon"><i class="fas fa-user-times"></i></div>
+                    </div>
+                    <div class="sc-right">
+                        <div class="sc-val">{{ absentCount() }}</div>
+                        <div class="sc-label">Absent</div>
+                    </div>
                 </div>
-                }
+
+                <div class="stat-card late">
+                    <div class="sc-left">
+                        <div class="sc-icon"><i class="fas fa-user-clock"></i></div>
+                    </div>
+                    <div class="sc-right">
+                        <div class="sc-val">{{ lateCount() }}</div>
+                        <div class="sc-label">Late</div>
+                    </div>
+                </div>
+
+                <div class="stat-card hours">
+                    <div class="sc-left">
+                        <div class="sc-icon"><i class="fas fa-stopwatch"></i></div>
+                    </div>
+                    <div class="sc-right">
+                        <div class="sc-val">{{ totalHours() }}<span class="sc-unit"></span></div>
+                        <div class="sc-label">Total Hours</div>
+                    </div>
+                </div>
+
+                <div class="stat-card rate">
+                    <div class="sc-left">
+                        <div class="sc-icon"><i class="fas fa-chart-pie"></i></div>
+                    </div>
+                    <div class="sc-right">
+                        <div class="sc-val">{{ attendanceRate() }}<span class="sc-unit">%</span></div>
+                        <div class="sc-label">Attendance Rate</div>
+                        <div class="sc-track">
+                            <div class="sc-fill" [style.width]="attendanceRate() + '%'"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
+            <!-- MAIN GRID: TABLE + DETAIL -->
+            <div class="main-grid">
+
+                <!-- TABLE CARD -->
+                <div class="table-card">
+                    <div class="tc-header">
+                        <div class="tc-title"><i class="fas fa-list-ul"></i> Monthly Log</div>
+                        <div class="tc-filters">
+                            <button class="tf" [class.active]="tableFilter()==='all'"
+                                (click)="setFilter('all')">All</button>
+                            <button class="tf present" [class.active]="tableFilter()==='Present'"
+                                (click)="setFilter('Present')">Present</button>
+                            <button class="tf absent" [class.active]="tableFilter()==='Absent'"
+                                (click)="setFilter('Absent')">Absent</button>
+                            <button class="tf late" [class.active]="tableFilter()==='Late'"
+                                (click)="setFilter('Late')">Late</button>
+                        </div>
+                    </div>
+
+                    <div class="tbl-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <!-- <th>#</th> -->
+                                    <th>Date</th>
+                                    <th>Day</th>
+                                    <th>Clock In</th>
+                                    <th>Clock Out</th>
+                                    <th>Hours</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (r of pagedRecords(); track r.aId; let i = $index) {
+                                <tr class="tr-{{ r.status | lowercase }}" (click)="selectRecord(r)">
+                                    <!-- <td class="td-idx">{{ pageRangeStart() + i }}</td> -->
+                                    <td class="td-date">{{ formatDate(r.date) }}</td>
+                                    <td class="td-day">{{ r.day }}</td>
+                                    <td class="td-time in">{{ formatTime(r.checkIn) }}</td>
+                                    <td class="td-time out">{{ formatTime(r.checkOut) }}</td>
+                                    <td class="td-hours">{{ r.hours || '—' }}</td>
+                                    <td>
+                                        <span class="s-badge s-{{ r.status | lowercase }}">{{ r.status }}</span>
+                                    </td>
+                                </tr>
+                                } @empty {
+                                <tr>
+                                    <td colspan="7" class="td-empty">
+                                        <i class="fas fa-inbox"></i> No records found
+                                    </td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- PAGINATION -->
+                    @if (filteredRecords().length > 0) {
+                    <div class="pagination">
+                        <button class="pg-btn" (click)="currentPage.set(1)" [disabled]="currentPage() === 1"
+                            title="First page">
+                            <i class="fas fa-angle-double-left"></i>
+                        </button>
+                        <button class="pg-btn" (click)="currentPage.set(currentPage() - 1)"
+                            [disabled]="currentPage() === 1">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+
+                        @for (p of pageNumbers(); track p) {
+                        <button class="pg-num" [class.active]="p === currentPage()" (click)="currentPage.set(p)">
+                            {{ p }}
+                        </button>
+                        }
+
+                        <button class="pg-btn" (click)="currentPage.set(currentPage() + 1)"
+                            [disabled]="currentPage() === totalPages()">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <button class="pg-btn" (click)="currentPage.set(totalPages())"
+                            [disabled]="currentPage() === totalPages()" title="Last page">
+                            <i class="fas fa-angle-double-right"></i>
+                        </button>
+
+                        <span class="pg-info">
+                            {{currentPage() }} of {{totalPages()}} Pages
+                        </span>
+                    </div>
+                    }
+                </div>
+
+                <!-- DETAIL PANEL -->
+                <div class="detail-panel">
+                    @if (selectedRecord()) {
+                    <div class="dp-hero">
+                        <div class="dp-date-block">
+                            <div class="dp-day-num">{{ selectedRecord()!.date | slice:8:10 }}</div>
+                            <div class="dp-meta">
+                                <div class="dp-weekday">{{ selectedRecord()!.day }}</div>
+                                <div class="dp-month">{{ formatDate(selectedRecord()!.date) }}</div>
+                            </div>
+                        </div>
+                        <span class="dp-badge s-{{ selectedRecord()!.status | lowercase }}">
+                            {{ selectedRecord()!.status }}
+                        </span>
+                    </div>
+
+                    <div class="dp-body">
+                        <div class="dp-time-row">
+                            <div class="dp-time-block in">
+                                <div class="dp-time-icon"><i class="fas fa-sign-in-alt"></i></div>
+                                <div class="dp-time-label">Clock In</div>
+                                <div class="dp-time-val">{{ formatTime(selectedRecord()!.checkIn) }}</div>
+                            </div>
+                            <div class="dp-time-sep">
+                                <div class="dp-time-line"></div>
+                                <i class="fas fa-arrow-right dp-arrow"></i>
+                                <div class="dp-time-line"></div>
+                            </div>
+                            <div class="dp-time-block out">
+                                <div class="dp-time-icon"><i class="fas fa-sign-out-alt"></i></div>
+                                <div class="dp-time-label">Clock Out</div>
+                                <div class="dp-time-val">{{ formatTime(selectedRecord()!.checkOut) }}</div>
+                            </div>
+                        </div>
+
+                        <div class="dp-hours-block">
+                            <i class="fas fa-hourglass-half"></i>
+                            <div>
+                                <div class="dp-hours-label">Total Work Hours</div>
+                                <div class="dp-hours-val">{{ selectedRecord()!.hours || '—' }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    } @else {
+                    <div class="dp-empty">
+                        <div class="dp-empty-icon"><i class="fas fa-hand-pointer"></i></div>
+                        <div class="dp-empty-text">Select a row to view details</div>
+                        <div class="dp-empty-sub">Click any record from the table</div>
+                    </div>
+                    }
+                </div>
+
+            </div>
         </div>
-    </div>
-</main>
+    </main>

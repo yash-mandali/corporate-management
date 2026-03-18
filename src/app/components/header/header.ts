@@ -33,6 +33,7 @@ export class Header {
     this.timer = setInterval(() => this.updateDate(), 60_000);
     this.userEmail.set(this.auth.getEmail())
   }
+  
 
   ngOnDestroy() { clearInterval(this.timer); }
 

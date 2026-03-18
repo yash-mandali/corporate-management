@@ -1,257 +1,327 @@
 <main class="main">
     <div class="content">
 
-        <!-- GREETING BANNER -->
-        <div class="greeting-banner">
-            <div class="greeting-bg"></div>
-            <div class="greeting-body">
-                <div class="greeting-left">
-                    <div class="greeting-text">
-                        <span class="greeting-hey">{{ greeting }},</span>
-                        <span class="greeting-name">{{ userName() }}</span>
-                    </div>
-                    <div class="greeting-sub">Here's what's happening with your leaves today.</div>
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+            <div class="ph-left">
+                <div class="ph-icon"><i class="fas fa-th-large"></i></div>
+                <div>
+                    <div class="ph-title">Dashboard</div>
+                    <div class="ph-sub">{{ greeting }}, {{ userName() }} — {{ todayDate }}</div>
                 </div>
-                <div class="greeting-right">
-                    <div class="greeting-date-box">
-                        <div class="gdb-day">{{ todayDay }}</div>
-                        <div class="gdb-date">{{ todayDate }}</div>
-                    </div>
+            </div>
+            <div class="ph-badge">
+                <i class="fas fa-circle ph-online"></i> Online
+            </div>
+        </div>
 
-                    <!-- CHECK IN / OUT CARD -->
-                    <div class="checkin-card">
-                        <div class="checkin-times">
-                            <div class="ct-block">
-                                <div class="ct-label"><i class="fas fa-sign-in-alt"></i> In</div>
-                                <div class="ct-val">{{ checkInTime() || '—' }}</div>
-                            </div>
-                            <div class="ct-divider"></div>
-                            <div class="ct-block">
-                                <div class="ct-label"><i class="fas fa-sign-out-alt"></i> Out</div>
-                                <div class="ct-val">{{ checkOutTime() || '—' }}</div>
-                            </div>
+        <!-- ══ EMPLOYEE SUMMARY ══ -->
+        <div class="section">
+            <div class="section-label">
+                <div class="sl-line"></div>
+                <span><i class="fas fa-user"></i> Employee Summary</span>
+                <div class="sl-line"></div>
+            </div>
+
+            <div class="emp-summary-card">
+                <!-- Avatar + Info -->
+                <div class="emp-hero">
+                    <div class="emp-avatar">{{ initials() }}</div>
+                    <div class="emp-info">
+                        <div class="emp-name">{{ userInfo()?.userName || '—' }}</div>
+                        <div class="emp-meta-row">
+                            <span class="emp-meta-item"><i class="fas fa-id-badge"></i> EMP-{{ userId() || '—' }}</span>
+                            <span class="emp-meta-item"><i class="fas fa-briefcase"></i> {{ userInfo()?.roleName || '—'
+                                }}</span>
+                            <span class="emp-meta-item"><i class="fas fa-building"></i> {{ userInfo()?.department ||
+                                'Engineering' }}</span>
                         </div>
-
-                        <div class="checkin-actions">
-                            @if (!checkedIn()) {
-                            <button class="ci-btn in" (click)="checkIn()" [disabled]="attendanceLoading()">
-                                @if (attendanceLoading()) {
-                                <i class="fas fa-spinner fa-spin"></i>
-                                } @else {
-                                <i class="fas fa-sign-in-alt"></i>
-                                }
-                                Check In
-                            </button>
-                            } @else if (!checkedOut()) {
-                            <div class="ci-status-row">
-                                <span class="ci-live-dot"></span>
-                                <span class="ci-elapsed">{{ elapsedTime() }}</span>
-                            </div>
-                            <button class="ci-btn out" (click)="checkOut()" [disabled]="attendanceLoading()">
-                                @if (attendanceLoading()) {
-                                <i class="fas fa-spinner fa-spin"></i>
-                                } @else {
-                                <i class="fas fa-sign-out-alt"></i>
-                                }
-                                Check Out
-                            </button>
-                            } @else {
-                            <div class="ci-done">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Done for today · {{ workHours() }}</span>
-                            </div>
-                            }
+                        <div class="emp-status-row">
+                            <span class="emp-status-badge active"><i class="fas fa-circle"></i> Active</span>
+                            <span class="emp-joined">Joined {{ userInfo()?.createdAt | date: 'MMM yyyy' }}</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- Quick action links -->
+                <div class="emp-quick-links">
+                    <a class="eql-btn" routerLink="/dashboard/myprofile">
+                        <i class="fas fa-user-edit"></i> My Profile
+                    </a>
+                    <a class="eql-btn" routerLink="/dashboard/newleave">
+                        <i class="fas fa-plus"></i> Apply Leave
+                    </a>
+                    <a class="eql-btn" routerLink="/dashboard/timesheet">
+                        <i class="fas fa-clock"></i> Timesheet
+                    </a>
+                    <a class="eql-btn" routerLink="/dashboard/Attendance">
+                        <i class="fas fa-calendar-check"></i> Attendance
+                    </a>
                 </div>
             </div>
         </div>
 
-        <!-- STAT CARDS -->
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="stat-top">
-                    <div class="stat-icon-wrap teal">
-                        <i class="fas fa-calendar-alt"></i>
-                    </div>
-                    <div class="stat-trend neutral"><i class="fas fa-minus"></i></div>
-                </div>
-                <div class="stat-val">{{ totalLeaves() }}</div>
-                <div class="stat-label">Total Requests</div>
-                <div class="stat-bar-wrap">
-                    <div class="stat-bar teal" [style.width]="barWidth(totalLeaves())"></div>
-                </div>
+        <!-- ══ ATTENDANCE SUMMARY ══ -->
+        <div class="section">
+            <div class="section-label">
+                <div class="sl-line"></div>
+                <span><i class="fas fa-calendar-check"></i> Attendance Summary</span>
+                <div class="sl-line"></div>
             </div>
 
-            <div class="stat-card">
-                <div class="stat-top">
-                    <div class="stat-icon-wrap amber">
-                        <i class="fas fa-hourglass-half"></i>
+            <!-- Today checkin card -->
+            <div class="att-today-card">
+                <div class="atc-left">
+                    <div class="atc-date">
+                        <div class="atc-day-num">{{ todayNum }}</div>
+                        <div class="atc-day-info">
+                            <div class="atc-weekday">{{ todayDay }}</div>
+                            <div class="atc-month">{{ todayMonth }}</div>
+                        </div>
                     </div>
-                    <div class="stat-trend up"><i class="fas fa-clock"></i></div>
+                    <div class="atc-times">
+                        <div class="atc-time-block">
+                            <div class="atc-time-label"><i class="fas fa-sign-in-alt"></i> Check In</div>
+                            <div class="atc-time-val in">{{ checkInTime() || '—' }}</div>
+                        </div>
+                        <div class="atc-sep"></div>
+                        <div class="atc-time-block">
+                            <div class="atc-time-label"><i class="fas fa-sign-out-alt"></i> Check Out</div>
+                            <div class="atc-time-val out">{{ checkOutTime() || '—' }}</div>
+                        </div>
+                        <div class="atc-sep"></div>
+                        <div class="atc-time-block">
+                            <div class="atc-time-label"><i class="fas fa-hourglass-half"></i> Hours</div>
+                            <div class="atc-time-val hours">
+                                @if (!checkedOut() && checkedIn()) {
+                                <span class="live-dot"></span>{{ elapsedTime() }}
+                                } @else {
+                                {{ workHours() || '—' }}
+                                }
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-val">{{ pendingLeaves() }}</div>
-                <div class="stat-label">Pending</div>
-                <div class="stat-bar-wrap">
-                    <div class="stat-bar amber" [style.width]="barWidth(pendingLeaves())"></div>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-top">
-                    <div class="stat-icon-wrap green">
+                <div class="atc-right">
+                    @if (!checkedIn()) {
+                    <button class="checkin-btn" (click)="checkIn()" [disabled]="attendanceLoading()">
+                        @if (attendanceLoading()) { <i class="fas fa-spinner fa-spin"></i> }
+                        @else { <i class="fas fa-sign-in-alt"></i> }
+                        Check In
+                    </button>
+                    } @else if (!checkedOut()) {
+                    <button class="checkout-btn" (click)="checkOut()" [disabled]="attendanceLoading()">
+                        @if (attendanceLoading()) { <i class="fas fa-spinner fa-spin"></i> }
+                        @else { <i class="fas fa-sign-out-alt"></i> }
+                        Check Out
+                    </button>
+                    } @else {
+                    <div class="checked-done">
                         <i class="fas fa-check-circle"></i>
+                        <span>Done for today</span>
                     </div>
-                    <div class="stat-trend positive"><i class="fas fa-arrow-up"></i></div>
-                </div>
-                <div class="stat-val">{{ approvedLeaves() }}</div>
-                <div class="stat-label">Approved</div>
-                <div class="stat-bar-wrap">
-                    <div class="stat-bar green" [style.width]="barWidth(approvedLeaves())"></div>
+                    }
                 </div>
             </div>
 
-            <div class="stat-card">
-                <div class="stat-top">
-                    <div class="stat-icon-wrap red">
-                        <i class="fas fa-times-circle"></i>
+            <!-- Monthly attendance stats -->
+            <div class="att-stats-grid">
+                <div class="att-stat-card present">
+                    <div class="asc-icon"><i class="fas fa-user-check"></i></div>
+                    <div class="asc-val">{{ presentCount() }}</div>
+                    <div class="asc-lbl">Present</div>
+                    <div class="asc-bar">
+                        <div class="asc-fill" [style.width]="attPct(presentCount())"></div>
                     </div>
-                    <div class="stat-trend negative"><i class="fas fa-arrow-down"></i></div>
                 </div>
-                <div class="stat-val">{{ rejectedLeaves() }}</div>
-                <div class="stat-label">Rejected</div>
-                <div class="stat-bar-wrap">
-                    <div class="stat-bar red" [style.width]="barWidth(rejectedLeaves())"></div>
+                <div class="att-stat-card absent">
+                    <div class="asc-icon"><i class="fas fa-user-times"></i></div>
+                    <div class="asc-val">{{ absentCount() }}</div>
+                    <div class="asc-lbl">Absent</div>
+                    <div class="asc-bar">
+                        <div class="asc-fill" [style.width]="attPct(absentCount())"></div>
+                    </div>
                 </div>
+                <div class="att-stat-card late">
+                    <div class="asc-icon"><i class="fas fa-user-clock"></i></div>
+                    <div class="asc-val">{{ lateCount() }}</div>
+                    <div class="asc-lbl">Late</div>
+                    <div class="asc-bar">
+                        <div class="asc-fill" [style.width]="attPct(lateCount())"></div>
+                    </div>
+                </div>
+                <div class="att-stat-card rate">
+                    <div class="asc-icon"><i class="fas fa-chart-pie"></i></div>
+                    <div class="asc-val">{{ attendanceRate() }}<span>%</span></div>
+                    <div class="asc-lbl">Attendance Rate</div>
+                    <div class="asc-bar rate-bar">
+                        <div class="asc-fill rate-fill" [style.width]="attendanceRate() + '%'"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="att-footer">
+                <a class="see-more-link" routerLink="/dashboard/Attendance">
+                    View full attendance <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
 
-        <!-- MAIN GRID -->
-        <div class="dash-grid">
 
-            <!-- LEAVE BALANCE -->
-            <div class="dash-card balance-card">
-                <div class="dash-card-header">
-                    <div class="dash-card-title"><i class="fas fa-wallet"></i> Leave Balance</div>
+        <!-- ══ TIMESHEET SUMMARY ══ -->
+        <div class="section">
+            <div class="section-label">
+                <div class="sl-line"></div>
+                <span><i class="fas fa-clock"></i> Timesheet Summary</span>
+                <div class="sl-line"></div>
+            </div>
+
+            <!-- Week progress -->
+            <div class="ts-week-card">
+                <div class="ts-wc-left">
+                    <div class="ts-wc-title">This Week</div>
+                    <div class="ts-wc-hours">{{ tsWeekHours() }}<span>h</span> <small>/ 40h target</small></div>
+                    <div class="ts-wc-track">
+                        <div class="ts-wc-fill" [style.width]="tsWeekProgress() + '%'"
+                            [class.over]="tsWeekProgress() > 100"></div>
+                    </div>
+                    <div class="ts-wc-pct">{{ tsWeekProgress() }}% completed</div>
                 </div>
-                <div class="balance-list">
-                    <div class="bal-row">
-                        <div class="bal-row-left">
-                            <div class="bal-dot teal"></div>
-                            <span class="bal-name">Annual Leave</span>
-                        </div>
-                        <div class="bal-row-right">
-                            <div class="bal-track">
-                                <div class="bal-fill teal" style="width: 47%"></div>
-                            </div>
-                            <span class="bal-count">8 <small>/ 15</small></span>
-                        </div>
+                <div class="ts-wc-tiles">
+                    <div class="ts-tile">
+                        <div class="ts-tile-icon today-i"><i class="fas fa-sun"></i></div>
+                        <div class="ts-tile-val">{{ tsTodayHours() }}<span>h</span></div>
+                        <div class="ts-tile-lbl">Today</div>
                     </div>
-                    <div class="bal-row">
-                        <div class="bal-row-left">
-                            <div class="bal-dot red"></div>
-                            <span class="bal-name">Sick Leave</span>
-                        </div>
-                        <div class="bal-row-right">
-                            <div class="bal-track">
-                                <div class="bal-fill red" style="width: 67%"></div>
-                            </div>
-                            <span class="bal-count">4 <small>/ 6</small></span>
-                        </div>
+                    <div class="ts-tile">
+                        <div class="ts-tile-icon draft-i"><i class="fas fa-file-alt"></i></div>
+                        <div class="ts-tile-val">{{ tsDraftCount() }}</div>
+                        <div class="ts-tile-lbl">Drafts</div>
                     </div>
-                    <div class="bal-row">
-                        <div class="bal-row-left">
-                            <div class="bal-dot green"></div>
-                            <span class="bal-name">Comp Off</span>
-                        </div>
-                        <div class="bal-row-right">
-                            <div class="bal-track">
-                                <div class="bal-fill green" style="width: 100%"></div>
-                            </div>
-                            <span class="bal-count">2 <small>/ 2</small></span>
-                        </div>
+                    <div class="ts-tile">
+                        <div class="ts-tile-icon submit-i"><i class="fas fa-paper-plane"></i></div>
+                        <div class="ts-tile-val">{{ tsSubmittedCount() }}</div>
+                        <div class="ts-tile-lbl">Submitted</div>
                     </div>
-                    <div class="bal-row">
-                        <div class="bal-row-left">
-                            <div class="bal-dot amber"></div>
-                            <span class="bal-name">Emergency</span>
-                        </div>
-                        <div class="bal-row-right">
-                            <div class="bal-track">
-                                <div class="bal-fill amber" style="width: 0%"></div>
-                            </div>
-                            <span class="bal-count">0 <small>/ 2</small></span>
-                        </div>
+                    <div class="ts-tile">
+                        <div class="ts-tile-icon approve-i"><i class="fas fa-check-circle"></i></div>
+                        <div class="ts-tile-val">{{ tsApprovedCount() }}</div>
+                        <div class="ts-tile-lbl">Approved</div>
                     </div>
                 </div>
             </div>
 
-            <!-- QUICK ACTIONS -->
-            <div class="dash-card actions-card">
-                <div class="dash-card-header">
-                    <div class="dash-card-title"><i class="fas fa-bolt"></i> Quick Actions</div>
-                </div>
-                <div class="quick-actions">
-                    <a class="qa-btn primary" routerLink="/dashboard/newleave">
-                        <div class="qa-icon"><i class="fas fa-plus"></i></div>
-                        <div>
-                            <div class="qa-label">Apply Leave</div>
-                            <div class="qa-sub">Submit a new request</div>
-                        </div>
+            <!-- Recent timesheet entries -->
+            <div class="ts-entries-card">
+                <div class="tsc-header">
+                    <div class="tsc-title"><i class="fas fa-list-ul"></i> Recent Entries</div>
+                    <a class="see-more-link" routerLink="/dashboard/timesheet">
+                        View all <i class="fas fa-arrow-right"></i>
                     </a>
-                    <a class="qa-btn secondary" routerLink="/dashboard/Leavepage">
-                        <div class="qa-icon"><i class="fas fa-list-alt"></i></div>
-                        <div>
-                            <div class="qa-label">My Requests</div>
-                            <div class="qa-sub">View all applications</div>
-                        </div>
-                    </a>
-                    <a class="qa-btn tertiary" routerLink="/dashboard/Attendance">
-                        <div class="qa-icon"><i class="fas fa-user-edit"></i></div>
-                        <div>
-                            <div class="qa-label">Attendance</div>
-                            <div class="qa-sub">See your Attendance</div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-
-            <!-- RECENT LEAVES -->
-            <div class="dash-card recent-card">
-                <div class="dash-card-header">
-                    <div class="dash-card-title"><i class="fas fa-history"></i> Recent Requests</div>
-                    <a class="view-all-link" routerLink="/dashboard/Leavepage">View all <i
-                            class="fas fa-arrow-right"></i></a>
                 </div>
 
-                @if (isLoading) {
-                <div class="dash-loading">
-                    <i class="fas fa-spinner fa-spin"></i> Loading...
-                </div>
-                } @else if (recentLeaves().length === 0) {
-                <div class="dash-empty">
-                    <i class="fas fa-inbox"></i>
-                    <span>No leave requests yet</span>
+                @if (tsLoading()) {
+                <div class="ltc-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+                } @else if (recentTimesheets().length === 0) {
+                <div class="ltc-empty">
+                    <i class="fas fa-clock"></i>
+                    <span>No timesheet entries this week</span>
                 </div>
                 } @else {
-                <div class="recent-list">
-                    @for (r of recentLeaves(); track r.leaveRequestId) {
-                    <div class="recent-row">
-                        <div class="recent-type-dot {{ typeColor(r.requestType) }}"></div>
-                        <div class="recent-info">
-                            <div class="recent-type">{{ r.requestType }}</div>
-                            <div class="recent-dates">{{ formatDate(r.fromDate) }} → {{ formatDate(r.toDate) }}</div>
+                <div class="ltc-list">
+                    @for (t of recentTimesheets(); track t.timesheetId) {
+                    <div class="ltc-row">
+                        <div class="ts-entry-dot tc-{{ t.workType | lowercase }}"></div>
+                        <div class="ltc-info">
+                            <div class="ltc-type">{{ t.projectName || '—' }}</div>
+                            <div class="ltc-dates">
+                                {{ t.taskDescription?.length > 50
+                                ? (t.taskDescription | slice:0:50) + '...'
+                                : t.taskDescription }}
+                            </div>
                         </div>
-                        <div class="recent-right">
-                            <span class="mini-badge {{ r.status.toLowerCase() }}">{{ r.status }}</span>
-                            <div class="recent-days">{{ r.totalDays }}d</div>
+                        <div class="ltc-right">
+                            <span class="ts-hrs">{{ formatTsHours(t.totalHours) }}</span>
+                            <span class="leave-badge lb-{{ t.status | lowercase }}">{{ t.status }}</span>
                         </div>
                     </div>
                     }
                 </div>
                 }
+
+               
+            </div>
+        </div>
+
+        <!-- ══ LEAVE SUMMARY ══ -->
+        <div class="section">
+            <div class="section-label">
+                <div class="sl-line"></div>
+                <span><i class="fas fa-calendar-minus"></i> Leave Summary</span>
+                <div class="sl-line"></div>
             </div>
 
+            <!-- Leave stat cards -->
+            <div class="leave-stats-grid">
+                <div class="leave-stat-card">
+                    <div class="lsc-icon total"><i class="fas fa-calendar-alt"></i></div>
+                    <div class="lsc-val">{{ totalLeaves() }}</div>
+                    <div class="lsc-lbl">Total</div>
+                </div>
+                <div class="leave-stat-card">
+                    <div class="lsc-icon pending"><i class="fas fa-hourglass-half"></i></div>
+                    <div class="lsc-val">{{ pendingLeaves() }}</div>
+                    <div class="lsc-lbl">Pending</div>
+                </div>
+                <div class="leave-stat-card">
+                    <div class="lsc-icon approved"><i class="fas fa-check-circle"></i></div>
+                    <div class="lsc-val">{{ approvedLeaves() }}</div>
+                    <div class="lsc-lbl">Approved</div>
+                </div>
+                <div class="leave-stat-card">
+                    <div class="lsc-icon rejected"><i class="fas fa-times-circle"></i></div>
+                    <div class="lsc-val">{{ rejectedLeaves() }}</div>
+                    <div class="lsc-lbl">Rejected</div>
+                </div>
+            </div>
+
+            <!-- Recent leaves table -->
+            <div class="leave-table-card">
+                <div class="ltc-header">
+                    <div class="ltc-title"><i class="fas fa-history"></i> Recent Requests</div>
+                    <a class="see-more-link" routerLink="/dashboard/Leavepage">
+                        View all <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                @if (isLoading) {
+                <div class="ltc-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+                } @else if (recentLeaves().length === 0) {
+                <div class="ltc-empty">
+                    <i class="fas fa-inbox"></i>
+                    <span>No leave requests yet</span>
+                </div>
+                } @else {
+                <div class="ltc-list">
+                    @for (r of recentLeaves(); track r.leaveRequestId) {
+                    <div class="ltc-row">
+                        <div class="ltc-dot {{ typeColor(r.requestType) }}"></div>
+                        <div class="ltc-info">
+                            <div class="ltc-type">{{ r.requestType }}</div>
+                            <div class="ltc-dates">{{ formatDate(r.fromDate) }} → {{ formatDate(r.toDate) }}</div>
+                        </div>
+                        <div class="ltc-right">
+                            <span class="leave-badge lb-{{ r.status | lowercase }}">{{ r.status }}</span>
+                            <span class="ltc-days">{{ r.totalDays }}d</span>
+                        </div>
+                    </div>
+                    }
+                </div>
+                }
+
+                
+            </div>
         </div>
+
     </div>
 </main>

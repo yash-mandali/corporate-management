@@ -1,4 +1,19 @@
 <main class="main">
+
+    <!-- GLOBAL LOADING OVERLAY -->
+    @if (globalLoading()) {
+    <div class="global-loader">
+        <div class="gl-card">
+            <div class="gl-ring">
+                <div class="gl-ring-inner"></div>
+            </div>
+            <div class="gl-text">{{ globalLoadingMsg() }}</div>
+            <div class="gl-dots">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </div>
+    }
     <div class="content">
 
         <!-- HEADER -->
@@ -7,7 +22,7 @@
                 <div class="ph-icon"><i class="fas fa-clock"></i></div>
                 <div>
                     <div class="ph-title">My Timesheet</div>
-                    <div class="ph-sub">{{ weekRange }}</div>
+                    <div class="ph-sub">Log and track your daily work hours</div>
                 </div>
             </div>
             <div class="ph-right">
@@ -18,265 +33,322 @@
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
-                <button class="btn-submit" (click)="submitTimesheet()" [disabled]="submitting() || draftCount() === 0">
-                    <i class="fas fa-paper-plane"></i>
-                    {{ submitting() ? 'Submitting...' : 'Submit (' + draftCount() + ')' }}
+                <button class="btn-export" (click)="exportCSV()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+                <button class="btn-add-entry" (click)="openModal()">
+                    <i class="fas fa-plus"></i> Add Entry
                 </button>
             </div>
         </div>
 
-        <!-- WEEK GRID -->
-        <div class="week-grid">
+        <!-- WEEK STRIP -->
+        <div class="week-strip">
             @for (day of weekDays; track day.dateStr) {
-            <div class="wg-day" [class.today]="day.isToday" [class.weekend]="day.isWeekend"
+            <div class="ws-day" [class.today]="day.isToday" [class.weekend]="day.isWeekend"
                 [class.active]="selectedDate() === day.dateStr" (click)="!day.isWeekend && selectDate(day.dateStr)">
-                <div class="wgd-name">{{ day.name }}</div>
-                <div class="wgd-num">{{ day.num }}</div>
-                <div class="wgd-hours">
-                    @if (day.hours > 0) {
-                    <span class="wgd-h-val" [class.over]="day.hours > 8">{{ day.hours }}h</span>
-                    } @else if (!day.isWeekend) {
-                    <span class="wgd-h-empty">—</span>
-                    }
+                <div class="wsd-name">{{ day.name }}</div>
+                <div class="wsd-num">{{ day.num }}</div>
+                <div class="wsd-bar">
+                    <div class="wsdb-fill" [style.height]="barH(day.hours)" [class.over]="day.hours > 8"></div>
                 </div>
-                <div class="wgd-bar">
-                    <div class="wgdb-fill" [style.height]="dayBarH(day.hours)" [class.over]="day.hours > 8"></div>
+                <div class="wsd-h">
+                    @if (day.hours > 0) { <span [class.over]="day.hours > 8">{{ day.hours }}h</span> }
                 </div>
             </div>
             }
         </div>
 
-        <!-- SUMMARY CARDS -->
-        <div class="summary-cards">
-            <div class="sc">
-                <div class="sc-icon today"><i class="fas fa-sun"></i></div>
-                <div>
+        <!-- STAT CARDS -->
+        <div class="stat-row">
+            <div class="stat-card">
+                <div class="sc-icon today-icon"><i class="fas fa-sun"></i></div>
+                <div class="sc-body">
                     <div class="sc-val">{{ todayHours() }}<span>h</span></div>
-                    <div class="sc-label">Today</div>
+                    <div class="sc-lbl">Today</div>
                 </div>
             </div>
-            <div class="sc">
-                <div class="sc-icon week"><i class="fas fa-calendar-week"></i></div>
-                <div>
+            <div class="stat-card">
+                <div class="sc-icon week-icon"><i class="fas fa-calendar-week"></i></div>
+                <div class="sc-body">
                     <div class="sc-val">{{ weekHours() }}<span>h</span></div>
-                    <div class="sc-label">This Week</div>
+                    <div class="sc-lbl">This Week</div>
                 </div>
             </div>
-            <div class="sc">
-                <div class="sc-icon overtime" [class.active]="overtimeHours() > 0"><i class="fas fa-fire-alt"></i></div>
-                <div>
-                    <div class="sc-val" [class.red]="overtimeHours() > 0">{{ overtimeHours() }}<span>h</span></div>
-                    <div class="sc-label">Overtime</div>
-                </div>
-            </div>
-            <div class="sc">
-                <div class="sc-icon pending"><i class="fas fa-hourglass-half"></i></div>
-                <div>
+            <div class="stat-card">
+                <div class="sc-icon draft-icon"><i class="fas fa-file-alt"></i></div>
+                <div class="sc-body">
                     <div class="sc-val">{{ draftCount() }}</div>
-                    <div class="sc-label">Draft</div>
+                    <div class="sc-lbl">Drafts</div>
                 </div>
             </div>
-            <div class="sc progress-sc">
-                <div class="sc-icon target"><i class="fas fa-bullseye"></i></div>
-                <div class="sc-progress-body">
-                    <div class="scpb-top">
-                        <div class="sc-val">{{ weekProgress() }}<span>%</span></div>
-                        <div class="sc-label">of 40h target</div>
-                    </div>
-                    <div class="scpb-track">
-                        <div class="scpb-fill" [style.width]="weekProgress() + '%'" [class.over]="weekProgress() > 100">
+            <div class="stat-card">
+                <div class="sc-icon submit-icon"><i class="fas fa-paper-plane"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ submittedCount() }}</div>
+                    <div class="sc-lbl">Submitted</div>
+                </div>
+            </div>
+            <div class="stat-card progress-card">
+                <div class="sc-icon prog-icon"><i class="fas fa-bullseye"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ weekProgress() }}<span>%</span></div>
+                    <div class="sc-lbl">of 40h target</div>
+                    <div class="prog-track">
+                        <div class="prog-fill" [style.width]="weekProgress() + '%'" [class.over]="weekProgress() > 100">
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- MAIN CONTENT: ENTRIES + ADD PANEL -->
-        <div class="main-grid">
-
-            <!-- ENTRIES TABLE -->
-            <div class="entries-card">
-                <div class="ec-header">
-                    <div class="ec-title">
-                        <i class="fas fa-list-ul"></i>
-                        @if (selectedDate()) {
-                        {{ formatDateFull(selectedDate()!) }}
+        <!-- TABLE -->
+        <div class="table-card">
+            <div class="tc-head">
+                <div class="tc-title">
+                    <i class="fas fa-list-ul"></i>
+                    @if (selectedDate()) {
+                    {{ formatDateLong(selectedDate()!) }}
+                    } @else {
+                    Week Entries
+                    }
+                </div>
+                <div class="tc-toolbar">
+                    <div class="tc-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search task or project..." [value]="searchQ()"
+                            (input)="searchQ.set($any($event.target).value)">
+                    </div>
+                    <div class="tc-filters">
+                        <button class="tcf" [class.active]="statusF()==='all'" (click)="statusF.set('all')">All</button>
+                        <button class="tcf draft" [class.active]="statusF()==='Draft'"
+                            (click)="statusF.set('Draft')">Draft</button>
+                        <button class="tcf submitted" [class.active]="statusF()==='Submitted'"
+                            (click)="statusF.set('Submitted')">Submitted</button>
+                        <button class="tcf approved" [class.active]="statusF()==='Approved'"
+                            (click)="statusF.set('Approved')">Approved</button>
+                        <button class="tcf rejected" [class.active]="statusF()==='Rejected'"
+                            (click)="statusF.set('Rejected')">Rejected</button>
+                    </div>
+                    @if (selectedDate()) {
+                    <button class="clear-btn" (click)="selectedDate.set(null)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    }
+                    @if (draftCount() > 0) {
+                    <button class="btn-submit-all" (click)="submitAllDrafts()" [disabled]="submittingAll()">
+                        @if (submittingAll()) {
+                        <span class="btn-spinner"></span> Submitting...
                         } @else {
-                        All Entries
+                        <i class="fas fa-paper-plane"></i> Submit All ({{ draftCount() }})
                         }
-                    </div>
-                    <div class="ec-toolbar">
-                        <!-- Search -->
-                        <div class="ec-search">
-                            <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search..." [value]="searchQ()"
-                                (input)="searchQ.set($any($event.target).value)">
-                        </div>
-                        <!-- Status filter -->
-                        <div class="ec-status-filters">
-                            <button class="esf" [class.active]="statusFilter()==='all'"
-                                (click)="statusFilter.set('all')">All</button>
-                            <button class="esf draft" [class.active]="statusFilter()==='Draft'"
-                                (click)="statusFilter.set('Draft')">Draft</button>
-                            <button class="esf submitted" [class.active]="statusFilter()==='Submitted'"
-                                (click)="statusFilter.set('Submitted')">Submitted</button>
-                            <button class="esf approved" [class.active]="statusFilter()==='Approved'"
-                                (click)="statusFilter.set('Approved')">Approved</button>
-                            <button class="esf rejected" [class.active]="statusFilter()==='Rejected'"
-                                (click)="statusFilter.set('Rejected')">Rejected</button>
-                        </div>
-                        @if (selectedDate()) {
-                        <button class="clear-date-btn" (click)="selectedDate.set(null)">
-                            <i class="fas fa-times"></i> Clear
-                        </button>
-                        }
-                    </div>
-                </div>
-
-                <div class="tbl-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Project</th>
-                                <th>Task</th>
-                                <th>Start</th>
-                                <th>End</th>
-                                <th>Hours</th>
-                                <th>Type</th>
-                                <th>Status</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for (e of filteredEntries(); track e.id) {
-                            <tr [class.tr-rejected]="e.status==='Rejected'">
-                                <td class="td-date">{{ formatDate(e.date) }}</td>
-                                <td>
-                                    <span class="proj-tag">{{ e.project }}</span>
-                                </td>
-                                <td class="td-task">{{ e.task }}</td>
-                                <td class="td-time">{{ e.startTime }}</td>
-                                <td class="td-time">{{ e.endTime }}</td>
-                                <td class="td-hours">{{ e.totalHours }}h</td>
-                                <td>
-                                    <span class="type-chip tc-{{ e.workType | lowercase }}">{{ e.workType }}</span>
-                                </td>
-                                <td>
-                                    <span class="s-pill sp-{{ e.status | lowercase }}">
-                                        <span class="spd"></span>{{ e.status }}
-                                    </span>
-                                </td>
-                                <td class="td-act">
-                                    @if (e.status === 'Draft' || e.status === 'Rejected') {
-                                    <button class="act edit" (click)="editEntry(e)" title="Edit">
-                                        <i class="fas fa-pen"></i>
-                                    </button>
-                                    <button class="act del" (click)="deleteEntry(e.id)" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    }
-                                    @if (e.managerComment) {
-                                    <span class="comment-tip" [title]="e.managerComment">
-                                        <i class="fas fa-comment-alt"></i>
-                                    </span>
-                                    }
-                                </td>
-                            </tr>
-                            } @empty {
-                            <tr>
-                                <td colspan="9" class="empty-td">
-                                    <i class="fas fa-inbox"></i>
-                                    <span>No entries. Add one using the form →</span>
-                                </td>
-                            </tr>
-                            }
-                        </tbody>
-                    </table>
+                    </button>
+                    }
                 </div>
             </div>
 
-            <!-- ADD / EDIT FORM PANEL -->
-            <div class="form-panel">
-                <div class="fp-header">
-                    <i class="fas fa-{{ editingId() ? 'pen' : 'plus-circle' }}"></i>
-                    {{ editingId() ? 'Edit Entry' : 'Add Entry' }}
-                    @if (editingId()) {
-                    <button class="fp-cancel" (click)="cancelEdit()">Cancel</button>
-                    }
+            @if (isLoading()) {
+            <div class="skeleton-wrap">
+                @for (i of [1,2,3,4]; track i) {
+                <div class="skeleton-row">
+                    <div class="sk sk-sm"></div>
+                    <div class="sk sk-md"></div>
+                    <div class="sk sk-lg"></div>
+                    <div class="sk sk-xl"></div>
+                    <div class="sk sk-sm"></div>
+                    <div class="sk sk-sm"></div>
+                    <div class="sk sk-sm"></div>
+                    <div class="sk sk-md"></div>
+                    <div class="sk sk-md"></div>
+                    <div class="sk sk-sm"></div>
                 </div>
-
-                <div class="fp-body" [formGroup]="entryForm">
-                    <div class="ff">
-                        <label>Date <span>*</span></label>
-                        <input type="date" formControlName="date" [max]="todayStr">
-                    </div>
-                    <div class="ff">
-                        <label>Project / Module <span>*</span></label>
-                        <input type="text" formControlName="project" placeholder="e.g. HRMS Portal">
-                    </div>
-                    <div class="ff full">
-                        <label>Task Description <span>*</span></label>
-                        <textarea formControlName="task" rows="3" placeholder="What did you work on?"></textarea>
-                    </div>
-                    <div class="ff">
-                        <label>Start Time <span>*</span></label>
-                        <input type="time" formControlName="startTime">
-                    </div>
-                    <div class="ff">
-                        <label>End Time <span>*</span></label>
-                        <input type="time" formControlName="endTime">
-                    </div>
-
-                    <!-- Auto hours display -->
-                    <div class="ff full">
-                        <div class="auto-hours" [class.valid]="calcHoursNum() > 0" [class.error]="hoursError()">
-                            <i
-                                class="fas fa-{{ hoursError() ? 'exclamation-circle' : calcHoursNum() > 0 ? 'check-circle' : 'clock' }}"></i>
-                            @if (hoursError()) {
-                            {{ hoursError() }}
-                            } @else if (calcHoursNum() > 0) {
-                            <strong>{{ calcHours() }}</strong> will be logged
-                            } @else {
-                            Total hours auto-calculated
-                            }
-                        </div>
-                    </div>
-
-                    <div class="ff">
-                        <label>Work Type <span>*</span></label>
-                        <select formControlName="workType">
-                            <option value="">Select type</option>
-                            <option>Development</option>
-                            <option>Meeting</option>
-                            <option>Testing</option>
-                            <option>Research</option>
-                            <option>Design</option>
-                            <option>Review</option>
-                        </select>
-                    </div>
-
-                    @if (formErr()) {
-                    <div class="ff full">
-                        <div class="form-err"><i class="fas fa-exclamation-triangle"></i> {{ formErr() }}</div>
-                    </div>
-                    }
-
-                    <div class="ff full">
-                        <button class="btn-save" (click)="saveEntry()" [disabled]="saving()">
-                            <i class="fas fa-{{ editingId() ? 'save' : 'plus' }}"></i>
-                            {{ saving() ? 'Saving...' : editingId() ? 'Update Entry' : 'Add Entry' }}
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Export buttons -->
-                <div class="fp-exports">
-                    <button class="exp-btn" (click)="exportExcel()"><i class="fas fa-file-csv"></i> CSV</button>
-                    <button class="exp-btn" (click)="exportPDF()"><i class="fas fa-print"></i> Print</button>
-                </div>
+                }
             </div>
-
+            } @else {
+            <div class="tbl-scroll">
+                <table>
+                    <thead>
+                        <tr> 
+                            <th>Date</th>
+                            <th>Project</th>
+                            <th>Task</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Hours</th>
+                            <th class="col-type">Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (e of filteredEntries(); track e.timesheetId; let i = $index) {
+                        <tr [class.tr-selected]="selectedEntry()?.timesheetId === e.timesheetId"
+                            (click)="selectEntry(e)">
+                            <td class="td-date">{{ formatDate(e.workDate) }}</td>
+                            <td><span class="proj-tag">{{ e.projectName || '—' }}</span></td>
+                            <td class="td-task" [title]="e.taskDescription">{{ e.taskDescription || '—' }}</td>
+                            <td class="td-time">{{ formatTime(e.startTime) }}</td>
+                            <td class="td-time">{{ formatTime(e.endTime) }}</td>
+                            <td class="td-hours">{{ formatTotalHours(e.totalHours) }}</td>
+                            <td class="col-type"><span class="type-chip tc-{{ e.workType | lowercase }}">{{ e.workType
+                                    }}</span></td>
+                            <td>
+                                <span class="s-pill sp-{{ e.status | lowercase }}">
+                                    <span class="spd"></span>{{ e.status }}
+                                </span>
+                            </td>
+                            <td class="td-act" (click)="$event.stopPropagation()">
+                                @if (e.status === 'Draft' || e.status === 'Rejected') {
+                                <button class="act edit" (click)="openEditModal(e)" title="Edit"
+                                    [disabled]="deletingId() === e.timesheetId">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="act del" (click)="deleteEntry(e.timesheetId)" title="Delete"
+                                    [disabled]="deletingId() === e.timesheetId">
+                                    @if (deletingId() === e.timesheetId) {
+                                    <span class="mini-spinner del-spin"></span>
+                                    } @else {
+                                    <i class="fas fa-trash"></i>
+                                    }
+                                </button>
+                                }
+                                @if (e.status === 'Draft') {
+                                <button class="act submit-one" (click)="submitEntry(e.timesheetId)"
+                                    [disabled]="submittingId() === e.timesheetId" title="Submit">
+                                    @if (submittingId() === e.timesheetId) {
+                                    <span class="mini-spinner"></span>
+                                    } @else {
+                                    <i class="fas fa-paper-plane"></i>
+                                    }
+                                </button>
+                                }
+                                @if (e.status === 'Rejected' && e.rejectReason) {
+                                <span class="reject-tip" [title]="e.rejectReason">
+                                    <i class="fas fa-comment-alt"></i>
+                                </span>
+                                }
+                            </td>
+                        </tr>
+                        } @empty {
+                        <tr>
+                            <td colspan="10" class="empty-td">
+                                <i class="fas fa-inbox"></i>
+                                <span>No entries found. Click "+ Add Entry" to get started.</span>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            }
         </div>
+
     </div>
 </main>
+
+<!-- ══ ADD / EDIT MODAL ══ -->
+@if (modalOpen()) {
+<div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+        <!-- Modal Header -->
+        <div class="modal-header" [class.editing]="editingId()">
+            <div class="mh-left">
+                <div class="mh-icon">
+                    <i class="fas fa-{{ editingId() ? 'pen' : 'plus' }}"></i>
+                </div>
+                <div>
+                    <div class="mh-title">{{ editingId() ? 'Edit Entry' : 'New Timesheet Entry' }}</div>
+                    <div class="mh-sub">{{ editingId() ? 'Update your work log' : 'Log your work hours' }}</div>
+                </div>
+            </div>
+            <button class="modal-close" (click)="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body" [formGroup]="entryForm">
+            <div class="mform-grid">
+
+                <div class="mf">
+                    <label>Work Date <span class="req">*</span></label>
+                    <input type="date" formControlName="workDate" [max]="todayStr">
+                </div>
+
+                <div class="mf">
+                    <label>Work Type <span class="req">*</span></label>
+                    <select formControlName="workType">
+                        <option value="">Select type</option>
+                        <option>Development</option>
+                        <option>Meeting</option>
+                        <option>Testing</option>
+                        <option>Research</option>
+                        <option>Design</option>
+                        <option>Review</option>
+                    </select>
+                </div>
+
+                <div class="mf full">
+                    <label>Project / Module <span class="req">*</span></label>
+                    <input type="text" formControlName="projectName" placeholder="e.g. HRMS Portal">
+                </div>
+
+                <div class="mf full">
+                    <label>Task Description <span class="req">*</span></label>
+                    <textarea formControlName="taskDescription" rows="3" placeholder="What did you work on?"></textarea>
+                </div>
+
+                <div class="mf">
+                    <label>Start Time <span class="req">*</span></label>
+                    <input type="time" formControlName="startTime">
+                </div>
+
+                <div class="mf">
+                    <label>End Time <span class="req">*</span></label>
+                    <input type="time" formControlName="endTime">
+                </div>
+
+                <!-- Auto calculated hours -->
+                <div class="mf full">
+                    <div class="auto-hours" [class.valid]="calcHoursNum() > 0 && !timeError()"
+                        [class.err]="!!timeError()">
+                        <i
+                            class="fas fa-{{ timeError() ? 'exclamation-circle' : calcHoursNum() > 0 ? 'check-circle' : 'stopwatch' }}"></i>
+                        @if (timeError()) {
+                        {{ timeError() }}
+                        } @else if (calcHoursNum() > 0) {
+                        <strong>{{ calcHoursStr() }}</strong>&nbsp;will be logged
+                        } @else {
+                        Total hours will be auto-calculated
+                        }
+                    </div>
+                </div>
+
+                @if (formErr()) {
+                <div class="mf full">
+                    <div class="form-err-msg">
+                        <i class="fas fa-exclamation-triangle"></i> {{ formErr() }}
+                    </div>
+                </div>
+                }
+
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+            <button class="mf-cancel" (click)="closeModal()">Cancel</button>
+            <button class="mf-save" (click)="saveEntry()" [disabled]="saving()">
+                @if (saving()) {
+                <span class="btn-spinner"></span> {{ editingId() ? 'Updating...' : 'Adding...' }}
+                } @else {
+                <i class="fas fa-{{ editingId() ? 'save' : 'plus' }}"></i>
+                {{ editingId() ? 'Update Entry' : 'Add Entry' }}
+                }
+            </button>
+        </div>
+
+    </div>
+</div>
+}

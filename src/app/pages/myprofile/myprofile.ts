@@ -134,10 +134,6 @@ export class MyProfile {
     // });
   }
 
-  goBack() {
-    this.router.navigate(['/dashboard/dashboardpage']);
-  }
-
   passwordMatchValidator(group: AbstractControl): ValidationErrors | null {
     const n = group.get('newPassword')?.value;
     const c = group.get('confirmPassword')?.value;

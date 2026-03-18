@@ -120,8 +120,7 @@
       <div class="table-scroll">
         <table>
           <thead>
-            <tr>
-             
+            <tr>          
               <th>Request Type</th>
               <th>From</th>
               <th>To</th>
@@ -135,9 +134,8 @@
             </tr>
           </thead>
           <tbody>
-            @for (r of pagedLeaves(); track r.leaveRequestId + r.fromDate) {
-            <tr>
-              
+            @for (r of pagedLeaves(); track r.leaveRequestId + r.fromDate) {          
+            <tr> 
               <td>
                 <span class="type-tag {{ typeClass(r.requestType) }}">
                   {{ r.requestType.split(' ')[0] }}

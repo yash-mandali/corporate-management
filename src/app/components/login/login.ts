@@ -31,7 +31,7 @@ export class Login {
     });
   }
 
-  onSubmit() {
+  onLogin() {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       this.errorMessage.set('Please fill in all required fields.');

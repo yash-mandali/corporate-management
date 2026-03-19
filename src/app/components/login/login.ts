@@ -50,7 +50,13 @@ export class Login {
         this.errorMessage.set('Login successful! Redirecting…');
         this.isLoading = false;
         setTimeout(() => {
-          this.router.navigate(['/dashboard/dashboardpage']);
+          if (this.authService.getRole() == "Employee") {
+            this.router.navigate(['/dashboard/dashboardpage']);         
+          }  else if (this.authService.getRole() == "Manager") {
+            this.router.navigate(['/dashboard/managerdashboard']);
+          } else {
+            this.router.navigate(['/fgfhtjgf']);
+          }
           this.loginForm.reset();
         }, 800);
       },

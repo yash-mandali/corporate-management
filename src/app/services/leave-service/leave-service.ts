@@ -33,9 +33,27 @@ export class LeaveService {
     return this.http.put(`${this.withdrawleaveApi}/${leaveRequestId}`, {});
   }
 
+  getAllLeaves() {
+    return this.http.get<any[]>(this.getAllLeavesApi)
+  }
+
+  getAllpendingleaves() {
+    return this.http.get<any[]>(this.getAllpendingLeavesApi)
+  }
+  
+
   getMyleaveList(Id: number) {
     return this.http.get<any[]>(this.getmyleavesApi, {
       params: { Id: Id.toString() }
     });
+  }
+  // ----------------
+
+  Approveleave(leaveRequestId: number) {
+    return this.http.put(`${this.approveleaveApi}?Id=${leaveRequestId}`, {})
+  }
+
+  Rejectleave(leaveRequestId: number) {
+    return this.http.put(`${this.rejectleaveApi}?Id=${leaveRequestId}`, {})
   }
 }

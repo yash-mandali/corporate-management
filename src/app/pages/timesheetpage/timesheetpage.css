@@ -464,6 +464,7 @@ body {
 }
 
 .tc-filters {
+    height: 33px;
     display: flex;
     gap: 3px;
     background: #ebf4f6;

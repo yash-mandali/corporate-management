@@ -1,0 +1,289 @@
+<main class="main">
+    <div class="content">
+
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+            <div class="ph-left">
+                <div class="ph-icon"><i class="fas fa-calendar-minus"></i></div>
+                <div>
+                    <div class="ph-title">Leave Management</div>
+                    <div class="ph-sub">Approve, reject and track team leave requests</div>
+                </div>
+            </div>
+            <div class="ph-right">
+                <div class="tab-switcher">
+                    <button class="tab-btn" [class.active]="activeTab() === 'approvals'"
+                        (click)="activeTab.set('approvals')">
+                        <i class="fas fa-inbox"></i> Approvals
+                        @if (pendingCount() > 0) { <span class="tab-count">{{ pendingCount() }}</span> }
+                    </button>
+                    <button class="tab-btn" [class.active]="activeTab() === 'history'"
+                        (click)="activeTab.set('history')">
+                        <i class="fas fa-history"></i> History
+                    </button>
+                    <button class="tab-btn" [class.active]="activeTab() === 'balance'"
+                        (click)="activeTab.set('balance')">
+                        <i class="fas fa-wallet"></i> Balance
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STAT CARDS -->
+        <div class="stat-row">
+            <div class="stat-card pending-c">
+                <div class="sc-icon"><i class="fas fa-hourglass-half"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ pendingCount() }}</div>
+                    <div class="sc-lbl">Pending</div>
+                </div>
+            </div>
+            <div class="stat-card approved-c">
+                <div class="sc-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ approvedCount() }}</div>
+                    <div class="sc-lbl">Approved</div>
+                </div>
+            </div>
+            <div class="stat-card rejected-c">
+                <div class="sc-icon"><i class="fas fa-times-circle"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ rejectedCount() }}</div>
+                    <div class="sc-lbl">Rejected</div>
+                </div>
+            </div>
+            <div class="stat-card withdrawn-c">
+                <div class="sc-icon"><i class="fas fa-undo"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ withdrawnCount() }}</div>
+                    <div class="sc-lbl">Withdrawn</div>
+                </div>
+            </div>
+            <div class="stat-card total-c">
+                <div class="sc-icon"><i class="fas fa-calendar-alt"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ allLeaves().length }}</div>
+                    <div class="sc-lbl">Total Requests</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ TAB: APPROVALS ══ -->
+        @if (activeTab() === 'approvals') {
+        <div class="tab-content">
+            @if (leaveLoading()) {
+            <div class="page-loading"><i class="fas fa-spinner fa-spin"></i> Loading requests...</div>
+            } @else if (pendingLeaves().length === 0) {
+            <div class="all-clear">
+                <div class="ac-icon"><i class="fas fa-check-double"></i></div>
+                <div class="ac-title">All caught up!</div>
+                <div class="ac-sub">No pending leave requests at the moment</div>
+            </div>
+            } @else {
+            <div class="approval-cards-grid">
+                @for (l of pendingLeaves(); track l.leaveRequestId) {
+                <div class="leave-approval-card" [class.actioning]="actionLoading() === l.leaveRequestId">
+                    <div class="lac-top">
+                        <div class="lac-avatar" [style.background]="getColor(l.userId)">{{ getInitials(l.userName) }}
+                        </div>
+                        <div class="lac-info">
+                            <div class="lac-name">{{ l.userName || 'Employee' }}</div>
+                            <div class="lac-applied">Applied {{ formatDateRelative(l.appliedOn) }}</div>
+                        </div>
+                        <span class="lac-type-badge {{ typeClass(l.requestType) }}">{{ l.requestType }}</span>
+                    </div>
+
+                    <div class="lac-dates">
+                        <div class="lac-date-block">
+                            <div class="ldb-label">From</div>
+                            <div class="ldb-val">{{ formatDateFull(l.fromDate) }}</div>
+                        </div>
+                        <div class="lac-date-arrow"><i class="fas fa-long-arrow-alt-right"></i></div>
+                        <div class="lac-date-block">
+                            <div class="ldb-label">To</div>
+                            <div class="ldb-val">{{ formatDateFull(l.toDate) }}</div>
+                        </div>
+                        <div class="lac-days-pill">{{ l.totalDays }}d</div>
+                    </div>
+
+                    @if (l.reason) {
+                    <div class="lac-reason"><i class="fas fa-quote-left"></i> {{ l.reason }}</div>
+                    }
+
+                    <div class="lac-actions">
+                        <button class="lac-btn reject" (click)="rejectLeave(l.leaveRequestId)"
+                            [disabled]="actionLoading() === l.leaveRequestId">
+                            @if (actionLoading() === l.leaveRequestId) { <span class="mini-spin red"></span> }
+                            @else { <i class="fas fa-times"></i> }
+                            Reject
+                        </button>
+                        <button class="lac-btn approve" (click)="approveLeave(l.leaveRequestId)"
+                            [disabled]="actionLoading() === l.leaveRequestId">
+                            @if (actionLoading() === l.leaveRequestId) { <span class="mini-spin white"></span> }
+                            @else { <i class="fas fa-check"></i> }
+                            Approve
+                        </button>
+                    </div>
+                </div>
+                }
+            </div>
+            }
+        </div>
+        }
+
+        <!-- ══ TAB: HISTORY ══ -->
+        @if (activeTab() === 'history') {
+        <div class="tab-content">
+            <div class="history-toolbar">
+                <div class="ht-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search employee or leave type..." [value]="searchQ()"
+                        (input)="onSearch($any($event.target).value)">
+                </div>
+                <div class="ht-filters">
+                    <button class="hf-btn" [class.active]="histFilter() === 'all'"
+                        (click)="setHistFilter('all')">All</button>
+                    <button class="hf-btn pending" [class.active]="histFilter() === 'Pending'"
+                        (click)="setHistFilter('Pending')">Pending</button>
+                    <button class="hf-btn approved" [class.active]="histFilter() === 'Approved'"
+                        (click)="setHistFilter('Approved')">Approved</button>
+                    <button class="hf-btn rejected" [class.active]="histFilter() === 'Rejected'"
+                        (click)="setHistFilter('Rejected')">Rejected</button>
+                    <button class="hf-btn withdrawn" [class.active]="histFilter() === 'Withdrawn'"
+                        (click)="setHistFilter('Withdrawn')">Withdrawn</button>
+                </div>
+            </div>
+
+            @if (leaveLoading()) {
+            <div class="page-loading"><i class="fas fa-spinner fa-spin"></i> Loading history...</div>
+            } @else {
+            <div class="history-table-card">
+                <div class="tbl-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Employee</th>
+                                <th>Leave Type</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Days</th>
+                                <th>Applied On</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (l of pagedHistory(); track l.leaveRequestId; let i = $index) {
+                            <tr>
+                                <td class="td-idx">{{ (histPage() - 1) * pageSize + i + 1 }}</td>
+                                <td class="td-emp">
+                                    <div class="emp-cell">
+                                        <div class="emp-av" [style.background]="getColor(l.userId)">{{
+                                            getInitials(l.userName) }}</div>
+                                        <span class="emp-name">{{ l.userName || '—' }}</span>
+                                    </div>
+                                </td>
+                                <td><span class="type-chip {{ typeClass(l.requestType) }}">{{ l.requestType }}</span>
+                                </td>
+                                <td class="td-date">{{ formatDate(l.fromDate) }}</td>
+                                <td class="td-date">{{ formatDate(l.toDate) }}</td>
+                                <td class="td-days">{{ l.totalDays }}d</td>
+                                <td class="td-date muted">{{ formatDate(l.appliedOn) }}</td>
+                                <td>
+                                    <span class="status-pill sp-{{ l.status | lowercase }}">
+                                        <span class="sp-dot"></span>{{ l.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            } @empty {
+                            <tr>
+                                <td colspan="8" class="td-empty">
+                                    <i class="fas fa-inbox"></i>
+                                    <span>No records found</span>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (histTotalPages() > 1) {
+                <div class="pagination">
+                    <button class="pg-btn" (click)="histPage.set(1)" [disabled]="histPage() === 1">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="pg-btn" (click)="histPage.set(histPage()-1)" [disabled]="histPage() === 1">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    @for (p of histPageNums(); track p) {
+                    <button class="pg-num" [class.active]="p === histPage()" (click)="histPage.set(p)">{{ p }}</button>
+                    }
+                    <button class="pg-btn" (click)="histPage.set(histPage()+1)"
+                        [disabled]="histPage() === histTotalPages()">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button class="pg-btn" (click)="histPage.set(histTotalPages())"
+                        [disabled]="histPage() === histTotalPages()">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                    <span class="pg-info">{{ histPage() }} of {{ histTotalPages() }} · {{ filteredHistory().length }}
+                        records</span>
+                </div>
+                }
+            </div>
+            }
+        </div>
+        }
+
+        <!-- ══ TAB: BALANCE ══ -->
+        @if (activeTab() === 'balance') {
+        <div class="tab-content">
+            <div class="balance-toolbar">
+                <div class="bt-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search employee..." [value]="balanceSearch()"
+                        (input)="balanceSearch.set($any($event.target).value)">
+                </div>
+                <div class="bt-info">
+                    <i class="fas fa-info-circle"></i>
+                    Showing approved leaves consumed per employee
+                </div>
+            </div>
+
+            <div class="balance-grid">
+                @for (emp of filteredBalances(); track emp.userId) {
+                <div class="balance-card">
+                    <div class="bc-header">
+                        <div class="bc-avatar" [style.background]="getColor(emp.userId)">{{ getInitials(emp.userName) }}
+                        </div>
+                        <div class="bc-info">
+                            <div class="bc-name">{{ emp.userName }}</div>
+                            <div class="bc-role">{{ emp.roleName }}</div>
+                        </div>
+                        <div class="bc-total-badge">{{ emp.totalApproved }}d used</div>
+                    </div>
+                    <div class="bc-bars">
+                        @for (lt of leaveTypes; track lt.key) {
+                        <div class="bc-bar-row">
+                            <span class="bcbr-label">{{ lt.label }}</span>
+                            <div class="bcbr-track">
+                                <div class="bcbr-fill {{ lt.key }}"
+                                    [style.width]="barPct(emp.breakdown[lt.key], lt.max) + '%'"></div>
+                            </div>
+                            <span class="bcbr-count">{{ emp.breakdown[lt.key] || 0 }}<small>/{{ lt.max }}</small></span>
+                        </div>
+                        }
+                    </div>
+                </div>
+                } @empty {
+                <div class="balance-empty">
+                    <i class="fas fa-users"></i>
+                    <span>No employee data found</span>
+                </div>
+                }
+            </div>
+        </div>
+        }
+
+    </div>
+</main>

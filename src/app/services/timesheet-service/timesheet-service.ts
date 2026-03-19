@@ -59,13 +59,13 @@ export class TimesheetService {
   // -----------------------------Manager services-----------------------
 
   approveEntry(sheetId: number) {
-    return this.http.post<any>(this.ApproveEntryApi, { sheetId });
+    return this.http.post<any>(`${this.ApproveEntryApi}?sheetId=${sheetId}`, {});
   }
 
   rejectEntry(sheetId: number, rejectReason: string) {
-    return this.http.post<any>(this.rejectEntryApi, { sheetId, rejectReason });
+    return this.http.post<any>(`${this.rejectEntryApi}?sheetId=${sheetId}&reason=${rejectReason}`, { sheetId, rejectReason });
   }
-
+// ?sheetId = 13 & reason=from % 20swagger'
   getEntryByStatus(status: string) {
     const params = new HttpParams().set('status', status);
     return this.http.get<any[]>(this.getEntryByStatusApi, { params });

@@ -12,7 +12,7 @@ export class AttendanceService {
   checkInApi = `${this.apiurl}/Attendance/CheckIn`;
   checkOutApi = `${this.apiurl}/Attendance/CheckOut`;
   AutoCheckOutApi = `${this.apiurl}/Attendance/AutoCheckout`;
-  getAllAttendance = `${this.apiurl}/Attendance/GetAllAttendance`; //for Admin
+  getAllAttendanceApi = `${this.apiurl}/Attendance/GetAllAttendance`; //for Admin
   getByUserId = `${this.apiurl}/Attendance/getByUserId`;
   getByAttendanceId = `${this.apiurl}/Attendance/getByAttendanceId`;
 
@@ -38,6 +38,10 @@ export class AttendanceService {
     return this.http.get<any[]>(this.getByAttendanceId, {
       params:{Id:Id.toString()}
     })
+  }
+
+  getAllattendance() {
+    return this.http.get<any[]>(this.getAllAttendanceApi)
   }
 
 

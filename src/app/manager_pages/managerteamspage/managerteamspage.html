@@ -1,0 +1,368 @@
+<main class="main">
+    <div class="content">
+
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+            <div class="ph-left">
+                <div class="ph-icon"><i class="fas fa-users"></i></div>
+                <div>
+                    <div class="ph-title">Team Management</div>
+                    <div class="ph-sub">{{ totalEmployees() }} members · {{ activeCount() }} active today</div>
+                </div>
+            </div>
+            <div class="ph-right">
+                <div class="view-toggle">
+                    <button class="vt-btn" [class.active]="viewMode() === 'grid'" (click)="viewMode.set('grid')">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button class="vt-btn" [class.active]="viewMode() === 'list'" (click)="viewMode.set('list')">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEARCH + FILTER -->
+        <div class="toolbar">
+            <div class="tb-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search by name, role or email..." [value]="searchQ()"
+                    (input)="searchQ.set($any($event.target).value)">
+                @if (searchQ()) {
+                <button class="tb-clear" (click)="searchQ.set('')"><i class="fas fa-times"></i></button>
+                }
+            </div>
+            <div class="tb-filters">
+                <button class="tf-btn" [class.active]="statusFilter() === 'all'" (click)="statusFilter.set('all')">
+                    All <span class="tf-count">{{ totalEmployees() }}</span>
+                </button>
+                <button class="tf-btn active-f" [class.active]="statusFilter() === 'active'"
+                    (click)="statusFilter.set('active')">
+                    Active <span class="tf-count">{{ activeCount() }}</span>
+                </button>
+                <button class="tf-btn offline-f" [class.active]="statusFilter() === 'offline'"
+                    (click)="statusFilter.set('offline')">
+                    Offline <span class="tf-count">{{ offlineCount() }}</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- LOADING -->
+        @if (isLoading()) {
+        <div class="loading-grid">
+            @for (i of [1,2,3,4,5,6]; track i) {
+            <div class="sk-card">
+                <div class="sk sk-avatar-lg"></div>
+                <div class="sk sk-line-lg mt"></div>
+                <div class="sk sk-line-sm mt-sm"></div>
+                <div class="sk sk-line-md mt"></div>
+            </div>
+            }
+        </div>
+        } @else if (filteredEmployees().length === 0) {
+        <div class="empty-state">
+            <div class="es-icon"><i class="fas fa-users-slash"></i></div>
+            <div class="es-title">No employees found</div>
+            <div class="es-sub">Try adjusting your search or filter</div>
+        </div>
+        } @else {
+
+        <!-- GRID VIEW -->
+        @if (viewMode() === 'grid') {
+        <div class="emp-grid">
+            @for (emp of filteredEmployees(); track emp.id) {
+            <div class="emp-card" (click)="openDetail(emp)" [class.card-active]="emp.isActive">
+                <div class="ec-status-dot" [class.online]="emp.isActive"></div>
+                <div class="ec-avatar" [style.background]="getColor(emp.id)">{{ getInitials(emp.userName) }}</div>
+                <div class="ec-name">{{ emp.userName }}</div>
+                <div class="ec-role">{{ emp.roleName || 'Employee' }}</div>
+                <div class="ec-email">{{ emp.email }}</div>
+                <div class="ec-divider"></div>
+                <div class="ec-stats">
+                    <div class="ec-stat">
+                        <div class="ecs-val">{{ emp.attendanceRate }}%</div>
+                        <div class="ecs-lbl">Attendance</div>
+                    </div>
+                    <div class="ec-stat-sep"></div>
+                    <div class="ec-stat">
+                        <div class="ecs-val">{{ emp.weekHours }}h</div>
+                        <div class="ecs-lbl">This Week</div>
+                    </div>
+                    <div class="ec-stat-sep"></div>
+                    <div class="ec-stat">
+                        <div class="ecs-val">{{ emp.pendingLeaves }}</div>
+                        <div class="ecs-lbl">Leaves</div>
+                    </div>
+                </div>
+                <div class="ec-footer">
+                    <span class="ec-status-badge" [class.online]="emp.isActive">
+                        <span class="esb-dot"></span>
+                        {{ emp.isActive ? 'Active Today' : 'Offline' }}
+                    </span>
+                </div>
+            </div>
+            }
+        </div>
+        }
+
+        <!-- LIST VIEW -->
+        @if (viewMode() === 'list') {
+        <div class="list-card">
+            <div class="tbl-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Role</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Attendance</th>
+                            <th>Week Hours</th>
+                            <th>Pending Leaves</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (emp of filteredEmployees(); track emp.id) {
+                        <tr (click)="openDetail(emp)">
+                            <td class="td-emp">
+                                <div class="emp-cell">
+                                    <div class="emp-av" [style.background]="getColor(emp.id)">{{
+                                        getInitials(emp.userName) }}</div>
+                                    <div>
+                                        <div class="emp-name">{{ emp.userName }}</div>
+                                        <div class="emp-id">EMP-{{ emp.id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="td-role">{{ emp.roleName || '—' }}</td>
+                            <td class="td-email">{{ emp.email }}</td>
+                            <td class="td-phone">{{ emp.phoneNumber || '—' }}</td>
+                            <td class="td-att">
+                                <div class="att-cell">
+                                    <div class="att-bar-track">
+                                        <div class="att-bar-fill" [style.width]="emp.attendanceRate + '%'"></div>
+                                    </div>
+                                    <span>{{ emp.attendanceRate }}%</span>
+                                </div>
+                            </td>
+                            <td class="td-hours">{{ emp.weekHours }}<span>h</span></td>
+                            <td class="td-leaves">
+                                @if (emp.pendingLeaves > 0) {
+                                <span class="leaves-pill pending">{{ emp.pendingLeaves }} pending</span>
+                                } @else {
+                                <span class="leaves-pill none">None</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="status-pill" [class.online]="emp.isActive">
+                                    <span class="sp-dot"></span>
+                                    {{ emp.isActive ? 'Active' : 'Offline' }}
+                                </span>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        }
+        }
+    </div>
+</main>
+
+<!-- ══ EMPLOYEE DETAIL MODAL ══ -->
+@if (selectedEmployee()) {
+<div class="modal-overlay" (click)="closeDetail()">
+    <div class="emp-modal" (click)="$event.stopPropagation()">
+
+        <!-- Modal Header — sticky -->
+        <div class="em-header">
+            <div class="em-hero">
+                <div class="em-avatar-wrap">
+                    <div class="em-avatar" [style.background]="getColor(selectedEmployee()!.id)">
+                        {{ getInitials(selectedEmployee()!.userName) }}
+                    </div>
+                    <div class="em-online-ring" [class.online]="selectedEmployee()!.isActive"></div>
+                </div>
+                <div class="em-hero-info">
+                    <div class="em-name">{{ selectedEmployee()!.userName }}</div>
+                    <div class="em-role-row">
+                        <span class="em-role">{{ selectedEmployee()!.roleName || 'Employee' }}</span>
+                        <span class="em-id-badge">EMP-{{ selectedEmployee()!.id }}</span>
+                    </div>
+                    <span class="em-status-badge" [class.online]="selectedEmployee()!.isActive">
+                        <span class="esb-dot"></span>
+                        {{ selectedEmployee()!.isActive ? 'Active Today' : 'Offline' }}
+                    </span>
+                </div>
+            </div>
+            <button class="em-close" (click)="closeDetail()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body — scrollable -->
+        <div class="em-body">
+
+            <!-- Quick stats -->
+            <div class="em-stats-row">
+                <div class="ems-card">
+                    <div class="ems-icon att"><i class="fas fa-calendar-check"></i></div>
+                    <div class="ems-val">{{ selectedEmployee()!.attendanceRate }}%</div>
+                    <div class="ems-lbl">Attendance Rate</div>
+                </div>
+                <div class="ems-card">
+                    <div class="ems-icon hours"><i class="fas fa-hourglass-half"></i></div>
+                    <div class="ems-val">{{ selectedEmployee()!.weekHours }}<span>h</span></div>
+                    <div class="ems-lbl">This Week</div>
+                </div>
+                <div class="ems-card">
+                    <div class="ems-icon pending"><i class="fas fa-hourglass-start"></i></div>
+                    <div class="ems-val">{{ selectedEmployee()!.pendingLeaves }}</div>
+                    <div class="ems-lbl">Pending Leaves</div>
+                </div>
+                <div class="ems-card">
+                    <div class="ems-icon approved"><i class="fas fa-check-circle"></i></div>
+                    <div class="ems-val">{{ selectedEmployee()!.approvedLeaves }}</div>
+                    <div class="ems-lbl">Approved Leaves</div>
+                </div>
+            </div>
+
+            <!-- Two column layout -->
+            <div class="em-grid">
+
+                <!-- LEFT: Basic Info + Attendance -->
+                <div class="em-col">
+
+                    <!-- Basic Info -->
+                    <div class="em-section">
+                        <div class="ems-title"><i class="fas fa-id-card"></i> Basic Information</div>
+                        <div class="ems-rows">
+                            <div class="ems-row">
+                                <span class="emsr-key"><i class="fas fa-fingerprint"></i> Employee ID</span>
+                                <span class="emsr-val">EMP-{{ selectedEmployee()!.id }}</span>
+                            </div>
+                            <div class="ems-row">
+                                <span class="emsr-key"><i class="fas fa-user"></i> Full Name</span>
+                                <span class="emsr-val">{{ selectedEmployee()!.userName }}</span>
+                            </div>
+                            <div class="ems-row">
+                                <span class="emsr-key"><i class="fas fa-envelope"></i> Email</span>
+                                <span class="emsr-val email">{{ selectedEmployee()!.email }}</span>
+                            </div>
+                            <div class="ems-row">
+                                <span class="emsr-key"><i class="fas fa-phone"></i> Phone</span>
+                                <span class="emsr-val">{{ selectedEmployee()!.phoneNumber || '—' }}</span>
+                            </div>
+                            <div class="ems-row">
+                                <span class="emsr-key"><i class="fas fa-venus-mars"></i> Gender</span>
+                                <span class="emsr-val">{{ selectedEmployee()!.gender || '—' }}</span>
+                            </div>
+                            <div class="ems-row">
+                                <span class="emsr-key"><i class="fas fa-briefcase"></i> Role</span>
+                                <span class="emsr-val">{{ selectedEmployee()!.roleName || '—' }}</span>
+                            </div>
+                            <div class="ems-row">
+                                <span class="emsr-key"><i class="fas fa-calendar-plus"></i> Joined</span>
+                                <span class="emsr-val">{{ formatDate(selectedEmployee()!.createdAt) }}</span>
+                            </div>
+                            <div class="ems-row full">
+                                <span class="emsr-key"><i class="fas fa-map-marker-alt"></i> Address</span>
+                                <span class="emsr-val address">{{ selectedEmployee()!.address || '—' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Attendance -->
+                    <div class="em-section">
+                        <div class="ems-title"><i class="fas fa-chart-bar"></i> This Month's Attendance</div>
+                        <div class="em-att-body">
+                            <div class="em-att-track">
+                                <div class="em-att-fill" [style.width]="selectedEmployee()!.attendanceRate + '%'"
+                                    [class.low]="selectedEmployee()!.attendanceRate < 75">
+                                </div>
+                            </div>
+                            <div class="em-att-legend">
+                                <div class="eal-item green">
+                                    <div class="eal-num">{{ selectedEmployee()!.presentDays }}</div>
+                                    <div class="eal-lbl">Present</div>
+                                </div>
+                                <div class="eal-item amber">
+                                    <div class="eal-num">{{ selectedEmployee()!.lateDays }}</div>
+                                    <div class="eal-lbl">Late</div>
+                                </div>
+                                <div class="eal-item red">
+                                    <div class="eal-num">{{ selectedEmployee()!.absentDays }}</div>
+                                    <div class="eal-lbl">Absent</div>
+                                </div>
+                                <div class="eal-item teal rate">
+                                    <div class="eal-num">{{ selectedEmployee()!.attendanceRate }}%</div>
+                                    <div class="eal-lbl">Rate</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT: Timesheets + Leaves -->
+                <div class="em-col">
+
+                    <!-- Recent Timesheets -->
+                    <div class="em-section">
+                        <div class="ems-title"><i class="fas fa-clock"></i> Recent Timesheet Entries</div>
+                        @if (selectedEmpTimesheets().length === 0) {
+                        <div class="em-no-data">
+                            <i class="fas fa-clock"></i> No entries found
+                        </div>
+                        } @else {
+                        <div class="em-ts-list">
+                            @for (t of selectedEmpTimesheets(); track t.timesheetId) {
+                            <div class="em-ts-row">
+                                <div class="em-ts-dot {{ workTypeClass(t.workType) }}"></div>
+                                <div class="em-ts-info">
+                                    <div class="em-ts-project">{{ t.projectName || '—' }}</div>
+                                    <div class="em-ts-task">{{ t.taskDescription }}</div>
+                                </div>
+                                <div class="em-ts-right">
+                                    <div class="em-ts-date">{{ formatDateShort(t.workDate) }}</div>
+                                    <div class="em-ts-hours">{{ formatHours(t.totalHours) }}</div>
+                                    <span class="ts-s-pill sp-{{ t.status | lowercase }}">{{ t.status }}</span>
+                                </div>
+                            </div>
+                            }
+                        </div>
+                        }
+                    </div>
+
+                    <!-- Leave Summary -->
+                    <div class="em-section">
+                        <div class="ems-title"><i class="fas fa-calendar-minus"></i> Leave Summary</div>
+                        <div class="em-leave-grid">
+                            <div class="elg-card pending-c">
+                                <div class="elg-num">{{ selectedEmployee()!.pendingLeaves }}</div>
+                                <div class="elg-lbl">Pending</div>
+                            </div>
+                            <div class="elg-card approved-c">
+                                <div class="elg-num">{{ selectedEmployee()!.approvedLeaves }}</div>
+                                <div class="elg-lbl">Approved</div>
+                            </div>
+                            <div class="elg-card rejected-c">
+                                <div class="elg-num">{{ selectedEmployee()!.rejectedLeaves }}</div>
+                                <div class="elg-lbl">Rejected</div>
+                            </div>
+                            <div class="elg-card total-c">
+                                <div class="elg-num">{{ selectedEmployee()!.totalLeaves }}</div>
+                                <div class="elg-lbl">Total</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+}

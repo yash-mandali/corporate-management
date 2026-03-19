@@ -26,10 +26,31 @@
             <span class="nav-icon">👤</span>
             <span class="nav-label">Profile</span>
         </a>
-        }@else if(role() === 'Manager'){
-            <a class="nav-item" routerLink="/dashboard" routerLinkActive="active" (click)="emp.closeSidebar()">
+        }
+        @else if(role() === 'Manager'){
+            <a class="nav-item" routerLink="/dashboard/managerdashboard" routerLinkActive="active" (click)="emp.closeSidebar()">
                 <span class="nav-icon"></span>
                 <span class="nav-label">Dashboard</span>
+            </a>
+            <a class="nav-item" routerLink="/dashboard/managerattendance" routerLinkActive="active" (click)="emp.closeSidebar()">
+                <span class="nav-icon"></span>
+                <span class="nav-label">Attendance</span>
+            </a>
+            <a class="nav-item" routerLink="/dashboard/managerleave" routerLinkActive="active" (click)="emp.closeSidebar()">
+                <span class="nav-icon"></span>
+                <span class="nav-label">Leave</span>
+            </a>
+            <a class="nav-item" routerLink="/dashboard/managertimesheet" routerLinkActive="active" (click)="emp.closeSidebar()">
+                <span class="nav-icon"></span>
+                <span class="nav-label">Timesheet</span>
+            </a>
+            <a class="nav-item" routerLink="/dashboard/managerteams" routerLinkActive="active" (click)="emp.closeSidebar()">
+                <span class="nav-icon"></span>
+                <span class="nav-label">Team</span>
+            </a>
+            <a class="nav-item" routerLink="/dashboard/teamperformance" routerLinkActive="active" (click)="emp.closeSidebar()">
+                <span class="nav-icon"></span>
+                <span class="nav-label">Performance</span>
             </a>
         }
         @else {

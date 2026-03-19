@@ -8,14 +8,14 @@
     <!-- Profile Avatar with Dropdown -->
     <div class="profile-wrap" (click)="profileOpen = !profileOpen">
         <div class="profile-avatar">
-            <span>E</span>
+            <span>{{getInitials()}}</span>
         </div>
         @if (profileOpen) {
         <div class="profile-dropdown" (click)="$event.stopPropagation()">
             <div class="profile-dropdown-header">
-                <div class="profile-avatar-lg"><span>E</span></div>
+                <div class="profile-avatar-lg"><span>{{getInitials()}}</span></div>
                 <div>
-                    <div class="profile-name">Employee</div>
+                    <div class="profile-name">{{userName()}}</div>
                     <div class="profile-email">{{userEmail()}}</div>
                 </div>
             </div>

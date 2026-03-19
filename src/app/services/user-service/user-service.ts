@@ -7,13 +7,17 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class UserService {
-  
+
   constructor(private http: HttpClient) { }
-  
+
   apiurl = environment.ApiUrl;
   loginApi = `${this.apiurl}/User/Login`;
   signupApi = `${this.apiurl}/User/AddUser`;
-  getUserbyIdApi = `${this.apiurl}/User/getUserById`
+  getUserbyIdApi = `${this.apiurl}/User/getUserById`;
+  getAlluserApi = `${this.apiurl}/User/getAllUsers`;
+  getAllEmployeeApi = `${this.apiurl}/User/getAllEmployee`;
+  
+
 
   login(data: any) {
     return this.http.post(this.loginApi, data);
@@ -21,7 +25,17 @@ export class UserService {
 
   signup(data: any) {
     return this.http.post(this.signupApi, data);
-  } 
+  }
+
+  getAllUser() {
+    return this.http.get<any[]>(this.getAlluserApi)
+  }
+
+  getAllEmployee() {
+    return this.http.get<any[]>(this.getAllEmployeeApi)
+  }
+
+
 
   getUserById(Id: number) {
     return this.http.get<any[]>(this.getUserbyIdApi, {

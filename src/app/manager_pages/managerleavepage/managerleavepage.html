@@ -162,7 +162,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>#</th>
+                       
                                 <th>Employee</th>
                                 <th>Leave Type</th>
                                 <th>From</th>
@@ -175,7 +175,7 @@
                         <tbody>
                             @for (l of pagedHistory(); track l.leaveRequestId; let i = $index) {
                             <tr>
-                                <td class="td-idx">{{ (histPage() - 1) * pageSize + i + 1 }}</td>
+           
                                 <td class="td-emp">
                                     <div class="emp-cell">
                                         <div class="emp-av" [style.background]="getColor(l.userId)">{{

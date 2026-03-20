@@ -142,7 +142,7 @@ export class ApplyLeave {
     this.isSubmitting = true;
     this.leaveService.updateLeave(this.leaveId(), payload).subscribe({
       next: () => {
-        this.toast.success('Leave updated successfully!');
+        // this.toast.success('Leave updated successfully!');
         this.closeEditModal();
         this.loadMyLeaves();
       },
@@ -159,7 +159,7 @@ export class ApplyLeave {
     setTimeout(() => {
       this.leaveService.Withdrawleave(leaveRequestId).subscribe({
         next: () => {
-          this.toast.success('Leave cancelled');
+          // this.toast.success('Leave cancelled');
           this.deletingId.set(null);
           this.myLeaves.update(leaves => leaves.filter(l => l.leaveRequestId !== leaveRequestId));
           this.recalculateCounts();

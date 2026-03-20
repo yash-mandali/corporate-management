@@ -18,9 +18,9 @@ export class TimesheetService {
   getallEntryApi = `${this.apiurl}/Timesheet/GetAlltimesheets`;
   deleteEntryApi = `${this.apiurl}/Timesheet/DeleteTimesheet`;
   submitEntryApi = `${this.apiurl}/Timesheet/submitTimesheet`;
-  ApproveEntryApi = `${this.apiurl}/Timesheet/ApproveTimesheet(manager)`;
-  rejectEntryApi = `${this.apiurl}/Timesheet/RejectTimesheet(manager)`;
-  getEntryByStatusApi = `${this.apiurl}/Timesheet/getByStatus(manager)`;
+  ApproveEntryApi = `${this.apiurl}/Timesheet/ManagerApprove`;  //manager
+  rejectEntryApi = `${this.apiurl}/Timesheet/ManagerReject`;   //manager
+  getEntryByStatusApi = `${this.apiurl}/Timesheet/getByStatus(manager)`;   //manager
 
   getAllEntry() {
     return this.http.get<any[]>(this.getallEntryApi);

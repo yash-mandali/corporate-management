@@ -279,7 +279,7 @@ export class Dashboardpage implements OnInit, OnDestroy {
         this.checkedOut.set(true);
         if (this.checkInDate) this.workHours.set(this.calcWorkHours(this.checkInDate, now));
         this.stopTimer();
-        this.toast.info('Auto checked out at 9:00 PM.', 'Auto Checkout', { timeOut: 8000, progressBar: true });
+        // this.toast.info('Auto checked out at 9:00 PM.', 'Auto Checkout', { timeOut: 8000, progressBar: true });
       },
       error: () => this.toast.warning('Auto check-out failed.', 'Auto Checkout Failed', { timeOut: 10000, progressBar: true })
     });

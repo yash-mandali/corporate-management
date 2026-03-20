@@ -53,7 +53,7 @@ export class Newleavepage {
       this.leaveService.createNewLeave(data).subscribe({
         next: res => {
           this.message.set(res.message);
-          this.toast.success(this.message() || "Request submitted successfully!");
+          // this.toast.success(this.message() || "Request submitted successfully!");
           this.leaveForm.reset();
           this.router.navigate(['/dashboard/Leavepage'])
         },

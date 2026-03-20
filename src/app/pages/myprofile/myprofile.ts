@@ -95,7 +95,7 @@ export class MyProfile {
     };
     this.userService.updateUser(payload).subscribe({
       next: () => {
-        this.toast.success('Profile updated successfully!');
+        // this.toast.success('Profile updated successfully!');
         this.editMode = false;
         this.isSaving = false;
         this.loadProfile();

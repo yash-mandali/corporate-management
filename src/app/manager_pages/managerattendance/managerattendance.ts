@@ -23,7 +23,7 @@ export class ManagerAttendancePage implements OnInit {
   statusFilter = signal('all');
   searchQ = signal('');
   currentPage = signal(1);
-  readonly pageSize = 8;
+  readonly pageSize = 6;
 
   // ── Color pool ──
   private colorPool = [
@@ -51,7 +51,7 @@ export class ManagerAttendancePage implements OnInit {
         const checkInHour = this.getHour(rec.checkIn);
         status = checkInHour >= 9 ? 'Late' : 'Present';
       }
-      if (rec.status) status = rec.status; // use API status if available
+      if (rec.status) status = rec.status;
 
       return {
         userId: u.id,
@@ -71,11 +71,22 @@ export class ManagerAttendancePage implements OnInit {
   filteredRecords = computed(() => {
     const q = this.searchQ().toLowerCase().trim();
     const sf = this.statusFilter();
-    return this.dayRecords().filter(r => {
-      const matchSearch = !q || r.userName.toLowerCase().includes(q) || r.roleName?.toLowerCase().includes(q);
-      const matchStatus = sf === 'all' || r.status === sf;
-      return matchSearch && matchStatus;
-    });
+
+    const statusRank = (s: string) => {
+      if (s === 'Present') return 0;  // active — top
+      if (s === 'Late') return 1;  // late — second
+      if (s === 'Absent') return 2;  // absent — bottom
+      return 3;
+    };
+
+    return this.dayRecords()
+      .filter(r => {
+        const matchSearch = !q || r.userName.toLowerCase().includes(q) || r.roleName?.toLowerCase().includes(q);
+        const matchStatus = sf === 'all' || r.status === sf;
+        return matchSearch && matchStatus;
+      })
+      .slice()
+      .sort((a, b) => statusRank(a.status) - statusRank(b.status));
   });
 
   // ── Stats ──
@@ -127,9 +138,9 @@ export class ManagerAttendancePage implements OnInit {
   }
 
   loadAllUsers() {
-    this.userService.getAllEmployee().subscribe({
+    this.userService.getAllUser().subscribe({
       next: (res: any) => this.allUsers.set(Array.isArray(res) ? res : res ? [res] : []),
-      error: err => console.error('loadAllEmployee:', err)
+      error: err => console.error('loadAllUsers:', err)
     });
   }
 

@@ -129,14 +129,14 @@ export class Dashboardpage implements OnInit, OnDestroy {
     const id = this.auth.getUserId();
     if (id) {
       this.userId.set(id);
-      this.loadLeaves();
       this.loadUser();
+      this.loadLeaves();
       this.loadAttendance();
       this.loadTimesheets();
       this.attendanceService.autoCheckout().subscribe();
       this.restoreTodayAttendance();
 
-      console.log("check userinfo: ",this.userInfo());
+      // console.log("check userinfo: ",this.userInfo());
       
     }
   }
@@ -167,7 +167,9 @@ export class Dashboardpage implements OnInit, OnDestroy {
   loadUser() {
     this.userService.getUserById(this.userId()).subscribe({
       next: res => {
-        this.userInfo.set(res)
+        this.userInfo.set(res),
+          console.log("loaduser:: ",this.userInfo());
+     
       },
       error: err => console.error(err)
     });

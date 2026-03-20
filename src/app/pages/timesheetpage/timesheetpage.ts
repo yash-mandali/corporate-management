@@ -1,6 +1,6 @@
 import { Component, computed, signal, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { LowerCasePipe, SlicePipe } from '@angular/common';
+import { LowerCasePipe } from '@angular/common';
 import { Authservice } from '../../services/Auth-service/authservice';
 import { TimesheetService } from '../../services/timesheet-service/timesheet-service';
 
@@ -12,32 +12,44 @@ import { TimesheetService } from '../../services/timesheet-service/timesheet-ser
 })
 export class Timesheetpage implements OnInit {
 
-  userId = signal<number | null | any>(null);
+  // ── State ──
+  userId = signal<any>(null);
   entries = signal<any[]>([]);
   isLoading = signal(false);
   saving = signal(false);
-  submittingAll = signal(false);
   editingId = signal<number | null>(null);
-  selectedEntry = signal<any | null>(null);
-  selectedDate = signal<string | null>(null);
   formErr = signal<string | null>(null);
-  searchQ = signal('');
-  statusF = signal('all');
   modalOpen = signal(false);
-  globalLoading = signal(false);
-  globalLoadingMsg = signal('Please wait...');
+
+  // ── Per-row action tracking ──
   submittingId = signal<number | null>(null);
   deletingId = signal<number | null>(null);
+  submittingAll = signal(false);
 
+  // ── Global overlay loader ──
+  globalLoading = signal(false);
+  globalLoadingMsg = signal('Please wait...');
+
+  // ── Filters ──
+  searchQ = signal('');
+  statusF = signal('all');
+  selectedDate = signal<string | null>(null);
+
+  // ── Pagination ──
+  currentPage = signal(1);
+  readonly pageSize = 5;
+
+  // ── Week ──
   weekStart = new Date();
   todayStr = this.localDate(new Date());
   entryForm: FormGroup;
 
   constructor(
     private auth: Authservice,
-    private timesheetService: TimesheetService,
+    private svc: TimesheetService,
     private fb: FormBuilder
   ) {
+    // Set Monday as week start
     const now = new Date();
     const diff = now.getDay() === 0 ? -6 : 1 - now.getDay();
     this.weekStart = new Date(now);
@@ -56,21 +68,17 @@ export class Timesheetpage implements OnInit {
 
   ngOnInit() {
     const id = this.auth.getUserId();
-    if (id) {
-      this.userId.set(id);
-      this.loadEntries();
-    }
+    if (id) { this.userId.set(id); this.loadEntries(); }
   }
 
   loadEntries() {
     this.isLoading.set(true);
-    this.timesheetService.getEntryByUserId(this.userId()!).subscribe({
+    this.svc.getEntryByUserId(this.userId()).subscribe({
       next: (res: any) => {
-        const list = Array.isArray(res) ? res : res ? [res] : [];
-        this.entries.set(list);
+        this.entries.set(Array.isArray(res) ? res : res ? [res] : []);
         this.isLoading.set(false);
       },
-      error: err => { console.error('loadEntries error:', err); this.isLoading.set(false); }
+      error: err => { console.error(err); this.isLoading.set(false); }
     });
   }
 
@@ -91,17 +99,17 @@ export class Timesheetpage implements OnInit {
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(this.weekStart);
       d.setDate(d.getDate() + i);
-      const dateStr = this.localDate(d);
+      const ds = this.localDate(d);
       const dow = d.getDay();
-      const hours = this.entries()
-        .filter(e => this.dateStr(e.workDate) === dateStr)
-        .reduce((s, e) => s + this.totalHoursNum(e.totalHours), 0);
+      const hrs = this.entries()
+        .filter(e => this.dateStr(e.workDate) === ds)
+        .reduce((s, e) => s + this.hoursNum(e.totalHours), 0);
       return {
         name: d.toLocaleDateString('en-IN', { weekday: 'short' }),
-        num: d.getDate(), dateStr,
-        isToday: dateStr === today,
+        num: d.getDate(), dateStr: ds,
+        isToday: ds === today,
         isWeekend: dow === 0 || dow === 6,
-        hours: Math.round(hours * 10) / 10
+        hours: Math.round(hrs * 10) / 10,
       };
     });
   }
@@ -111,6 +119,7 @@ export class Timesheetpage implements OnInit {
     w.setDate(w.getDate() - 7);
     this.weekStart = w;
     this.selectedDate.set(null);
+    this.currentPage.set(1);
   }
 
   nextWeek() {
@@ -119,6 +128,7 @@ export class Timesheetpage implements OnInit {
     w.setDate(w.getDate() + 7);
     this.weekStart = w;
     this.selectedDate.set(null);
+    this.currentPage.set(1);
   }
 
   isCurrentWeek(): boolean {
@@ -126,21 +136,19 @@ export class Timesheetpage implements OnInit {
     return this.weekStart <= today && today <= this.weekEnd;
   }
 
-  selectDate(dateStr: string) {
-    this.selectedDate.set(this.selectedDate() === dateStr ? null : dateStr);
+  selectDate(ds: string) {
+    this.selectedDate.set(this.selectedDate() === ds ? null : ds);
+    this.currentPage.set(1);
   }
 
-  barH(hours: number): string {
-    return Math.min(100, Math.round((hours / 8) * 100)) + '%';
-  }
+  barH(h: number): string { return Math.min(100, Math.round((h / 8) * 100)) + '%'; }
 
   // ── Computed stats ──
   todayHours = computed(() => {
     const today = this.localDate(new Date());
     return Math.round(
-      this.entries()
-        .filter(e => this.dateStr(e.workDate) === today)
-        .reduce((s, e) => s + this.totalHoursNum(e.totalHours), 0) * 10
+      this.entries().filter(e => this.dateStr(e.workDate) === today)
+        .reduce((s, e) => s + this.hoursNum(e.totalHours), 0) * 10
     ) / 10;
   });
 
@@ -150,7 +158,7 @@ export class Timesheetpage implements OnInit {
     return Math.round(
       this.entries()
         .filter(e => { const d = this.dateStr(e.workDate); return d >= ws && d <= we; })
-        .reduce((s, e) => s + this.totalHoursNum(e.totalHours), 0) * 10
+        .reduce((s, e) => s + this.hoursNum(e.totalHours), 0) * 10
     ) / 10;
   });
 
@@ -158,6 +166,7 @@ export class Timesheetpage implements OnInit {
   draftCount = computed(() => this.entries().filter(e => e.status === 'Draft').length);
   submittedCount = computed(() => this.entries().filter(e => e.status === 'Submitted').length);
 
+  // ── Filtered + paginated ──
   filteredEntries = computed(() => {
     const ws = this.localDate(this.weekStart);
     const we = this.localDate(this.weekEnd);
@@ -168,21 +177,27 @@ export class Timesheetpage implements OnInit {
     if (this.selectedDate()) list = list.filter(e => this.dateStr(e.workDate) === this.selectedDate());
     const q = this.searchQ().toLowerCase();
     if (q) list = list.filter(e =>
-      (e.taskDescription || '').toLowerCase().includes(q) ||
-      (e.projectName || '').toLowerCase().includes(q)
+      (e.projectName || '').toLowerCase().includes(q) ||
+      (e.taskDescription || '').toLowerCase().includes(q)
     );
-    const sf = this.statusF();
-    if (sf !== 'all') list = list.filter(e => e.status === sf);
+    if (this.statusF() !== 'all') list = list.filter(e => e.status === this.statusF());
     return list.sort((a, b) => this.dateStr(a.workDate).localeCompare(this.dateStr(b.workDate)));
   });
+
+  totalPages = computed(() => Math.max(1, Math.ceil(this.filteredEntries().length / this.pageSize)));
+  pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
+  pagedEntries = computed(() => {
+    const s = (this.currentPage() - 1) * this.pageSize;
+    return this.filteredEntries().slice(s, s + this.pageSize);
+  });
+
+  setFilter(f: string) { this.statusF.set(f); this.currentPage.set(1); }
 
   // ── Modal ──
   openModal() {
     this.editingId.set(null);
     this.formErr.set(null);
-    this.entryForm.reset({
-      workDate: this.selectedDate() || this.todayStr
-    });
+    this.entryForm.reset({ workDate: this.selectedDate() || this.todayStr });
     this.modalOpen.set(true);
     document.body.style.overflow = 'hidden';
   }
@@ -202,16 +217,6 @@ export class Timesheetpage implements OnInit {
     document.body.style.overflow = 'hidden';
   }
 
-  showLoader(msg: string) {
-    this.globalLoadingMsg.set(msg);
-    this.globalLoading.set(true);
-  }
-
-  hideLoader() {
-    this.globalLoading.set(false);
-    this.globalLoadingMsg.set('Please wait...');
-  }
-
   closeModal() {
     this.modalOpen.set(false);
     this.editingId.set(null);
@@ -220,38 +225,7 @@ export class Timesheetpage implements OnInit {
     document.body.style.overflow = '';
   }
 
-  // ── Auto hours ──
-  calcHoursStr(): string {
-    const { startTime, endTime } = this.entryForm.value;
-    if (!startTime || !endTime) return '—';
-    const mins = this.timeDiff(startTime, endTime);
-    if (mins <= 0) return '—';
-    const h = Math.floor(mins / 60), m = mins % 60;
-    return m > 0 ? `${h}h ${m}m` : `${h}h`;
-  }
-
-  calcHoursNum(): number {
-    const { startTime, endTime } = this.entryForm.value;
-    if (!startTime || !endTime) return 0;
-    const mins = this.timeDiff(startTime, endTime);
-    return mins > 0 ? Math.round((mins / 60) * 10) / 10 : 0;
-  }
-
-  timeError(): string | null {
-    const { startTime, endTime } = this.entryForm.value;
-    if (!startTime || !endTime) return null;
-    if (this.timeDiff(startTime, endTime) <= 0) return 'End time must be after start time';
-    if (this.calcHoursNum() > 12) return 'Single entry cannot exceed 12 hours';
-    return null;
-  }
-
-  timeDiff(start: string, end: string): number {
-    const [sh, sm] = start.split(':').map(Number);
-    const [eh, em] = end.split(':').map(Number);
-    return (eh * 60 + em) - (sh * 60 + sm);
-  }
-
-  // ── CRUD ──
+  // ── CRUD — sp params match exactly ──
   saveEntry() {
     this.formErr.set(null);
     if (this.entryForm.invalid) { this.formErr.set('Please fill all required fields.'); return; }
@@ -259,41 +233,41 @@ export class Timesheetpage implements OnInit {
 
     const { workDate, projectName, taskDescription, startTime, endTime, workType } = this.entryForm.value;
     this.saving.set(true);
+    this.showLoader(this.editingId() ? 'Updating entry...' : 'Adding entry...');
 
     if (this.editingId()) {
-      const payload = { timesheetId: this.editingId(), projectName, taskDescription, startTime, endTime, workType };
-      this.showLoader('Updating entry...');
-      this.timesheetService.updateEntry(payload).subscribe({
-        next: () => { this.loadEntries(); this.closeModal(); this.saving.set(false); this.hideLoader(); },
-        error: err => { console.error(err); this.formErr.set('Update failed. Please try again.'); this.saving.set(false); this.hideLoader(); }
-      });
+      // sp_UpdateTimesheetEntry: @TimesheetId, @ProjectName, @TaskDescription, @StartTime, @EndTime, @WorkType
+      // Only works when Status = 'Draft'
+      this.svc.updateEntry({ timesheetId: this.editingId(), projectName, taskDescription, startTime, endTime, workType })
+        .subscribe({
+          next: () => { this.loadEntries(); this.closeModal(); this.saving.set(false); this.hideLoader(); },
+          error: err => { this.formErr.set('Update failed.'); this.saving.set(false); this.hideLoader(); console.error(err); }
+        });
     } else {
-      const payload = { userId: this.userId(), workDate, projectName, taskDescription, startTime, endTime, workType };
-      this.showLoader('Adding entry...');
-      this.timesheetService.addEntry(payload).subscribe({
-        next: () => { this.loadEntries(); this.closeModal(); this.saving.set(false); this.hideLoader(); },
-        error: err => { console.error(err); this.formErr.set('Failed to add entry. Please try again.'); this.saving.set(false); this.hideLoader(); }
-      });
+      // sp_AddTimesheetEntry: @UserId, @WorkDate, @ProjectName, @TaskDescription, @StartTime, @EndTime, @WorkType
+      this.svc.addEntry({ userId: this.userId(), workDate, projectName, taskDescription, startTime, endTime, workType })
+        .subscribe({
+          next: () => { this.loadEntries(); this.closeModal(); this.saving.set(false); this.hideLoader(); },
+          error: err => { this.formErr.set('Failed to add entry.'); this.saving.set(false); this.hideLoader(); console.error(err); }
+        });
     }
   }
 
-  cancelEdit() {
-    this.closeModal();
-  }
-
-  deleteEntry(timesheetId: number) {
-    this.deletingId.set(timesheetId);
-    this.timesheetService.deleteEntry(timesheetId).subscribe({
+  deleteEntry(id: number) {
+    // sp_deleteTimesheetEntry: @sheetId
+    this.deletingId.set(id);
+    this.svc.deleteEntry(id).subscribe({
       next: () => { this.deletingId.set(null); this.loadEntries(); },
-      error: err => { console.error('delete error:', err); this.deletingId.set(null); }
+      error: err => { this.deletingId.set(null); console.error(err); }
     });
   }
 
-  submitEntry(timesheetId: number) {
-    this.submittingId.set(timesheetId);
-    this.timesheetService.submitEntry(timesheetId).subscribe({
+  submitEntry(id: number) {
+    // sp_SubmitTimesheet: @sheetId — only Draft → Submitted
+    this.submittingId.set(id);
+    this.svc.submitEntry(id).subscribe({
       next: () => { this.submittingId.set(null); this.loadEntries(); },
-      error: err => { console.error('submit error:', err); this.submittingId.set(null); }
+      error: err => { this.submittingId.set(null); console.error(err); }
     });
   }
 
@@ -302,19 +276,50 @@ export class Timesheetpage implements OnInit {
     if (!drafts.length) return;
     this.submittingAll.set(true);
     this.showLoader(`Submitting ${drafts.length} entr${drafts.length > 1 ? 'ies' : 'y'}...`);
-    let completed = 0;
-    drafts.forEach(e => {
-      this.timesheetService.submitEntry(e.timesheetId).subscribe({
-        next: () => { completed++; if (completed === drafts.length) { this.loadEntries(); this.submittingAll.set(false); this.hideLoader(); } },
-        error: () => { completed++; if (completed === drafts.length) { this.loadEntries(); this.submittingAll.set(false); this.hideLoader(); } }
-      });
-    });
+    let done = 0;
+    drafts.forEach(e =>
+      this.svc.submitEntry(e.timesheetId).subscribe({
+        next: () => { if (++done === drafts.length) { this.loadEntries(); this.submittingAll.set(false); this.hideLoader(); } },
+        error: () => { if (++done === drafts.length) { this.loadEntries(); this.submittingAll.set(false); this.hideLoader(); } }
+      })
+    );
   }
 
-  selectEntry(e: any) {
-    this.selectedEntry.set(this.selectedEntry()?.timesheetId === e.timesheetId ? null : e);
+  // ── Loader helpers ──
+  showLoader(msg: string) { this.globalLoadingMsg.set(msg); this.globalLoading.set(true); }
+  hideLoader() { this.globalLoading.set(false); }
+
+  // ── Form helpers ──
+  calcHoursStr(): string {
+    const { startTime, endTime } = this.entryForm.value;
+    const mins = this.timeDiff(startTime, endTime);
+    if (mins <= 0) return '—';
+    const h = Math.floor(mins / 60), m = mins % 60;
+    return m ? `${h}h ${m}m` : `${h}h`;
   }
 
+  calcHoursNum(): number {
+    const { startTime, endTime } = this.entryForm.value;
+    const mins = this.timeDiff(startTime, endTime);
+    return mins > 0 ? Math.round((mins / 60) * 10) / 10 : 0;
+  }
+
+  timeError(): string | null {
+    const { startTime, endTime } = this.entryForm.value;
+    if (!startTime || !endTime) return null;
+    if (this.timeDiff(startTime, endTime) <= 0) return 'End time must be after start time';
+    if (this.calcHoursNum() > 12) return 'Cannot exceed 12 hours';
+    return null;
+  }
+
+  timeDiff(start: string, end: string): number {
+    if (!start || !end) return 0;
+    const [sh, sm] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+    return (eh * 60 + em) - (sh * 60 + sm);
+  }
+
+  // ── Export CSV ──
   exportCSV() {
     const rows = [['Date', 'Project', 'Task', 'Start', 'End', 'Hours', 'Type', 'Status']];
     this.filteredEntries().forEach(e => rows.push([
@@ -322,54 +327,48 @@ export class Timesheetpage implements OnInit {
       e.startTime, e.endTime, e.totalHours, e.workType, e.status
     ]));
     const csv = rows.map(r => r.map(v => `"${v || ''}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'my-timesheet.csv'; a.click();
-    URL.revokeObjectURL(url);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = 'my-timesheet.csv';
+    a.click();
   }
 
-  // ── Helpers ──
+  // ── Shared helpers ──
   localDate(d: Date): string {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
-  dateStr(raw: string): string {
-    if (!raw) return '';
-    return raw.split('T')[0];
+  dateStr(raw: string): string { return raw ? raw.split('T')[0] : ''; }
+
+  hoursNum(h: string): number {
+    if (!h) return 0;
+    const p = h.toString().split(':');
+    return parseInt(p[0] || '0') + (parseInt(p[1] || '0') / 60);
   }
 
-  totalHoursNum(totalHours: string): number {
-    if (!totalHours) return 0;
-    const parts = totalHours.toString().split(':');
-    return parseInt(parts[0]) + (parseInt(parts[1] || '0') / 60);
+  formatHours(h: string): string {
+    if (!h) return '—';
+    const p = h.toString().split(':');
+    const hr = parseInt(p[0] || '0'), mn = parseInt(p[1] || '0');
+    if (!hr && !mn) return '—';
+    return mn ? `${hr}h ${mn}m` : `${hr}h`;
   }
 
-  formatTotalHours(totalHours: string): string {
-    if (!totalHours) return '—';
-    const parts = totalHours.toString().split(':');
-    const h = parseInt(parts[0]);
-    const m = parseInt(parts[1] || '0');
-    if (h === 0 && m === 0) return '—';
-    if (m === 0) return `${h}h`;
-    if (h === 0) return `${m}m`;
-    return `${h}h ${m}m`;
-  }
-
-  formatTime(timeStr: string): string {
-    if (!timeStr) return '—';
-    const clean = timeStr.toString().split('.')[0].substring(0, 5);
+  formatTime(t: string): string {
+    if (!t) return '—';
+    const clean = t.toString().split('.')[0].substring(0, 5);
     const [h, m] = clean.split(':').map(Number);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
+    if (isNaN(h)) return '—';
+    return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
   }
 
-  formatDate(dateStr: string): string {
-    if (!dateStr) return '—';
-    return new Date(this.dateStr(dateStr) + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+  formatDate(ds: string): string {
+    if (!ds) return '—';
+    return new Date(this.dateStr(ds) + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
   }
 
-  formatDateLong(dateStr: string): string {
-    if (!dateStr) return '';
-    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+  formatDateLong(ds: string): string {
+    if (!ds) return '';
+    return new Date(ds + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
   }
 }

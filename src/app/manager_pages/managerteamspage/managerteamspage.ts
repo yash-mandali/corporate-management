@@ -136,7 +136,7 @@ export class Managerteampage implements OnInit {
     let pending = 3;
     const done = () => { if (--pending === 0) this.isLoading.set(false); };
 
-    this.userService.getAllUser().subscribe({
+    this.userService.getAllEmployee().subscribe({
       next: (res: any) => { this.rawUsers.set(Array.isArray(res) ? res : res ? [res] : []); done(); },
       error: err => { console.error('users:', err); done(); }
     });

@@ -295,7 +295,7 @@
                             @if (pendingTimesheetCount() > 0) {
                             <span class="panel-badge blue">{{ pendingTimesheetCount() }} pending</span>
                             }
-                            <a class="view-all-link" routerLink="/manager/timesheets">
+                            <a class="view-all-link" routerLink="/dashboard/managertimesheet">
                                 View all <i class="fas fa-arrow-right"></i>
                             </a>
                         </div>
@@ -353,7 +353,7 @@
                     </div>
                     @if (pendingTimesheets().length > 3) {
                     <div class="panel-footer">
-                        <a class="pf-more-link blue" routerLink="/manager/timesheets">
+                        <a class="pf-more-link blue" routerLink="/dashboard/managertimesheet">
                             <i class="fas fa-clock"></i>
                             +{{ pendingTimesheets().length - 3 }} more entries
                             <i class="fas fa-arrow-right"></i>

@@ -11,7 +11,7 @@
                 </div>
             </div>
             <div class="ph-badge">
-                <i class="fas fa-circle ph-online"></i> {{ userInfo().isActive ?'Active':'Offline'}}
+                <i class="fas fa-circle ph-online"></i> {{ userInfo().isActive ? 'Active':'Offline'}}
             </div>
         </div>
 
@@ -31,7 +31,8 @@
                                 'Engineering' }}</span>
                         </div>
                         <div class="emp-status-row">
-                            <span class="emp-status-badge active"><i class="fas fa-circle"></i>{{ userInfo().isActive ?'Active':'Offline'}}</span>
+                            <span class="emp-status-badge active"><i class="fas fa-circle"></i>{{ userInfo().isActive
+                                ?'Active':'Offline'}}</span>
                             <span class="emp-joined">Joined {{ userInfo()?.createdAt | date: 'MMM yyyy' }}</span>
                         </div>
                     </div>

@@ -109,9 +109,9 @@
 
                         <div class="ef">
                             <label>Full Name <span>*</span></label>
-                            <input type="text" formControlName="username" placeholder="Enter full name"
-                                [class.ef-error]="profileForm.get('username')?.invalid && profileForm.get('username')?.touched" />
-                            @if (profileForm.get('username')?.invalid && profileForm.get('username')?.touched) {
+                            <input type="text" formControlName="userName" placeholder="Enter full name"
+                                [class.ef-error]="profileForm.get('userName')?.invalid && profileForm.get('userName')?.touched" />
+                            @if (profileForm.get('userName')?.invalid && profileForm.get('userName')?.touched) {
                             <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
                             }
                         </div>

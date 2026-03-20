@@ -40,7 +40,7 @@ export class MyProfile {
 
   ngOnInit() {
     this.profileForm = this.fb.group({
-      username: ['', Validators.required],
+      userName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       phoneNumber: ['', Validators.required],
       gender: ['', Validators.required],
@@ -71,7 +71,7 @@ export class MyProfile {
   enableEdit() {
     const d = this.profileData();
     this.profileForm.patchValue({
-      username: d?.userName || '',
+      userName: d?.userName || '',
       email: d?.email || '',
       phoneNumber: d?.phoneNumber || '',
       gender: d?.gender || '',
@@ -90,21 +90,21 @@ export class MyProfile {
     this.isSaving = true;
     const payload = {
       id: this.profileData()?.id,
-      roleId: this.profileData()?.roleId,
+      // roleId: this.profileData()?.roleId,
       ...this.profileForm.value
     };
-    // this.userService.updateUser(payload).subscribe({
-    //   next: () => {
-    //     this.toast.success('Profile updated successfully!');
-    //     this.editMode = false;
-    //     this.isSaving = false;
-    //     this.loadProfile();
-    //   },
-    //   error: (err) => {
-    //     this.toast.error(err?.error?.message || 'Update failed');
-    //     this.isSaving = false;
-    //   }
-    // });
+    this.userService.updateUser(payload).subscribe({
+      next: () => {
+        this.toast.success('Profile updated successfully!');
+        this.editMode = false;
+        this.isSaving = false;
+        this.loadProfile();
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || 'Update failed');
+        this.isSaving = false;
+      }
+    });
   }
 
   cancelPwd() {

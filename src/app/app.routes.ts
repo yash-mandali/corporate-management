@@ -17,6 +17,7 @@ import { ManagerLeavepage } from './manager_pages/managerleavepage/managerleavep
 import { ManagerTimesheetpage } from './manager_pages/managertimesheet/managertimesheet';
 import { Managerteampage } from './manager_pages/managerteamspage/managerteamspage';
 import { Teamperformance } from './manager_pages/teamperformance/teamperformance';
+import { Notfound } from './pages/notfound/notfound';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -114,6 +115,6 @@ export const routes: Routes = [
 
     {
         path: '**',
-        component: Login
+        component: Notfound
     }
 ];

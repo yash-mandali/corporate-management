@@ -120,15 +120,15 @@
                             (input)="searchQ.set($any($event.target).value)">
                     </div>
                     <div class="tc-filters">
-                        <button class="tcf" [class.active]="statusF()==='all'" (click)="statusF.set('all')">All</button>
+                        <button class="tcf" [class.active]="statusF()==='all'" (click)="setFilter('all')">All</button>
                         <button class="tcf draft" [class.active]="statusF()==='Draft'"
-                            (click)="statusF.set('Draft')">Draft</button>
+                            (click)="setFilter('Draft')">Draft</button>
                         <button class="tcf submitted" [class.active]="statusF()==='Submitted'"
-                            (click)="statusF.set('Submitted')">Submitted</button>
+                            (click)="setFilter('Submitted')">Submitted</button>
                         <button class="tcf approved" [class.active]="statusF()==='Approved'"
-                            (click)="statusF.set('Approved')">Approved</button>
+                            (click)="setFilter('Approved')">Approved</button>
                         <button class="tcf rejected" [class.active]="statusF()==='Rejected'"
-                            (click)="statusF.set('Rejected')">Rejected</button>
+                            (click)="setFilter('Rejected')">Rejected</button>
                     </div>
                     @if (selectedDate()) {
                     <button class="clear-btn" (click)="selectedDate.set(null)">
@@ -168,7 +168,8 @@
             <div class="tbl-scroll">
                 <table>
                     <thead>
-                        <tr> 
+                        <tr>
+                            <th class="col-idx">#</th>
                             <th>Date</th>
                             <th>Project</th>
                             <th>Task</th>
@@ -181,15 +182,15 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @for (e of filteredEntries(); track e.timesheetId; let i = $index) {
-                        <tr [class.tr-selected]="selectedEntry()?.timesheetId === e.timesheetId"
-                            (click)="selectEntry(e)">
+                        @for (e of pagedEntries(); track e.timesheetId; let i = $index) {
+                        <tr>
+                            <td class="td-idx col-idx">{{ i + 1 }}</td>
                             <td class="td-date">{{ formatDate(e.workDate) }}</td>
                             <td><span class="proj-tag">{{ e.projectName || '—' }}</span></td>
                             <td class="td-task" [title]="e.taskDescription">{{ e.taskDescription || '—' }}</td>
                             <td class="td-time">{{ formatTime(e.startTime) }}</td>
                             <td class="td-time">{{ formatTime(e.endTime) }}</td>
-                            <td class="td-hours">{{ formatTotalHours(e.totalHours) }}</td>
+                            <td class="td-hours">{{ formatHours(e.totalHours) }}</td>
                             <td class="col-type"><span class="type-chip tc-{{ e.workType | lowercase }}">{{ e.workType
                                     }}</span></td>
                             <td>
@@ -198,19 +199,19 @@
                                 </span>
                             </td>
                             <td class="td-act" (click)="$event.stopPropagation()">
-                                @if (e.status === 'Draft' || e.status === 'Rejected') {
+                                @if (e.status === 'Draft') {
                                 <button class="act edit" (click)="openEditModal(e)" title="Edit"
                                     [disabled]="deletingId() === e.timesheetId">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                                <button class="act del" (click)="deleteEntry(e.timesheetId)" title="Delete"
+                               <button class="act del" (click)="deleteEntry(e.timesheetId)" title="Delete"
                                     [disabled]="deletingId() === e.timesheetId">
                                     @if (deletingId() === e.timesheetId) {
                                     <span class="mini-spinner del-spin"></span>
                                     } @else {
                                     <i class="fas fa-trash"></i>
                                     }
-                                </button>
+                                </button> 
                                 }
                                 @if (e.status === 'Draft') {
                                 <button class="act submit-one" (click)="submitEntry(e.timesheetId)"
@@ -222,11 +223,11 @@
                                     }
                                 </button>
                                 }
-                                @if (e.status === 'Rejected' && e.rejectReason) {
+                                <!-- @if (e.status === 'Rejected' && e.rejectReason) {
                                 <span class="reject-tip" [title]="e.rejectReason">
                                     <i class="fas fa-comment-alt"></i>
                                 </span>
-                                }
+                                } -->
                             </td>
                         </tr>
                         } @empty {
@@ -240,6 +241,32 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- PAGINATION -->
+            @if (totalPages() > 1) {
+            <div class="pagination">
+                <button class="pg-btn" (click)="currentPage.set(1)" [disabled]="currentPage() === 1">
+                    <i class="fas fa-angle-double-left"></i>
+                </button>
+                <button class="pg-btn" (click)="currentPage.set(currentPage() - 1)" [disabled]="currentPage() === 1">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                @for (p of pageNumbers(); track p) {
+                <button class="pg-num" [class.active]="p === currentPage()" (click)="currentPage.set(p)">{{ p
+                    }}</button>
+                }
+                <button class="pg-btn" (click)="currentPage.set(currentPage() + 1)"
+                    [disabled]="currentPage() === totalPages()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button class="pg-btn" (click)="currentPage.set(totalPages())"
+                    [disabled]="currentPage() === totalPages()">
+                    <i class="fas fa-angle-double-right"></i>
+                </button>
+                <span class="pg-info">{{ currentPage() }} of {{ totalPages() }} · {{ filteredEntries().length }}
+                    entries</span>
+            </div>
+            }
             }
         </div>
 

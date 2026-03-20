@@ -13,6 +13,7 @@ export class UserService {
   apiurl = environment.ApiUrl;
   loginApi = `${this.apiurl}/User/Login`;
   signupApi = `${this.apiurl}/User/AddUser`;
+  updateApi = `${this.apiurl}/User/UpdateUser`;
   getUserbyIdApi = `${this.apiurl}/User/getUserById`;
   getAlluserApi = `${this.apiurl}/User/getAllUsers`;
   getAllEmployeeApi = `${this.apiurl}/User/getAllEmployee`;
@@ -26,6 +27,11 @@ export class UserService {
   signup(data: any) {
     return this.http.post(this.signupApi, data);
   }
+
+  updateUser(data: any) {
+    return this.http.put(this.updateApi, data);
+  }
+
 
   getAllUser() {
     return this.http.get<any[]>(this.getAlluserApi)

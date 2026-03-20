@@ -11,12 +11,12 @@ import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-manager-dashboard',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, LowerCasePipe, RouterLink],
   templateUrl: './managerdashboard.html',
   styleUrl: './managerdashboard.css',
 })
 export class ManagerDashboard implements OnInit {
-
+  leaveUserName = signal<any[]>([]);
   // ── Core state ──
   managerId = signal<any>(null);
   managerInfo = signal<any>(null);
@@ -85,7 +85,7 @@ export class ManagerDashboard implements OnInit {
     return Math.round((this.todayAbsent() / total) * 100);
   });
 
-  // SVG ring offset — circumference = 2π×34 ≈ 213.6
+  // SVG ring offset
   ringOffset = computed(() => {
     const pct = this.todayPresentPct();
     return 213.6 - (213.6 * pct) / 100;
@@ -114,14 +114,22 @@ export class ManagerDashboard implements OnInit {
     });
   });
 
-  // ── Computed: filtered by tab ──
+  // ── Computed: filtered by tab, active users always on top ──
   filteredAttendance = computed(() => {
     const f = this.attFilter();
     const all = this.todayAttendance();
-    if (f === 'in') return all.filter(e => e.isCheckIn && !e.isCheckOut);
-    if (f === 'out') return all.filter(e => e.isCheckOut);
-    if (f === 'absent') return all.filter(e => !e.isCheckIn);
-    return all;
+
+    let list = all;
+    if (f === 'in') list = all.filter(e => e.isCheckIn && !e.isCheckOut);
+    else if (f === 'out') list = all.filter(e => e.isCheckOut);
+    else if (f === 'absent') list = all.filter(e => !e.isCheckIn);
+
+    // 0 = active (checked in, not out)  →  1 = done (checked out)  →  2 = absent
+    return list.slice().sort((a, b) => {
+      const rank = (e: any) =>
+        e.isCheckIn && !e.isCheckOut ? 0 : e.isCheckOut ? 1 : 2;
+      return rank(a) - rank(b);
+    });
   });
 
   // Show only first 5 in dashboard
@@ -144,7 +152,7 @@ export class ManagerDashboard implements OnInit {
     if (id) {
       this.managerId.set(id);
       this.loadManagerInfo();
-      this.loadAllUsers();
+      this.loadAllEmployee();
       this.loadTodayAttendance();
       this.loadPendingLeaves();
       this.loadPendingTimesheets();
@@ -162,12 +170,14 @@ export class ManagerDashboard implements OnInit {
   // ── Data loaders ──
   loadManagerInfo() {
     this.userService.getUserById(this.managerId()).subscribe({
-      next: res => this.managerInfo.set(res),
+      next: res => {
+        this.managerInfo.set(res)       
+      },
       error: err => console.error('loadManagerInfo:', err)
     });
   }
 
-  loadAllUsers() {
+  loadAllEmployee() {
     this.userService.getAllEmployee().subscribe({
       next: (res: any) => {
         this.allUsers.set(Array.isArray(res) ? res : res ? [res] : []);
@@ -195,6 +205,8 @@ export class ManagerDashboard implements OnInit {
           ? res[0]?.data ?? res
           : res?.data ?? (res ? [res] : []);
         this.pendingLeaves.set(list);
+        console.log("pending leaves: ",this.pendingLeaves());
+        
         this.leaveLoading.set(false);
       },
       error: err => { console.error('loadPendingLeaves:', err); this.leaveLoading.set(false); }
@@ -234,7 +246,7 @@ export class ManagerDashboard implements OnInit {
       next: () => {
         this.pendingLeaves.update(l => l.filter(x => x.leaveRequestId !== leaveRequestId));
         this.actionLoading.set(null);
-        // this.toast.success('Leave rejected.');
+        this.toast.success('Leave rejected.');
       },
       error: err => {
         this.toast.error(err?.error?.message ?? 'Failed to reject.');
@@ -250,7 +262,7 @@ export class ManagerDashboard implements OnInit {
       next: () => {
         this.pendingTimesheets.update(l => l.filter(x => x.timesheetId !== timesheetId));
         this.tsActionLoading.set(null);
-        // this.toast.success('Timesheet approved.');
+        this.toast.success('Timesheet approved.');
       },
       error: err => {
         this.toast.error(err?.error?.message ?? 'Failed to approve.');

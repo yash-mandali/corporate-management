@@ -350,17 +350,17 @@ body {
 }
 
 .sc-val {
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 900;
     color: #0d2d36;
     line-height: 1;
 }
 
 .sc-val span {
-    font-size: 25px;
-    font-weight: 900;
-    margin-left: 3px;
-    color: #0d2d36;
+    font-size: 13px;
+    font-weight: 700;
+    color: #5a8a94;
+    margin-left: 1px;
 }
 
 .sc-lbl {
@@ -464,7 +464,6 @@ body {
 }
 
 .tc-filters {
-    height: 33px;
     display: flex;
     gap: 3px;
     background: #ebf4f6;
@@ -1687,5 +1686,88 @@ tbody tr:nth-child(8) {
 
     .gl-card {
         padding: 24px 28px;
+    }
+}
+
+/* ── PAGINATION ── */
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 12px 18px;
+    border-top: 1px solid #d6eaee;
+    background: #f7fbfc;
+    flex-wrap: wrap;
+}
+
+.pg-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    border: 1px solid #d6eaee;
+    background: #fff;
+    color: #5a8a94;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 10px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+}
+
+.pg-btn:hover:not(:disabled) {
+    background: #09637e;
+    border-color: #09637e;
+    color: #fff;
+}
+
+.pg-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.pg-num {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    border: 1px solid #d6eaee;
+    background: #fff;
+    color: #5a8a94;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.pg-num:hover:not(.active) {
+    border-color: #09637e;
+    color: #09637e;
+}
+
+.pg-num.active {
+    background: #09637e;
+    border-color: #09637e;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(9, 99, 126, 0.3);
+}
+
+.pg-info {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 700;
+    color: #5a8a94;
+    white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    .pg-info {
+        margin-left: 0;
+        width: 100%;
+        text-align: center;
+        margin-top: 4px;
     }
 }

@@ -11,7 +11,7 @@ import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-manager-dashboard',
-  imports: [FormsModule, LowerCasePipe, RouterLink],
+  imports: [FormsModule, RouterLink],
   templateUrl: './managerdashboard.html',
   styleUrl: './managerdashboard.css',
 })
@@ -20,7 +20,7 @@ export class ManagerDashboard implements OnInit {
   // ── Core state ──
   managerId = signal<any>(null);
   managerInfo = signal<any>(null);
-  allUsers = signal<any[]>([]);
+  ManagerTeam = signal<any[]>([]);
   allAttendance = signal<any[]>([]);
   pendingLeaves = signal<any[]>([]);
   pendingTimesheets = signal<any[]>([]);
@@ -52,7 +52,7 @@ export class ManagerDashboard implements OnInit {
   ];
 
   // ── Computed: summary ──
-  totalEmployees = computed(() => this.allUsers().length);
+  totalEmployees = computed(() => this.ManagerTeam().length);
   pendingLeaveCount = computed(() => this.pendingLeaves().length);
   pendingTimesheetCount = computed(() => this.pendingTimesheets().length);
 
@@ -70,7 +70,7 @@ export class ManagerDashboard implements OnInit {
         .filter(r => r.date?.toString().startsWith(today) && r.isCheckIn)
         .map(r => r.userId)
     );
-    return this.allUsers().filter(u => !checkedIn.has(u.id)).length;
+    return this.ManagerTeam().filter(u => !checkedIn.has(u.id)).length;
   });
 
   todayPresentPct = computed(() => {
@@ -97,7 +97,7 @@ export class ManagerDashboard implements OnInit {
     const recs = this.allAttendance().filter(r => r.date?.toString().startsWith(today));
     const recMap = new Map(recs.map(r => [r.userId, r]));
 
-    return this.allUsers().map(u => {
+    return this.ManagerTeam().map(u => {
       const rec: any = recMap.get(u.id) ?? {};
       return {
         userId: u.id,
@@ -152,9 +152,10 @@ export class ManagerDashboard implements OnInit {
     if (id) {
       this.managerId.set(id);
       this.loadManagerInfo();
-      this.loadAllEmployee();
+      this.loadManagerTeam();
       this.loadTodayAttendance();
-      this.loadPendingLeaves();
+      this.loadTeamPendingLeaves();
+      this.leaveService.autorejectLeave().subscribe();
       this.loadPendingTimesheets();
     }
   }
@@ -177,18 +178,18 @@ export class ManagerDashboard implements OnInit {
     });
   }
 
-  loadAllEmployee() {
-    this.userService.getAllEmployee().subscribe({
+  loadManagerTeam() {
+    this.userService.getManagerTeam(this.managerId()).subscribe({
       next: (res: any) => {
-        this.allUsers.set(Array.isArray(res) ? res : res ? [res] : []);
+        this.ManagerTeam.set(Array.isArray(res) ? res : res ? [res] : []);
       },
-      error: err => console.error('loadAllUsers:', err)
+      error: err => console.error('ManagerTeam:', err)
     });
   }
 
   loadTodayAttendance() {
     this.attLoading.set(true);
-    this.attendanceService.getAllattendance().subscribe({
+    this.attendanceService.getTeamAllattendance(this.managerId()).subscribe({
       next: (res: any) => {
         this.allAttendance.set(Array.isArray(res) ? res : res ? [res] : []);
         this.attLoading.set(false);
@@ -197,9 +198,9 @@ export class ManagerDashboard implements OnInit {
     });
   }
 
-  loadPendingLeaves() {
+  loadTeamPendingLeaves() {
     this.leaveLoading.set(true);
-    this.leaveService.getAllpendingleaves().subscribe({
+    this.leaveService.getTeamAllPendingleaves(this.managerId()).subscribe({
       next: (res: any) => {
         const list = Array.isArray(res)
           ? res[0]?.data ?? res
@@ -227,7 +228,7 @@ export class ManagerDashboard implements OnInit {
   // ── Leave actions ──
   approveLeave(leaveRequestId: any) {
     this.actionLoading.set(leaveRequestId);
-    this.leaveService.Approveleave(leaveRequestId).subscribe({
+    this.leaveService.managerApproveleave(leaveRequestId).subscribe({
       next: () => {
         this.pendingLeaves.update(l => l.filter(x => x.leaveRequestId !== leaveRequestId));
         this.actionLoading.set(null);
@@ -242,7 +243,7 @@ export class ManagerDashboard implements OnInit {
 
   rejectLeave(leaveRequestId: any) {
     this.actionLoading.set(leaveRequestId);
-    this.leaveService.Rejectleave(leaveRequestId).subscribe({
+    this.leaveService.managerRejectleave(leaveRequestId).subscribe({
       next: () => {
         this.pendingLeaves.update(l => l.filter(x => x.leaveRequestId !== leaveRequestId));
         this.actionLoading.set(null);
@@ -258,7 +259,7 @@ export class ManagerDashboard implements OnInit {
   // ── Timesheet actions ──
   approveTimesheet(timesheetId: any) {
     this.tsActionLoading.set(timesheetId);
-    this.timesheetService.approveEntry(timesheetId).subscribe({
+    this.timesheetService.managerApproveEntry(timesheetId).subscribe({
       next: () => {
         this.pendingTimesheets.update(l => l.filter(x => x.timesheetId !== timesheetId));
         this.tsActionLoading.set(null);
@@ -287,7 +288,7 @@ export class ManagerDashboard implements OnInit {
     const entry = this.rejectModal();
     if (!entry || !this.rejectReason.trim()) return;
     this.tsActionLoading.set(entry.timesheetId);
-    this.timesheetService.rejectEntry(entry.timesheetId, this.rejectReason.trim()).subscribe({
+    this.timesheetService.managerRejectEntry(entry.timesheetId, this.rejectReason.trim()).subscribe({
       next: () => {
         this.pendingTimesheets.update(l => l.filter(x => x.timesheetId !== entry.timesheetId));
         this.tsActionLoading.set(null);

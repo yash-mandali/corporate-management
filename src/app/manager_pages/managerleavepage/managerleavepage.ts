@@ -15,7 +15,8 @@ export class ManagerLeavepage implements OnInit {
 
   // ── State ──
   allLeaves = signal<any[]>([]);
-  allUsers = signal<any[]>([]);
+  managerId = signal<any>(null);
+  ManagerTeam = signal<any[]>([]);
   leaveLoading = signal(false);
   actionLoading = signal<any>(null);
 
@@ -79,7 +80,7 @@ export class ManagerLeavepage implements OnInit {
   // ── Balance tab: approved days per employee per leave type ──
   employeeBalances = computed(() => {
     const approved = this.allLeaves().filter(l => l.status === 'Approved');
-    return this.allUsers().map(u => {
+    return this.ManagerTeam().map(u => {
       const userLeaves = approved.filter(l => l.userId === u.id);
       const breakdown: Record<string, number> = { annual: 0, sick: 0, comp: 0, emergency: 0 };
       userLeaves.forEach(l => {
@@ -109,20 +110,26 @@ export class ManagerLeavepage implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.loadAllUsers();
-    this.loadAllLeaves();
+    const id = this.auth.getUserId();
+    if (id) {
+      this.managerId.set(id);
+      this.loadManagerTeam();
+      this.loadAllLeaves();
+    }   
   }
 
-  loadAllUsers() {
-    this.userService.getAllEmployee().subscribe({
-      next: (res: any) => this.allUsers.set(Array.isArray(res) ? res : res ? [res] : []),
-      error: err => console.error('loadAllEmployee:', err)
+  loadManagerTeam() {
+    this.userService.getManagerTeam(this.managerId()).subscribe({
+      next: (res: any) => {
+        this.ManagerTeam.set(Array.isArray(res) ? res : res ? [res] : []);
+      },
+      error: err => console.error('ManagerTeam:', err)
     });
   }
 
   loadAllLeaves() {
     this.leaveLoading.set(true);
-    this.leaveService.getAllLeaves().subscribe({
+    this.leaveService.getTeamAllleaves(this.managerId()).subscribe({
       next: (res: any) => {
         const list = Array.isArray(res) ? res : res?.data ?? (res ? [res] : []);
         this.allLeaves.set(list);
@@ -135,7 +142,7 @@ export class ManagerLeavepage implements OnInit {
   // ── Actions ──
   approveLeave(leaveRequestId: any) {
     this.actionLoading.set(leaveRequestId);
-    this.leaveService.Approveleave(leaveRequestId).subscribe({
+    this.leaveService.managerApproveleave(leaveRequestId).subscribe({
       next: () => {
         this.allLeaves.update(list =>
           list.map(l => l.leaveRequestId === leaveRequestId ? { ...l, status: 'Approved' } : l)
@@ -152,7 +159,7 @@ export class ManagerLeavepage implements OnInit {
 
   rejectLeave(leaveRequestId: any) {
     this.actionLoading.set(leaveRequestId);
-    this.leaveService.Rejectleave(leaveRequestId).subscribe({
+    this.leaveService.managerRejectleave(leaveRequestId).subscribe({
       next: () => {
         this.allLeaves.update(list =>
           list.map(l => l.leaveRequestId === leaveRequestId ? { ...l, status: 'Rejected' } : l)

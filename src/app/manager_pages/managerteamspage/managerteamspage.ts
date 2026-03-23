@@ -4,6 +4,7 @@ import { UserService } from '../../services/user-service/user-service';
 import { AttendanceService } from '../../services/attendance-service';
 import { LeaveService } from '../../services/leave-service/leave-service';
 import { TimesheetService } from '../../services/timesheet-service/timesheet-service';
+import { Authservice } from '../../services/Auth-service/authservice';
 
 @Component({
   selector: 'app-manager-team',
@@ -14,6 +15,7 @@ import { TimesheetService } from '../../services/timesheet-service/timesheet-ser
 export class Managerteampage implements OnInit {
 
   // ── Raw data ──
+  userId = signal<any>('')
   rawUsers = signal<any[]>([]);
   allAttendance = signal<any[]>([]);
   allLeaves = signal<any[]>([]);
@@ -36,7 +38,12 @@ export class Managerteampage implements OnInit {
   enrichedEmployees = computed(() => {
     const today = this.localDate(new Date());
     const todayAtt = this.allAttendance().filter(r => r.date?.toString().startsWith(today));
+    console.log("todayAtt:", todayAtt);
+    console.log("todayAtt length:", todayAtt.length);
+    
     const todayMap = new Map(todayAtt.map(r => [r.userId, r]));
+    console.log("todaymap",todayMap);
+    
 
     // Current month attendance
     const now = new Date();
@@ -53,9 +60,15 @@ export class Managerteampage implements OnInit {
     );
 
     return this.rawUsers().map(u => {
+      console.log("rawusers::",u);
+      
       // Today status
       const todayRec = todayMap.get(u.id);
-      const isActive = !!(todayRec?.isCheckIn);
+      console.log("todayRec",todayRec);
+      
+      const isActive = u.isActive
+     
+      
 
       // Monthly attendance
       const userMonthAtt = monthAtt.filter(r => r.userId === u.id && r.status !== 'Weekend');
@@ -89,11 +102,12 @@ export class Managerteampage implements OnInit {
     });
   });
 
-  // ── Filtered list ──
   filteredEmployees = computed(() => {
     const q = this.searchQ().toLowerCase().trim();
     const sf = this.statusFilter();
     return this.enrichedEmployees().filter(emp => {
+      console.log("filterrmployee:: ",emp);
+      
       const matchQ = !q ||
         (emp.userName || '').toLowerCase().includes(q) ||
         (emp.roleName || '').toLowerCase().includes(q) ||
@@ -124,29 +138,41 @@ export class Managerteampage implements OnInit {
     private userService: UserService,
     private attendanceService: AttendanceService,
     private leaveService: LeaveService,
+    private auth:Authservice,
     private timesheetService: TimesheetService
   ) { }
 
   ngOnInit() {
     this.isLoading.set(true);
+    this.userId.set(this.auth.getUserId());
     this.loadAllData();
+    
   }
 
   loadAllData() {
     let pending = 3;
     const done = () => { if (--pending === 0) this.isLoading.set(false); };
-
-    this.userService.getAllEmployee().subscribe({
-      next: (res: any) => { this.rawUsers.set(Array.isArray(res) ? res : res ? [res] : []); done(); },
+    console.log("manager id:: ",this.userId());
+    
+    this.userService.getManagerTeam(this.userId()).subscribe({
+      next: (res: any) => {
+        this.rawUsers.set(Array.isArray(res) ? res : res ? [res] : []);
+        console.log("rawusers:: ",this.rawUsers());
+        
+        done();
+      },
       error: err => { console.error('users:', err); done(); }
     });
 
-    this.attendanceService.getAllattendance().subscribe({
-      next: (res: any) => { this.allAttendance.set(Array.isArray(res) ? res : res ? [res] : []); done(); },
-      error: err => { console.error('attendance:', err); done(); }
+    this.attendanceService.getTeamAllattendance(this.userId()).subscribe({
+      next: (res: any) => {
+        this.allAttendance.set(Array.isArray(res) ? res : res ? [res] : []);
+        done();
+      },
+      error: err => { console.error('Team attendance:', err); done(); }
     });
 
-    this.leaveService.getAllLeaves().subscribe({
+    this.leaveService.getTeamAllleaves(this.userId()).subscribe({
       next: (res: any) => {
         const list = Array.isArray(res) ? res : res?.data ?? (res ? [res] : []);
         this.allLeaves.set(list); done();

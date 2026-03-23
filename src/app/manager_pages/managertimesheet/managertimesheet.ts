@@ -4,6 +4,7 @@ import { LowerCasePipe } from '@angular/common';
 import { UserService } from '../../services/user-service/user-service';
 import { TimesheetService } from '../../services/timesheet-service/timesheet-service';
 import { ToastrService } from 'ngx-toastr';
+import { Authservice } from '../../services/Auth-service/authservice';
 
 @Component({
   selector: 'app-manager-timesheet',
@@ -14,6 +15,7 @@ import { ToastrService } from 'ngx-toastr';
 export class ManagerTimesheetpage implements OnInit {
 
   // ── State ──
+  managerId = signal<any>(null);
   allEntries = signal<any[]>([]);
   allUsers = signal<any[]>([]);
   tsLoading = signal(false);
@@ -134,6 +136,7 @@ export class ManagerTimesheetpage implements OnInit {
   constructor(
     private userService: UserService,
     private timesheetService: TimesheetService,
+    private auth:Authservice,
     private toast: ToastrService
   ) {
     // set Monday as week start
@@ -145,12 +148,16 @@ export class ManagerTimesheetpage implements OnInit {
   }
 
   ngOnInit() {
-    this.loadAllUsers();
-    this.loadAllEntries();
+    const id = this.auth.getUserId();
+    if (id) {
+      this.managerId.set(id);
+      this.loadTeamUsers();
+      this.loadAllEntries();
+     }  
   }
 
-  loadAllUsers() {
-    this.userService.getAllEmployee().subscribe({
+  loadTeamUsers() {
+    this.userService.getManagerTeam(this.managerId()).subscribe({
       next: (res: any) => this.allUsers.set(Array.isArray(res) ? res : res ? [res] : []),
       error: err => console.error('loadAllemployees:', err)
     });
@@ -158,7 +165,7 @@ export class ManagerTimesheetpage implements OnInit {
 
   loadAllEntries() {
     this.tsLoading.set(true);
-    this.timesheetService.getAllEntry().subscribe({
+    this.timesheetService.getTeamAllEntry(this.managerId()).subscribe({
       next: (res: any) => {
         this.allEntries.set(Array.isArray(res) ? res : res ? [res] : []);
         this.tsLoading.set(false);
@@ -170,7 +177,7 @@ export class ManagerTimesheetpage implements OnInit {
   // ── Actions ──
   approveEntry(timesheetId: any) {
     this.tsActionLoading.set(timesheetId);
-    this.timesheetService.approveEntry(timesheetId).subscribe({
+    this.timesheetService.managerApproveEntry(timesheetId).subscribe({
       next: () => {
         this.allEntries.update(list =>
           list.map(e => e.timesheetId === timesheetId ? { ...e, status: 'Approved' } : e)
@@ -201,7 +208,7 @@ export class ManagerTimesheetpage implements OnInit {
     const entry = this.rejectModal();
     if (!entry || !this.rejectReason.trim()) return;
     this.tsActionLoading.set(entry.timesheetId);
-    this.timesheetService.rejectEntry(entry.timesheetId, this.rejectReason.trim()).subscribe({
+    this.timesheetService.managerRejectEntry(entry.timesheetId, this.rejectReason.trim()).subscribe({
       next: () => {
         this.allEntries.update(list =>
           list.map(e => e.timesheetId === entry.timesheetId

@@ -11,14 +11,18 @@ export class LeaveService {
 
   apiurl = environment.ApiUrl;
   getAllLeavesApi = `${this.apiurl}/Leave/GetAllLeaves`;
+  getTeamAllLeavesApi = `${this.apiurl}/Leave/managerTeam-AllLeaves`;
   ApplyleaveApi = `${this.apiurl}/Leave/ApplyLeave`;
   updateleaveApi = `${this.apiurl}/Leave/updateLeave`;
   getmyleavesApi = `${this.apiurl}/Leave/getMyLeaves`;
   getleaveByIdApi = `${this.apiurl}/Leave/getleaveById`;
   withdrawleaveApi = `${this.apiurl}/Leave/withdrawLeave`;
   getAllpendingLeavesApi = `${this.apiurl}/Leave/GetAllPendingLeaves`;
-  approveleaveApi = `${this.apiurl}/Leave/Approve-Leave`;
-  rejectleaveApi = `${this.apiurl}/Leave/Reject-Leave`;
+  getManagerTeamPendingLeaves = `${this.apiurl}/Leave/managerteam-pendingleaves`;
+  managerApproveleaveApi = `${this.apiurl}/Leave/ManagerApproveLeave`;  //manager
+  managerRejectleaveApi = `${this.apiurl}/Leave/ManagerRejectLeave`;  //manager
+  AutoRejectLeaveApi = `${this.apiurl}/Leave/AutoRejectLeave`;  //manager
+
 
   createNewLeave(data: any) {
     return this.http.post<any>(this.ApplyleaveApi, data);
@@ -37,10 +41,18 @@ export class LeaveService {
     return this.http.get<any[]>(this.getAllLeavesApi)
   }
 
+  getTeamAllleaves(managerId: number) {
+    return this.http.get<any[]>(`${this.getTeamAllLeavesApi}?managerId=${managerId}`, {});
+  }
+
   getAllpendingleaves() {
     return this.http.get<any[]>(this.getAllpendingLeavesApi)
   }
-  
+
+  getTeamAllPendingleaves(managerId: number) {
+    return this.http.get<any[]>(`${this.getManagerTeamPendingLeaves}?managerId=${managerId}`, {});
+  }
+
 
   getMyleaveList(Id: number) {
     return this.http.get<any[]>(this.getmyleavesApi, {
@@ -49,11 +61,16 @@ export class LeaveService {
   }
   // ----------------
 
-  Approveleave(leaveRequestId: number) {
-    return this.http.put(`${this.approveleaveApi}?Id=${leaveRequestId}`, {})
+  managerApproveleave(leaveRequestId: number) {
+    return this.http.put(`${this.managerApproveleaveApi}?Id=${leaveRequestId}`, {})
   }
 
-  Rejectleave(leaveRequestId: number) {
-    return this.http.put(`${this.rejectleaveApi}?Id=${leaveRequestId}`, {})
+  managerRejectleave(leaveRequestId: number) {
+    return this.http.put(`${this.managerRejectleaveApi}?Id=${leaveRequestId}`, {})
   }
+
+  autorejectLeave() {
+    return this.http.put<any>(this.AutoRejectLeaveApi, {});
+  }
+  
 }

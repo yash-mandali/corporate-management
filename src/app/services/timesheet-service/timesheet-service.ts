@@ -16,14 +16,19 @@ export class TimesheetService {
   getentrybyidapi = `${this.apiurl}/Timesheet/getTimesheetEntryById`;
   getentrybyuseridapi = `${this.apiurl}/Timesheet/getTimesheetEntryByUserId`;
   getallEntryApi = `${this.apiurl}/Timesheet/GetAlltimesheets`;
+  managerTeamGetallEntryApi = `${this.apiurl}/Timesheet/manager-GetAlltimesheets`;
   deleteEntryApi = `${this.apiurl}/Timesheet/DeleteTimesheet`;
   submitEntryApi = `${this.apiurl}/Timesheet/submitTimesheet`;
-  ApproveEntryApi = `${this.apiurl}/Timesheet/ManagerApprove`;  //manager
-  rejectEntryApi = `${this.apiurl}/Timesheet/ManagerReject`;   //manager
+  managerApproveEntryApi = `${this.apiurl}/Timesheet/ManagerApproveT`;  //manager
+  managerRejectEntryApi = `${this.apiurl}/Timesheet/ManagerRejectT`;   //manager
   getEntryByStatusApi = `${this.apiurl}/Timesheet/getByStatus(manager)`;   //manager
 
   getAllEntry() {
     return this.http.get<any[]>(this.getallEntryApi);
+  }
+
+  getTeamAllEntry(managerId: number) {
+    return this.http.get<any[]>(`${this.managerTeamGetallEntryApi}?managerId=${managerId}`, {});
   }
 
   addEntry(data: any) {
@@ -58,12 +63,12 @@ export class TimesheetService {
 
   // -----------------------------Manager services-----------------------
 
-  approveEntry(sheetId: number) {
-    return this.http.post<any>(`${this.ApproveEntryApi}?sheetId=${sheetId}`, {});
-  }
+  managerApproveEntry(sheetId: number) {
+    return this.http.put<any>(`${this.managerApproveEntryApi}?sheetId=${sheetId}`, {});
+  } 
 
-  rejectEntry(sheetId: number, rejectReason: string) {
-    return this.http.post<any>(`${this.rejectEntryApi}?sheetId=${sheetId}&reason=${rejectReason}`, { sheetId, rejectReason });
+  managerRejectEntry(sheetId: number, rejectReason: string) {
+    return this.http.put<any>(`${this.managerRejectEntryApi}?sheetId=${sheetId}&reason=${rejectReason}`, { sheetId, rejectReason });
   }
 // ?sheetId = 13 & reason=from % 20swagger'
   getEntryByStatus(status: string) {

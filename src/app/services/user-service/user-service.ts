@@ -12,16 +12,22 @@ export class UserService {
 
   apiurl = environment.ApiUrl;
   loginApi = `${this.apiurl}/User/Login`;
+  logoutApi = `${this.apiurl}/User/Logout`;
   signupApi = `${this.apiurl}/User/AddUser`;
   updateApi = `${this.apiurl}/User/UpdateUser`;
   getUserbyIdApi = `${this.apiurl}/User/getUserById`;
+  getManagerTeamApi = `${this.apiurl}/User/getManagerTeam`;
   getAlluserApi = `${this.apiurl}/User/getAllUsers`;
   getAllEmployeeApi = `${this.apiurl}/User/getAllEmployee`;
-  
+  getAllManagerApi = `${this.apiurl}/User/getAllManagers`;
 
 
   login(data: any) {
     return this.http.post(this.loginApi, data);
+  }
+
+  logout(userId: any) {
+    return this.http.post(`${this.logoutApi}?userId=${userId}`,{})
   }
 
   signup(data: any) {
@@ -41,6 +47,9 @@ export class UserService {
     return this.http.get<any[]>(this.getAllEmployeeApi)
   }
 
+  getAllManager() {
+    return this.http.get<any[]>(this.getAllManagerApi)
+  }
 
 
   getUserById(Id: number) {
@@ -49,4 +58,8 @@ export class UserService {
     });
   }
 
+  getManagerTeam(userId: number) {
+    return this.http.get<any[]>(`${this.getManagerTeamApi}?managerId=${userId}`, {});
+  }
+// /User/getManagerTeam ? managerId = 20
 }

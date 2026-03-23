@@ -13,7 +13,8 @@ import { AttendanceService } from '../../services/attendance-service';
 export class ManagerAttendancePage implements OnInit {
 
   // ── State ──
-  allUsers = signal<any[]>([]);
+  managerId = signal<any>(null);
+  ManagerTeam = signal<any[]>([]);
   allAttendance = signal<any[]>([]);
   isLoading = signal(false);
   selectedRecord = signal<any | null>(null);
@@ -41,7 +42,7 @@ export class ManagerAttendancePage implements OnInit {
         .map(r => [r.userId, r])
     );
 
-    return this.allUsers().map(u => {
+    return this.ManagerTeam().map(u => {
       const rec: any = recMap.get(u.id) ?? {};
       const isCheckIn = rec.isCheckIn ?? false;
       const isCheckOut = rec.isCheckOut ?? false;
@@ -90,7 +91,7 @@ export class ManagerAttendancePage implements OnInit {
   });
 
   // ── Stats ──
-  totalEmployees = computed(() => this.allUsers().length);
+  totalEmployees = computed(() => this.ManagerTeam().length);
   presentCount = computed(() => this.dayRecords().filter(r => r.status === 'Present').length);
   absentCount = computed(() => this.dayRecords().filter(r => r.status === 'Absent').length);
   lateCount = computed(() => this.dayRecords().filter(r => r.status === 'Late').length);
@@ -133,20 +134,26 @@ export class ManagerAttendancePage implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.loadAllUsers();
-    this.loadAllAttendance();
+    const id = this.auth.getUserId();
+    if (id) {
+      this.managerId.set(id);
+      this.loadManagerTeam();
+      this.loadTeamAllAttendance();
+    } 
   }
 
-  loadAllUsers() {
-    this.userService.getAllUser().subscribe({
-      next: (res: any) => this.allUsers.set(Array.isArray(res) ? res : res ? [res] : []),
-      error: err => console.error('loadAllUsers:', err)
+  loadManagerTeam() {
+    this.userService.getManagerTeam(this.managerId()).subscribe({
+      next: (res: any) => {
+        this.ManagerTeam.set(Array.isArray(res) ? res : res ? [res] : []);
+      },
+      error: err => console.error('ManagerTeam:', err)
     });
   }
 
-  loadAllAttendance() {
+  loadTeamAllAttendance() {
     this.isLoading.set(true);
-    this.attendanceService.getAllattendance().subscribe({
+    this.attendanceService.getTeamAllattendance(this.managerId()).subscribe({
       next: (res: any) => {
         this.allAttendance.set(Array.isArray(res) ? res : res ? [res] : []);
         this.isLoading.set(false);

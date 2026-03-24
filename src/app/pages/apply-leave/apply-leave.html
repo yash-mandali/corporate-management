@@ -106,6 +106,7 @@
           (click)="setFilter('approved')">
           Approved <span class="filter-count">{{ approvedleaves() }}</span>
         </button>
+        
         <button class="filter-tab rejected" [class.active]="activeFilter() === 'rejected'"
           (click)="setFilter('rejected')">
           Rejected <span class="filter-count">{{ rejectedleaves() }}</span>

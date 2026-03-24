@@ -146,9 +146,9 @@
                     <button class="hf-btn pending" [class.active]="histFilter() === 'Pending'"
                         (click)="setHistFilter('Pending')">Pending</button>
                     <button class="hf-btn approved" [class.active]="histFilter() === 'Approved'"
-                        (click)="setHistFilter('Approved')">Approved</button>
+                        (click)="setHistFilter('ManagerApproved')">Approved</button>
                     <button class="hf-btn rejected" [class.active]="histFilter() === 'Rejected'"
-                        (click)="setHistFilter('Rejected')">Rejected</button>
+                        (click)="setHistFilter('ManagerRejected')">Rejected</button>
                     <button class="hf-btn withdrawn" [class.active]="histFilter() === 'Withdrawn'"
                         (click)="setHistFilter('Withdrawn')">Withdrawn</button>
                 </div>

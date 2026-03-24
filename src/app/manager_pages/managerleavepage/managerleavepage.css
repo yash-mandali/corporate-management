@@ -741,12 +741,20 @@ tbody td {
     color: #b7770d;
 }
 
-.sp-approved {
+.sp-managerapproved {
+    background: rgba(39, 174, 96, 0.1);
+    color: #1e8449;
+}
+.sp-hrapproved {
     background: rgba(39, 174, 96, 0.1);
     color: #1e8449;
 }
 
-.sp-rejected {
+.sp-managerrejected {
+    background: rgba(192, 57, 43, 0.1);
+    color: #c0392b;
+}
+.sp-hrrejected {
     background: rgba(192, 57, 43, 0.1);
     color: #c0392b;
 }

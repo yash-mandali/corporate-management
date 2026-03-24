@@ -818,12 +818,12 @@ tbody td {
     color: #2980b9;
 }
 
-.sp-approved {
+.sp-managerapproved {
     background: rgba(39, 174, 96, 0.1);
     color: #27ae60;
 }
 
-.sp-rejected {
+.sp-managerrejected {
     background: rgba(192, 57, 43, 0.1);
     color: #c0392b;
 }

@@ -146,9 +146,9 @@
                     <button class="hf-btn submitted" [class.active]="statusFilter() === 'Submitted'"
                         (click)="setFilter('Submitted')">Submitted</button>
                     <button class="hf-btn approved" [class.active]="statusFilter() === 'Approved'"
-                        (click)="setFilter('Approved')">Approved</button>
+                        (click)="setFilter('ManagerApproved')">Approved</button>
                     <button class="hf-btn rejected" [class.active]="statusFilter() === 'Rejected'"
-                        (click)="setFilter('Rejected')">Rejected</button>
+                        (click)="setFilter('ManagerRejected')">Rejected</button>
                 </div>
             </div>
 

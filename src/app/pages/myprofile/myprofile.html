@@ -11,6 +11,7 @@
                 <div class="hero-info">
                     <h1 class="hero-name">{{ profileData()?.userName || 'Employee' }}</h1>  
                     <div class="hero-meta">
+                        <span class="hero-badge"><i class="fas fa-building"></i> {{ profileData()?.department }}</span>
                         <span class="hero-badge"><i class="fas fa-briefcase"></i> {{ profileData()?.roleName }}</span>
                         <span class="hero-badge"><i class="fas fa-envelope"></i> {{ profileData()?.email }}</span>
                         <span class="hero-badge"><i class="fas fa-phone"></i> {{ profileData()?.phoneNumber }}</span>
@@ -76,6 +77,13 @@
                     </div>
                     <div class="details-row">
                         <div class="dr-left">
+                            <div class="dr-icon teal"><i class="fas fa-building"></i></div>
+                            <span class="dr-label">Department</span>
+                        </div>
+                        <div class="dr-value">{{ profileData()?.department || '—' }}</div>
+                    </div>
+                    <div class="details-row">
+                        <div class="dr-left">
                             <div class="dr-icon amber"><i class="fas fa-venus-mars"></i></div>
                             <span class="dr-label">Gender</span>
                         </div>
@@ -133,6 +141,32 @@
                             <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
                             }
                         </div>
+                        <div class="ef">
+                            <label>Department <span>*</span></label>
+                        
+                            <select formControlName="department"
+                                [class.ef-error]="profileForm.get('department')?.invalid && profileForm.get('department')?.touched">
+                        
+                                <option value="">Select Department</option>
+                                <option value="HR">Human Resources (HR)</option>
+                                <option value="IT">IT / Engineering</option>
+                                <option value="Development">Software Development</option>
+                                <option value="QA">Quality Assurance (QA)</option>
+                                <option value="DevOps">DevOps</option>
+                                <option value="UIUX">UI/UX Design</option>
+                                <option value="Sales">Sales</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Support">Customer Support</option>
+                                <option value="Finance">Finance & Accounts</option>
+                                <option value="Admin">Administration</option>
+                            </select>
+                        
+                            @if (profileForm.get('department')?.invalid && profileForm.get('department')?.touched) {
+                            <span class="ef-err">
+                                <i class="fas fa-exclamation-circle"></i> Required
+                            </span>
+                            }
+                        </div>Z
 
                         <div class="ef">
                             <label>Gender <span>*</span></label>

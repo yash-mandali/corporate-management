@@ -34,11 +34,35 @@ export class ApplyLeave {
   readonly pageSize = 5;
 
   filteredLeaves = computed(() => {
-    const filter = this.activeFilter();
+    const filter = this.activeFilter().toLowerCase();
     const all = this.myLeaves();
-    const filtered = filter === 'all'
-      ? [...all]
-      : all.filter((r) => r.status?.toLowerCase() === filter);
+
+    let filtered = [...all];
+
+    if (filter !== 'all') {
+
+      if (filter === 'approved') {
+        filtered = all.filter(r =>
+          ['managerapproved', 'approved']
+            .includes(r.status?.toLowerCase() || '')
+        );
+      }
+
+      else if (filter === 'rejected') {
+        filtered = all.filter(r =>
+          ['managerrejected', 'rejected']
+            .includes(r.status?.toLowerCase() || '')
+        );
+      }
+
+      else {
+        filtered = all.filter(r =>
+          r.status?.toLowerCase() === filter
+        );
+      }
+
+    }
+
     return filtered.sort((a, b) => {
       const dateA = a.appliedOn ? new Date(a.appliedOn).getTime() : 0;
       const dateB = b.appliedOn ? new Date(b.appliedOn).getTime() : 0;
@@ -177,7 +201,7 @@ export class ApplyLeave {
   recalculateCounts() {
     const all = this.myLeaves();
     this.totalRequests.set(all.length);
-    this.approvedleaves.set(all.filter(x => x.status?.toLowerCase() === 'approved').length);
+    this.approvedleaves.set(all.filter(x => x.status?.toLowerCase() === 'approved').length); 
     this.pendingleaves.set(all.filter(x => x.status?.toLowerCase() === 'pending').length);
     this.rejectedleaves.set(all.filter(x => x.status?.toLowerCase() === 'rejected').length);
     this.withdrawnleaves.set(all.filter(x => x.status?.toLowerCase() === 'withdrawn').length);

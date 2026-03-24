@@ -54,6 +54,8 @@ export class Login {
             this.router.navigate(['/dashboard/dashboardpage']);         
           }  else if (this.authService.getRole() == "Manager") {
             this.router.navigate(['/dashboard/managerdashboard']);
+          } else if (this.authService.getRole() == "HR") {
+            this.router.navigate(['/dashboard/hrdashboard']);
           } else {
             this.router.navigate(['/fgfhtjgf']);
           }

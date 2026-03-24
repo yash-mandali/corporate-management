@@ -350,8 +350,16 @@ tbody td {
     background: rgba(39, 174, 96, 0.12);
     color: #1e8449;
 }
+.status-badge.managerapproved {
+    background: rgba(39, 174, 96, 0.12);
+    color: #1e8449;
+}
 
 .status-badge.rejected {
+    background: rgba(224, 92, 92, 0.12);
+    color: #c0392b;
+}
+.status-badge.managerrejected {
     background: rgba(224, 92, 92, 0.12);
     color: #c0392b;
 }

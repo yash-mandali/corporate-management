@@ -10,9 +10,9 @@
             </div>
             <div class="hero-body">
                 <div class="hero-left">
-                    <div class="hero-eyebrow"><i class="fas fa-user-shield"></i> Manager Portal</div>
+                    <div class="hero-eyebrow"><i class="fas fa-user-tie"></i> HR Portal</div>
                     <div class="hero-greeting">{{ greeting }},</div>
-                    <div class="hero-name">{{ managerName() }}</div>
+                    <div class="hero-name">{{ hrName() }}</div>
                     <div class="hero-date-row">
                         <span class="hero-date"><i class="fas fa-calendar-alt"></i> {{ todayDate }}</span>
                         <span class="hero-dot"></span>
@@ -20,45 +20,32 @@
                     </div>
                 </div>
                 <div class="hero-right">
-                    <!-- Attendance Rate Ring -->
-                    <div class="hero-ring-card">
-                        <div class="ring-wrap">
-                            <svg class="ring-svg" viewBox="0 0 80 80">
-                                <circle class="ring-track" cx="40" cy="40" r="34" />
-                                <circle class="ring-fill" cx="40" cy="40" r="34"
-                                    [style.stroke-dashoffset]="ringOffset()" />
-                            </svg>
-                            <div class="ring-inner">
-                                <div class="ring-val">{{ todayPresentPct() }}<span>%</span></div>
-                                <div class="ring-lbl">Present</div>
-                            </div>
+                    <div class="hero-metrics">
+                        <div class="hm-item">
+                            <div class="hm-val">{{ totalEmployees() }}</div>
+                            <div class="hm-lbl">Employees</div>
                         </div>
-                        <div class="ring-meta">
-                            <div class="ring-meta-row">
-                                <span class="rm-dot present"></span>
-                                <span>{{ todayPresent() }} Present</span>
-                            </div>
-                            <div class="ring-meta-row">
-                                <span class="rm-dot absent"></span>
-                                <span>{{ todayAbsent() }} Absent</span>
-                            </div>
-                            <div class="ring-meta-row">
-                                <span class="rm-dot total"></span>
-                                <span>{{ totalEmployees() }} Total</span>
-                            </div>
+                        <div class="hm-sep"></div>
+                        <div class="hm-item">
+                            <div class="hm-val">{{ todayPresentPct() }}<span>%</span></div>
+                            <div class="hm-lbl">Present Today</div>
+                        </div>
+                        <div class="hm-sep"></div>
+                        <div class="hm-item">
+                            <div class="hm-val">{{ pendingLeaveCount() }}</div>
+                            <div class="hm-lbl">Pending Leaves</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ══ STAT CARDS ROW ══ -->
+        <!-- ══ STAT CARDS ══ -->
         <div class="stat-row">
-
             <div class="stat-card sc-teal">
                 <div class="sc-top">
                     <div class="sc-icon-wrap"><i class="fas fa-users"></i></div>
-                    <div class="sc-trend neutral"><i class="fas fa-building"></i></div>
+                    <div class="sc-trend"><i class="fas fa-building"></i></div>
                 </div>
                 <div class="sc-num">{{ totalEmployees() }}</div>
                 <div class="sc-label">Total Employees</div>
@@ -66,7 +53,6 @@
                     <div class="sc-bar" style="width:100%"></div>
                 </div>
             </div>
-
             <div class="stat-card sc-green">
                 <div class="sc-top">
                     <div class="sc-icon-wrap"><i class="fas fa-user-check"></i></div>
@@ -78,7 +64,6 @@
                     <div class="sc-bar" [style.width]="todayPresentPct() + '%'"></div>
                 </div>
             </div>
-
             <div class="stat-card sc-red">
                 <div class="sc-top">
                     <div class="sc-icon-wrap"><i class="fas fa-user-times"></i></div>
@@ -90,7 +75,6 @@
                     <div class="sc-bar" [style.width]="absentPct() + '%'"></div>
                 </div>
             </div>
-
             <div class="stat-card sc-amber">
                 <div class="sc-top">
                     <div class="sc-icon-wrap"><i class="fas fa-calendar-minus"></i></div>
@@ -102,43 +86,41 @@
                     <div class="sc-bar" [style.width]="pendingLeaveCount() > 0 ? '100%' : '0'"></div>
                 </div>
             </div>
-
             <div class="stat-card sc-blue">
                 <div class="sc-top">
-                    <div class="sc-icon-wrap"><i class="fas fa-file-excel"></i></div>
-                    <div class="sc-trend warn"><i class="fas fa-hourglass-half"></i></div>
+                    <div class="sc-icon-wrap"><i class="fas fa-user-plus"></i></div>
+                    <div class="sc-trend"><i class="fas fa-calendar-plus"></i></div>
                 </div>
-                <div class="sc-num">{{ pendingTimesheetCount() }}</div>
-                <div class="sc-label">Pending Timesheets</div>
+                <div class="sc-num">{{ newJoineesCount() }}</div>
+                <div class="sc-label">New This Month</div>
                 <div class="sc-bar-track">
-                    <div class="sc-bar" [style.width]="pendingTimesheetCount() > 0 ? '100%' : '0'"></div>
+                    <div class="sc-bar" style="width:60%"></div>
                 </div>
             </div>
-
         </div>
 
-        <!-- ══ MAIN CONTENT GRID ══ -->
+        <!-- ══ MAIN GRID ══ -->
         <div class="main-grid">
 
             <!-- LEFT COL -->
             <div class="left-col">
 
-                <!-- TODAY'S TEAM ATTENDANCE -->
+                <!-- TODAY'S ATTENDANCE SNAPSHOT -->
                 <div class="panel">
                     <div class="panel-head">
-                        <div class="panel-title"><i class="fas fa-calendar-check"></i> Today's Team</div>
+                        <div class="panel-title"><i class="fas fa-calendar-check"></i> Today's Attendance</div>
                         <div class="panel-head-right">
                             <div class="att-filter-tabs">
                                 <button class="att-tab" [class.active]="attFilter() === 'all'"
                                     (click)="attFilter.set('all')">All</button>
-                                <button class="att-tab green" [class.active]="attFilter() === 'in'"
-                                    (click)="attFilter.set('in')">In</button>
-                                <button class="att-tab red" [class.active]="attFilter() === 'out'"
-                                    (click)="attFilter.set('out')">Out</button>
-                                <button class="att-tab amber" [class.active]="attFilter() === 'absent'"
+                                <button class="att-tab green" [class.active]="attFilter() === 'present'"
+                                    (click)="attFilter.set('present')">In</button>
+                                <button class="att-tab red" [class.active]="attFilter() === 'absent'"
                                     (click)="attFilter.set('absent')">Absent</button>
                             </div>
-                            
+                            <a class="view-all-link" routerLink="/hr/attendance">
+                                View all <i class="fas fa-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
 
@@ -180,7 +162,7 @@
                                 <div class="tr-badge done"><i class="fas fa-check-circle"></i> {{ emp.hours || 'Done' }}
                                 </div>
                                 } @else if (emp.isCheckIn) {
-                                <div class="tr-badge active"><span class="pulse-dot"></span> Present</div>
+                                <div class="tr-badge active"><span class="pulse-dot"></span> Active</div>
                                 } @else {
                                 <div class="tr-badge absent"><i class="fas fa-minus-circle"></i> Absent</div>
                                 }
@@ -195,7 +177,7 @@
                     </div>
                     @if (filteredAttendance().length > 5) {
                     <div class="panel-footer">
-                        <a class="pf-more-link" routerLink="/dashboard/managerattendance">
+                        <a class="pf-more-link" routerLink="/hr/attendance">
                             <i class="fas fa-users"></i>
                             +{{ filteredAttendance().length - 5 }} more employees
                             <i class="fas fa-arrow-right"></i>
@@ -205,8 +187,56 @@
                     }
                 </div>
 
+                <!-- RECENT EMPLOYEES -->
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title"><i class="fas fa-user-plus"></i> Recent Employees</div>
+                        <div class="panel-head-right">
+                            <a class="view-all-link" routerLink="/hr/employees">
+                                View all <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    @if (empLoading()) {
+                    <div class="panel-skeleton">
+                        @for (i of [1,2,3]; track i) {
+                        <div class="sk-row">
+                            <div class="sk sk-avatar"></div>
+                            <div class="sk-lines">
+                                <div class="sk sk-line-lg"></div>
+                                <div class="sk sk-line-sm"></div>
+                            </div>
+                            <div class="sk sk-badge"></div>
+                        </div>
+                        }
+                    </div>
+                    } @else {
+                    <div class="emp-list">
+                        @for (emp of recentEmployees(); track emp.id) {
+                        <div class="emp-row">
+                            <div class="er-avatar" [style.background]="getColor(emp.id)">{{ getInitials(emp.userName) }}
+                            </div>
+                            <div class="er-info">
+                                <div class="er-name">{{ emp.userName }}</div>
+                                <div class="er-meta">{{ emp.roleName }} · {{ emp.email }}</div>
+                            </div>
+                            <div class="er-joined">
+                                <div class="er-date">{{ formatDate(emp.createdAt) }}</div>
+                                <div class="er-label">Joined</div>
+                            </div>
+                        </div>
+                        } @empty {
+                        <div class="panel-empty">
+                            <i class="fas fa-user-slash"></i>
+                            <span>No employee data found</span>
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
+
             </div>
-            
+
             <!-- RIGHT COL -->
             <div class="right-col">
 
@@ -218,7 +248,7 @@
                             @if (pendingLeaveCount() > 0) {
                             <span class="panel-badge amber">{{ pendingLeaveCount() }} pending</span>
                             }
-                            <a class="view-all-link" routerLink="/dashboard/managerleave">
+                            <a class="view-all-link" routerLink="/hr/leaves">
                                 View all <i class="fas fa-arrow-right"></i>
                             </a>
                         </div>
@@ -244,7 +274,7 @@
                     </div>
                     } @else {
                     <div class="approval-list">
-                        @for (l of pendingLeaves().slice(0,2); track l.leaveRequestId) {
+                        @for (l of pendingLeaves().slice(0, 3); track l.leaveRequestId) {
                         <div class="approval-row">
                             <div class="apr-avatar" [style.background]="getColor(l.userId)">{{ getInitials(l.userName)
                                 }}</div>
@@ -277,7 +307,7 @@
                     </div>
                     @if (pendingLeaves().length > 3) {
                     <div class="panel-footer">
-                        <a class="pf-more-link amber" routerLink="/dashboard/managerleave">
+                        <a class="pf-more-link amber" routerLink="/hr/leaves">
                             <i class="fas fa-calendar-minus"></i>
                             +{{ pendingLeaves().length - 3 }} more requests
                             <i class="fas fa-arrow-right"></i>
@@ -287,126 +317,85 @@
                     }
                 </div>
 
-                <!-- PENDING TIMESHEET APPROVALS -->
+                <!-- LEAVE BREAKDOWN -->
                 <div class="panel">
                     <div class="panel-head">
-                        <div class="panel-title"><i class="fas fa-clock"></i> Timesheet Approvals</div>
-                        <div class="panel-head-right">
-                            @if (pendingTimesheetCount() > 0) {
-                            <span class="panel-badge blue">{{ pendingTimesheetCount() }} pending</span>
-                            }
-                            <a class="view-all-link" routerLink="/dashboard/managertimesheet">
-                                View all <i class="fas fa-arrow-right"></i>
-                            </a>
+                        <div class="panel-title"><i class="fas fa-chart-pie"></i> Leave Breakdown</div>
+                    </div>
+                    <div class="leave-breakdown">
+                        <div class="lb-item pending-c">
+                            <div class="lbi-icon"><i class="fas fa-hourglass-half"></i></div>
+                            <div class="lbi-body">
+                                <div class="lbi-num">{{ leaveStats().pending }}</div>
+                                <div class="lbi-lbl">Pending</div>
+                            </div>
+                            <div class="lbi-bar-wrap">
+                                <div class="lbi-bar" [style.width]="leaveBarPct(leaveStats().pending) + '%'"></div>
+                            </div>
+                        </div>
+                        <div class="lb-item approved-c">
+                            <div class="lbi-icon"><i class="fas fa-check-circle"></i></div>
+                            <div class="lbi-body">
+                                <div class="lbi-num">{{ leaveStats().approved }}</div>
+                                <div class="lbi-lbl">Approved</div>
+                            </div>
+                            <div class="lbi-bar-wrap">
+                                <div class="lbi-bar" [style.width]="leaveBarPct(leaveStats().approved) + '%'"></div>
+                            </div>
+                        </div>
+                        <div class="lb-item rejected-c">
+                            <div class="lbi-icon"><i class="fas fa-times-circle"></i></div>
+                            <div class="lbi-body">
+                                <div class="lbi-num">{{ leaveStats().rejected }}</div>
+                                <div class="lbi-lbl">Rejected</div>
+                            </div>
+                            <div class="lbi-bar-wrap">
+                                <div class="lbi-bar" [style.width]="leaveBarPct(leaveStats().rejected) + '%'"></div>
+                            </div>
+                        </div>
+                        <div class="lb-item withdrawn-c">
+                            <div class="lbi-icon"><i class="fas fa-undo"></i></div>
+                            <div class="lbi-body">
+                                <div class="lbi-num">{{ leaveStats().withdrawn }}</div>
+                                <div class="lbi-lbl">Withdrawn</div>
+                            </div>
+                            <div class="lbi-bar-wrap">
+                                <div class="lbi-bar" [style.width]="leaveBarPct(leaveStats().withdrawn) + '%'"></div>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    @if (tsLoading()) {
-                    <div class="panel-skeleton">
-                        @for (i of [1,2]; track i) {
-                        <div class="sk-row">
-                            <div class="sk sk-avatar"></div>
-                            <div class="sk-lines">
-                                <div class="sk sk-line-lg"></div>
-                                <div class="sk sk-line-sm"></div>
-                            </div>
-                            <div class="sk sk-btn"></div>
-                        </div>
-                        }
+                <!-- QUICK ACTIONS -->
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title"><i class="fas fa-bolt"></i> Quick Actions</div>
                     </div>
-                    } @else if (pendingTimesheets().length === 0) {
-                    <div class="panel-empty green">
-                        <i class="fas fa-check-circle"></i>
-                        <span>All caught up!</span>
-                    </div>
-                    } @else {
-                    <div class="approval-list">
-                        @for (t of pendingTimesheets().slice(0,2); track t.timesheetId) {
-                        <div class="approval-row">
-                            <div class="apr-avatar" [style.background]="getColor(t.userId)">{{ getInitials(t.userName)
-                                }}</div>
-                            <div class="apr-info">
-                                <div class="apr-name">{{ t.userName || 'Employee' }}</div>
-                                <div class="apr-meta">
-                                    <span class="apr-type ts">{{ t.projectName || '—' }}</span>
-                                    <span class="apr-dates">{{ formatDate(t.workDate) }}</span>
-                                    <span class="apr-days">{{ formatTsHours(t.totalHours) }}</span>
-                                </div>
-                                @if (t.taskDescription) {
-                                <div class="apr-reason">{{ t.taskDescription }}</div>
-                                }
-                            </div>
-                            <div class="apr-actions">
-                                <button class="apr-btn approve" (click)="approveTimesheet(t.timesheetId)"
-                                    [disabled]="tsActionLoading() === t.timesheetId">
-                                    @if (tsActionLoading() === t.timesheetId) {
-                                    <span class="mini-spin"></span>
-                                    } @else { <i class="fas fa-check"></i> }
-                                </button>
-                                <button class="apr-btn reject" (click)="openRejectModal(t)"
-                                    [disabled]="tsActionLoading() === t.timesheetId">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                        }
-                    </div>
-                    @if (pendingTimesheets().length > 3) {
-                    <div class="panel-footer">
-                        <a class="pf-more-link blue" routerLink="/dashboard/managertimesheet">
-                            <i class="fas fa-clock"></i>
-                            +{{ pendingTimesheets().length - 3 }} more entries
-                            <i class="fas fa-arrow-right"></i>
+                    <div class="quick-actions">
+                        <a class="qa-btn" routerLink="/hr/employees/add">
+                            <div class="qa-icon add"><i class="fas fa-user-plus"></i></div>
+                            <span>Add Employee</span>
+                            <i class="fas fa-chevron-right qa-arrow"></i>
+                        </a>
+                        <a class="qa-btn" routerLink="/hr/leaves">
+                            <div class="qa-icon leave"><i class="fas fa-calendar-minus"></i></div>
+                            <span>Manage Leaves</span>
+                            <i class="fas fa-chevron-right qa-arrow"></i>
+                        </a>
+                        <a class="qa-btn" routerLink="/hr/attendance">
+                            <div class="qa-icon att"><i class="fas fa-calendar-check"></i></div>
+                            <span>View Attendance</span>
+                            <i class="fas fa-chevron-right qa-arrow"></i>
+                        </a>
+                        <a class="qa-btn" routerLink="/hr/employees">
+                            <div class="qa-icon emp"><i class="fas fa-users"></i></div>
+                            <span>All Employees</span>
+                            <i class="fas fa-chevron-right qa-arrow"></i>
                         </a>
                     </div>
-                    }
-                    }
                 </div>
 
             </div>
         </div>
     </div>
 </main>
-
-<!-- REJECT REASON MODAL -->
-@if (rejectModal()) {
-<div class="modal-overlay" (click)="closeRejectModal()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <div class="mh-left">
-                <div class="mh-icon"><i class="fas fa-times-circle"></i></div>
-                <div>
-                    <div class="mh-title">Reject Timesheet</div>
-                    <div class="mh-sub">Provide a reason for the employee</div>
-                </div>
-            </div>
-            <button class="modal-close" (click)="closeRejectModal()"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="modal-body">
-            <div class="modal-entry-info">
-                <div class="mei-avatar" [style.background]="getColor(rejectModal()!.userId)">
-                    {{ getInitials(rejectModal()!.userName) }}
-                </div>
-                <div>
-                    <div class="mei-name">{{ rejectModal()!.userName }}</div>
-                    <div class="mei-detail">{{ rejectModal()!.projectName }} · {{ formatDate(rejectModal()!.workDate) }}
-                        · {{ formatTsHours(rejectModal()!.totalHours) }}</div>
-                </div>
-            </div>
-            <div class="modal-field">
-                <label>Reason <span class="req">*</span></label>
-                <textarea [(ngModel)]="rejectReason" rows="3"
-                    placeholder="Explain why this entry is being rejected..."></textarea>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="mf-cancel" (click)="closeRejectModal()">Cancel</button>
-            <button class="mf-confirm" (click)="confirmReject()"
-                [disabled]="!rejectReason.trim() || !!tsActionLoading()">
-                @if (tsActionLoading()) { <span class="mini-spin white"></span> Rejecting... }
-                @else { <i class="fas fa-times-circle"></i> Confirm Reject }
-            </button>
-        </div>
-    </div>
-</div>
-}

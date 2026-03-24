@@ -180,7 +180,7 @@ export class ManagerTimesheetpage implements OnInit {
     this.timesheetService.managerApproveEntry(timesheetId).subscribe({
       next: () => {
         this.allEntries.update(list =>
-          list.map(e => e.timesheetId === timesheetId ? { ...e, status: 'Approved' } : e)
+          list.map(e => e.timesheetId === timesheetId ? { ...e, status: 'ManagerApproved' } : e)
         );
         this.tsActionLoading.set(null);
         // this.toast.success('Timesheet approved.');
@@ -212,7 +212,7 @@ export class ManagerTimesheetpage implements OnInit {
       next: () => {
         this.allEntries.update(list =>
           list.map(e => e.timesheetId === entry.timesheetId
-            ? { ...e, status: 'Rejected', rejectReason: this.rejectReason.trim() }
+            ? { ...e, status: 'ManagerRejected', rejectReason: this.rejectReason.trim() }
             : e)
         );
         this.tsActionLoading.set(null);

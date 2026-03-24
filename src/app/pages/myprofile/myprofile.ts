@@ -43,6 +43,7 @@ export class MyProfile {
       userName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       phoneNumber: ['', Validators.required],
+      department:['',Validators.required],
       gender: ['', Validators.required],
       address: [''],
     });
@@ -62,6 +63,8 @@ export class MyProfile {
     this.userService.getUserById(Id).subscribe({
       next: (res) => {
         this.profileData.set(res);
+        console.log("userprofile:",res);
+        
         console.log(res);
       },
       error: (err) => console.error(err)
@@ -74,6 +77,7 @@ export class MyProfile {
       userName: d?.userName || '',
       email: d?.email || '',
       phoneNumber: d?.phoneNumber || '',
+      department:d?.department || '',
       gender: d?.gender || '',
       address: d?.address || '',
     });

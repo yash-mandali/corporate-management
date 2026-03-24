@@ -13,35 +13,35 @@ import { TimesheetService } from '../../services/timesheet-service/timesheet-ser
 export class Timesheetpage implements OnInit {
 
   // ── State ──
-  userId = signal<any>(null);
-  entries = signal<any[]>([]);
-  isLoading = signal(false);
-  saving = signal(false);
-  editingId = signal<number | null>(null);
-  formErr = signal<string | null>(null);
-  modalOpen = signal(false);
+  userId      = signal<any>(null);
+  entries     = signal<any[]>([]);
+  isLoading   = signal(false);
+  saving      = signal(false);
+  editingId   = signal<number | null>(null);
+  formErr     = signal<string | null>(null);
+  modalOpen   = signal(false);
 
   // ── Per-row action tracking ──
-  submittingId = signal<number | null>(null);
-  deletingId = signal<number | null>(null);
+  submittingId  = signal<number | null>(null);
+  deletingId    = signal<number | null>(null);
   submittingAll = signal(false);
 
   // ── Global overlay loader ──
-  globalLoading = signal(false);
+  globalLoading    = signal(false);
   globalLoadingMsg = signal('Please wait...');
 
   // ── Filters ──
-  searchQ = signal('');
-  statusF = signal('all');
+  searchQ      = signal('');
+  statusF      = signal('all');
   selectedDate = signal<string | null>(null);
 
   // ── Pagination ──
-  currentPage = signal(1);
+  currentPage    = signal(1);
   readonly pageSize = 5;
 
   // ── Week ──
   weekStart = new Date();
-  todayStr = this.localDate(new Date());
+  todayStr  = this.localDate(new Date());
   entryForm: FormGroup;
 
   constructor(
@@ -50,19 +50,19 @@ export class Timesheetpage implements OnInit {
     private fb: FormBuilder
   ) {
     // Set Monday as week start
-    const now = new Date();
+    const now  = new Date();
     const diff = now.getDay() === 0 ? -6 : 1 - now.getDay();
     this.weekStart = new Date(now);
     this.weekStart.setDate(now.getDate() + diff);
     this.weekStart.setHours(0, 0, 0, 0);
 
     this.entryForm = this.fb.group({
-      workDate: [this.todayStr, Validators.required],
-      projectName: ['', Validators.required],
+      workDate:        [this.todayStr, Validators.required],
+      projectName:     ['', Validators.required],
       taskDescription: ['', Validators.required],
-      startTime: ['', Validators.required],
-      endTime: ['', Validators.required],
-      workType: ['', Validators.required],
+      startTime:       ['', Validators.required],
+      endTime:         ['', Validators.required],
+      workType:        ['', Validators.required],
     });
   }
 
@@ -97,17 +97,17 @@ export class Timesheetpage implements OnInit {
   get weekDays() {
     const today = this.localDate(new Date());
     return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(this.weekStart);
+      const d   = new Date(this.weekStart);
       d.setDate(d.getDate() + i);
-      const ds = this.localDate(d);
+      const ds  = this.localDate(d);
       const dow = d.getDay();
       const hrs = this.entries()
         .filter(e => this.dateStr(e.workDate) === ds)
         .reduce((s, e) => s + this.hoursNum(e.totalHours), 0);
       return {
         name: d.toLocaleDateString('en-IN', { weekday: 'short' }),
-        num: d.getDate(), dateStr: ds,
-        isToday: ds === today,
+        num:  d.getDate(), dateStr: ds,
+        isToday:   ds === today,
         isWeekend: dow === 0 || dow === 6,
         hours: Math.round(hrs * 10) / 10,
       };
@@ -162,8 +162,8 @@ export class Timesheetpage implements OnInit {
     ) / 10;
   });
 
-  weekProgress = computed(() => Math.min(110, Math.round((this.weekHours() / 40) * 100)));
-  draftCount = computed(() => this.entries().filter(e => e.status === 'Draft').length);
+  weekProgress   = computed(() => Math.min(110, Math.round((this.weekHours() / 40) * 100)));
+  draftCount     = computed(() => this.entries().filter(e => e.status === 'Draft').length);
   submittedCount = computed(() => this.entries().filter(e => e.status === 'Submitted').length);
 
   // ── Filtered + paginated ──
@@ -181,10 +181,11 @@ export class Timesheetpage implements OnInit {
       (e.taskDescription || '').toLowerCase().includes(q)
     );
     if (this.statusF() !== 'all') list = list.filter(e => e.status === this.statusF());
-    return list.sort((a, b) => this.dateStr(a.workDate).localeCompare(this.dateStr(b.workDate)));
+    // API returns descending order (latest first) — preserve it, no re-sort
+    return list;
   });
 
-  totalPages = computed(() => Math.max(1, Math.ceil(this.filteredEntries().length / this.pageSize)));
+  totalPages  = computed(() => Math.max(1, Math.ceil(this.filteredEntries().length / this.pageSize)));
   pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
   pagedEntries = computed(() => {
     const s = (this.currentPage() - 1) * this.pageSize;
@@ -206,12 +207,12 @@ export class Timesheetpage implements OnInit {
     this.editingId.set(e.timesheetId);
     this.formErr.set(null);
     this.entryForm.patchValue({
-      workDate: this.dateStr(e.workDate),
-      projectName: e.projectName,
+      workDate:        this.dateStr(e.workDate),
+      projectName:     e.projectName,
       taskDescription: e.taskDescription,
-      startTime: e.startTime?.substring(0, 5),
-      endTime: e.endTime?.substring(0, 5),
-      workType: e.workType,
+      startTime:       e.startTime?.substring(0, 5),
+      endTime:         e.endTime?.substring(0, 5),
+      workType:        e.workType,
     });
     this.modalOpen.set(true);
     document.body.style.overflow = 'hidden';
@@ -229,7 +230,7 @@ export class Timesheetpage implements OnInit {
   saveEntry() {
     this.formErr.set(null);
     if (this.entryForm.invalid) { this.formErr.set('Please fill all required fields.'); return; }
-    if (this.timeError()) { this.formErr.set(this.timeError()); return; }
+    if (this.timeError())       { this.formErr.set(this.timeError()); return; }
 
     const { workDate, projectName, taskDescription, startTime, endTime, workType } = this.entryForm.value;
     this.saving.set(true);
@@ -287,7 +288,7 @@ export class Timesheetpage implements OnInit {
 
   // ── Loader helpers ──
   showLoader(msg: string) { this.globalLoadingMsg.set(msg); this.globalLoading.set(true); }
-  hideLoader() { this.globalLoading.set(false); }
+  hideLoader()             { this.globalLoading.set(false); }
 
   // ── Form helpers ──
   calcHoursStr(): string {
@@ -321,21 +322,21 @@ export class Timesheetpage implements OnInit {
 
   // ── Export CSV ──
   exportCSV() {
-    const rows = [['Date', 'Project', 'Task', 'Start', 'End', 'Hours', 'Type', 'Status']];
+    const rows = [['Date','Project','Task','Start','End','Hours','Type','Status']];
     this.filteredEntries().forEach(e => rows.push([
       this.dateStr(e.workDate), e.projectName, e.taskDescription,
       e.startTime, e.endTime, e.totalHours, e.workType, e.status
     ]));
-    const csv = rows.map(r => r.map(v => `"${v || ''}"`).join(',')).join('\n');
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    const csv  = rows.map(r => r.map(v => `"${v || ''}"`).join(',')).join('\n');
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     a.download = 'my-timesheet.csv';
     a.click();
   }
 
   // ── Shared helpers ──
   localDate(d: Date): string {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
 
   dateStr(raw: string): string { return raw ? raw.split('T')[0] : ''; }
@@ -348,7 +349,7 @@ export class Timesheetpage implements OnInit {
 
   formatHours(h: string): string {
     if (!h) return '—';
-    const p = h.toString().split(':');
+    const p  = h.toString().split(':');
     const hr = parseInt(p[0] || '0'), mn = parseInt(p[1] || '0');
     if (!hr && !mn) return '—';
     return mn ? `${hr}h ${mn}m` : `${hr}h`;
@@ -359,7 +360,7 @@ export class Timesheetpage implements OnInit {
     const clean = t.toString().split('.')[0].substring(0, 5);
     const [h, m] = clean.split(':').map(Number);
     if (isNaN(h)) return '—';
-    return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+    return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`;
   }
 
   formatDate(ds: string): string {

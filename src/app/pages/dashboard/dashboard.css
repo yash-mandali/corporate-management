@@ -606,7 +606,7 @@ body {
     border: 1px solid #d6eaee;
     padding: 16px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     text-align: center;
     gap: 5px;
@@ -825,8 +825,16 @@ body {
     background: rgba(39, 174, 96, 0.1);
     color: #1e8449;
 }
+.lb-managerapproved {
+    background: rgba(39, 174, 96, 0.1);
+    color: #1e8449;
+}
 
 .lb-rejected {
+    background: rgba(192, 57, 43, 0.1);
+    color: #c0392b;
+}
+.lb-managerrejected {
     background: rgba(192, 57, 43, 0.1);
     color: #c0392b;
 }

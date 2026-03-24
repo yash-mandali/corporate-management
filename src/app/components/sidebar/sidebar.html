@@ -1,6 +1,6 @@
 <aside class="sidebar" [class.mobile-open]="emp.sidebarOpen()">
     <div class="sidebar-logo">
-        <span class="logo-text">{{role() && role() === 'Employee' ? 'Employee Portal':'Manager Portal'}}</span>
+        <span class="logo-text">{{role()}}</span>
     </div>
 
     <nav class="sidebar-nav">
@@ -51,6 +51,11 @@
             <a class="nav-item" routerLink="/dashboard/teamperformance" routerLinkActive="active" (click)="emp.closeSidebar()">
                 <span class="nav-icon"></span>
                 <span class="nav-label">Performance</span>
+            </a>
+        }@else if(role() === 'HR'){
+            <a class="nav-item" routerLink="/dashboard/hrdashboard" routerLinkActive="active" (click)="emp.closeSidebar()">
+                <span class="nav-icon"></span>
+                <span class="nav-label">Dashboard</span>
             </a>
         }
         @else {

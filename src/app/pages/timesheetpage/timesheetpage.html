@@ -184,7 +184,8 @@
                     <tbody>
                         @for (e of pagedEntries(); track e.timesheetId; let i = $index) {
                         <tr>
-                            <td class="td-idx col-idx">{{ i + 1 }}</td>
+                            <td class="td-idx col-idx">{{ filteredEntries().length - (currentPage() - 1) * pageSize - i
+                                }}</td>
                             <td class="td-date">{{ formatDate(e.workDate) }}</td>
                             <td><span class="proj-tag">{{ e.projectName || '—' }}</span></td>
                             <td class="td-task" [title]="e.taskDescription">{{ e.taskDescription || '—' }}</td>
@@ -199,19 +200,19 @@
                                 </span>
                             </td>
                             <td class="td-act" (click)="$event.stopPropagation()">
-                                @if (e.status === 'Draft') {
+                                @if (e.status === 'Draft' || e.status === 'Rejected') {
                                 <button class="act edit" (click)="openEditModal(e)" title="Edit"
                                     [disabled]="deletingId() === e.timesheetId">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                               <button class="act del" (click)="deleteEntry(e.timesheetId)" title="Delete"
+                                <button class="act del" (click)="deleteEntry(e.timesheetId)" title="Delete"
                                     [disabled]="deletingId() === e.timesheetId">
                                     @if (deletingId() === e.timesheetId) {
                                     <span class="mini-spinner del-spin"></span>
                                     } @else {
                                     <i class="fas fa-trash"></i>
                                     }
-                                </button> 
+                                </button>
                                 }
                                 @if (e.status === 'Draft') {
                                 <button class="act submit-one" (click)="submitEntry(e.timesheetId)"
@@ -223,11 +224,11 @@
                                     }
                                 </button>
                                 }
-                                <!-- @if (e.status === 'Rejected' && e.rejectReason) {
+                                @if (e.status === 'Rejected' && e.rejectReason) {
                                 <span class="reject-tip" [title]="e.rejectReason">
                                     <i class="fas fa-comment-alt"></i>
                                 </span>
-                                } -->
+                                }
                             </td>
                         </tr>
                         } @empty {

@@ -22,6 +22,8 @@ export class TimesheetService {
   managerApproveEntryApi = `${this.apiurl}/Timesheet/ManagerApproveT`;  //manager
   managerRejectEntryApi = `${this.apiurl}/Timesheet/ManagerRejectT`;   //manager
   getEntryByStatusApi = `${this.apiurl}/Timesheet/getByStatus(manager)`;   //manager
+  HrApproveEntryApi = `${this.apiurl}/Timesheet/HrApproveT`;  //HR
+  HrRejectEntryApi = `${this.apiurl}/Timesheet/HRejectT`;   //HR
 
   getAllEntry() {
     return this.http.get<any[]>(this.getallEntryApi);
@@ -74,5 +76,13 @@ export class TimesheetService {
   getEntryByStatus(status: string) {
     const params = new HttpParams().set('status', status);
     return this.http.get<any[]>(this.getEntryByStatusApi, { params });
+  }
+
+  HrApproveEntry(sheetId: number) {
+    return this.http.put<any>(`${this.HrApproveEntryApi}?sheetId=${sheetId}`, {});
+  }
+
+  HrRejectEntry(sheetId: number, rejectReason: string) {
+    return this.http.put<any>(`${this.HrRejectEntryApi}?sheetId=${sheetId}&reason=${rejectReason}`, { sheetId, rejectReason });
   }
 }

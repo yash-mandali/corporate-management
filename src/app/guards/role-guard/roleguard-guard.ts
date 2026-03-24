@@ -20,6 +20,8 @@ export const roleGuard: CanActivateFn = (route, state) => {
       router.navigate(['dashboard/dashboardpage']);
     } else if (userRole === 'Manager') {
       router.navigate(['/dashboard/managerdashboard']);
+    } else if (userRole === 'HR') {
+      router.navigate(['/dashboard/hrdashboard']);
     } else if (userRole === 'Admin') {
       router.navigate(['/dashboard/admindashboard']);
     } else {

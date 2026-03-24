@@ -18,6 +18,7 @@ import { ManagerTimesheetpage } from './manager_pages/managertimesheet/managerti
 import { Managerteampage } from './manager_pages/managerteamspage/managerteamspage';
 import { Teamperformance } from './manager_pages/teamperformance/teamperformance';
 import { Notfound } from './pages/notfound/notfound';
+import { HrDashboard } from './hr_pages/hr-dashboard/hr-dashboard';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -109,6 +110,12 @@ export const routes: Routes = [
                 component: Teamperformance,
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Manager'] }
+            },
+            {
+                path: 'hrdashboard',
+                component: HrDashboard,
+                canActivate: [authGuard, roleGuard],
+                data: { roles: ['HR'] }
             },
         ]
     },

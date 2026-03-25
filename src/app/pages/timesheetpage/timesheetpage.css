@@ -435,7 +435,7 @@ body {
 .tc-search {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
     background: #fff;
     border: 1px solid #d6eaee;
     border-radius: 8px;
@@ -452,9 +452,10 @@ body {
 .tc-search input {
     border: none;
     outline: none;
+    border-radius: 1px;
     background: transparent;
     font-family: 'Nunito', sans-serif;
-    font-size: 12px;
+    font-size: 15px;
     color: #0d2d36;
     width: 100%;
 }

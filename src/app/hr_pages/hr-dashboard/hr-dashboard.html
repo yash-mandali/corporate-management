@@ -192,7 +192,7 @@
                     <div class="panel-head">
                         <div class="panel-title"><i class="fas fa-user-plus"></i> Recent Employees</div>
                         <div class="panel-head-right">
-                            <a class="view-all-link" routerLink="/hr/employees">
+                            <a class="view-all-link" routerLink="/dashboard/hremployees">
                                 View all <i class="fas fa-arrow-right"></i>
                             </a>
                         </div>
@@ -248,7 +248,7 @@
                             @if (pendingLeaveCount() > 0) {
                             <span class="panel-badge amber">{{ pendingLeaveCount() }} pending</span>
                             }
-                            <a class="view-all-link" routerLink="/hr/leaves">
+                            <a class="view-all-link" routerLink="/dashboard/hrleave">
                                 View all <i class="fas fa-arrow-right"></i>
                             </a>
                         </div>
@@ -318,7 +318,7 @@
                 </div>
 
                 <!-- LEAVE BREAKDOWN -->
-                <div class="panel">
+                <!-- <div class="panel">
                     <div class="panel-head">
                         <div class="panel-title"><i class="fas fa-chart-pie"></i> Leave Breakdown</div>
                     </div>
@@ -364,7 +364,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- QUICK ACTIONS -->
                 <div class="panel">
@@ -372,12 +372,12 @@
                         <div class="panel-title"><i class="fas fa-bolt"></i> Quick Actions</div>
                     </div>
                     <div class="quick-actions">
-                        <a class="qa-btn" routerLink="/hr/employees/add">
+                        <a class="qa-btn" routerLink="/dashboard/hremployees">
                             <div class="qa-icon add"><i class="fas fa-user-plus"></i></div>
                             <span>Add Employee</span>
                             <i class="fas fa-chevron-right qa-arrow"></i>
                         </a>
-                        <a class="qa-btn" routerLink="/hr/leaves">
+                        <a class="qa-btn" routerLink="/dashboard/hrleave">
                             <div class="qa-icon leave"><i class="fas fa-calendar-minus"></i></div>
                             <span>Manage Leaves</span>
                             <i class="fas fa-chevron-right qa-arrow"></i>
@@ -387,7 +387,7 @@
                             <span>View Attendance</span>
                             <i class="fas fa-chevron-right qa-arrow"></i>
                         </a>
-                        <a class="qa-btn" routerLink="/hr/employees">
+                        <a class="qa-btn" routerLink="/dashboard/hremployees">
                             <div class="qa-icon emp"><i class="fas fa-users"></i></div>
                             <span>All Employees</span>
                             <i class="fas fa-chevron-right qa-arrow"></i>

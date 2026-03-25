@@ -1,6 +1,5 @@
 import { Component, computed, signal, OnInit } from '@angular/core';
 import { LowerCasePipe } from '@angular/common';
-import { Authservice } from '../../services/Auth-service/authservice';
 import { UserService } from '../../services/user-service/user-service';
 import { LeaveService } from '../../services/leave-service/leave-service';
 import { ToastrService } from 'ngx-toastr';
@@ -10,17 +9,16 @@ const APPROVED_SET = new Set(['approved', 'managerapproved']);
 const REJECTED_SET = new Set(['rejected', 'managerrejected']);
 
 @Component({
-  selector: 'app-manager-leave',
+  selector: 'app-hr-leave',
   imports: [LowerCasePipe],
-  templateUrl: './managerleavepage.html',
-  styleUrl: './managerleavepage.css',
+  templateUrl: './hr-leave.html',
+  styleUrl: './hr-leave.css',
 })
-export class ManagerLeavepage implements OnInit {
+export class HrLeavePage implements OnInit {
 
-  managerId = signal<any>(null);
   // ── State ──
   allLeaves = signal<any[]>([]);
-  ManagerTeam = signal<any[]>([]);
+  allEmployees = signal<any[]>([]);
   leaveLoading = signal(false);
   actionLoading = signal<any>(null);
 
@@ -49,6 +47,7 @@ export class ManagerLeavepage implements OnInit {
   ];
 
   // ── Computed stats ──
+  managerapprovedCount = computed(() => this.allLeaves().filter(l => l.status?.toLowerCase() === 'managerapproved').length);
   pendingCount = computed(() => this.allLeaves().filter(l => l.status?.toLowerCase() === 'pending').length);
   approvedCount = computed(() => this.allLeaves().filter(l => APPROVED_SET.has(l.status?.toLowerCase())).length);
   rejectedCount = computed(() => this.allLeaves().filter(l => REJECTED_SET.has(l.status?.toLowerCase())).length);
@@ -57,7 +56,7 @@ export class ManagerLeavepage implements OnInit {
   // ── Pending leaves for approvals tab ──
   pendingLeaves = computed(() =>
     this.allLeaves()
-      .filter(l => l.status?.toLowerCase() === 'pending')
+      .filter(l => l.status?.toLowerCase() === 'managerapproved')
       .sort((a, b) => new Date(b.appliedOn).getTime() - new Date(a.appliedOn).getTime())
   );
 
@@ -88,7 +87,7 @@ export class ManagerLeavepage implements OnInit {
   // ── Balance tab: approved days per employee per leave type ──
   employeeBalances = computed(() => {
     const approved = this.allLeaves().filter(l => APPROVED_SET.has(l.status?.toLowerCase()));
-    return this.ManagerTeam().map(u => {
+    return this.allEmployees().map(u => {
       const userLeaves = approved.filter(l => l.userId === u.id);
       const breakdown: Record<string, number> = { annual: 0, sick: 0, comp: 0, emergency: 0 };
       userLeaves.forEach(l => {
@@ -111,46 +110,39 @@ export class ManagerLeavepage implements OnInit {
   });
 
   constructor(
-    private auth: Authservice,
     private userService: UserService,
     private leaveService: LeaveService,
     private toast: ToastrService
   ) { }
 
   ngOnInit() {
-    const id = this.auth.getUserId();
-    if (id) {
-      this.managerId.set(id);
-      this.loadManagerTeam();
-      this.loadAllLeaves();
-    }
+    this.loadAllEmployees();
+    this.loadManagerApprovedLeaves();
   }
 
-  loadManagerTeam() {
-    this.userService.getManagerTeam(this.managerId()).subscribe({
-      next: (res: any) => {
-        this.ManagerTeam.set(Array.isArray(res) ? res : res ? [res] : []);
-      },
-      error: err => console.error('ManagerTeam:', err)
+  loadAllEmployees() {
+    this.userService.getAllEmployee().subscribe({
+      next: (res: any) => this.allEmployees.set(Array.isArray(res) ? res : res ? [res] : []),
+      error: err => console.error('loadAllEmployees:', err)
     });
   }
 
-  loadAllLeaves() {
+  loadManagerApprovedLeaves() {
     this.leaveLoading.set(true);
-    this.leaveService.getTeamAllleaves(this.managerId()).subscribe({
+    this.leaveService.getAllLeaves().subscribe({
       next: (res: any) => {
         const list = Array.isArray(res) ? res : res?.data ?? (res ? [res] : []);
         this.allLeaves.set(list);
         this.leaveLoading.set(false);
       },
-      error: err => { console.error('loadAllLeaves:', err); this.leaveLoading.set(false); }
+      error: err => { console.error('loadManagerApprovedLeaves:', err); this.leaveLoading.set(false); }
     });
   }
 
   // ── Actions ──
   approveLeave(leaveRequestId: any) {
     this.actionLoading.set(leaveRequestId);
-    this.leaveService.managerApproveleave(leaveRequestId).subscribe({
+    this.leaveService.HrApproveleave(leaveRequestId).subscribe({
       next: () => {
         this.allLeaves.update(list =>
           list.map(l => l.leaveRequestId === leaveRequestId ? { ...l, status: 'Approved' } : l)
@@ -167,7 +159,7 @@ export class ManagerLeavepage implements OnInit {
 
   rejectLeave(leaveRequestId: any) {
     this.actionLoading.set(leaveRequestId);
-    this.leaveService.managerRejectleave(leaveRequestId).subscribe({
+    this.leaveService.HrRejectleave(leaveRequestId).subscribe({
       next: () => {
         this.allLeaves.update(list =>
           list.map(l => l.leaveRequestId === leaveRequestId ? { ...l, status: 'Rejected' } : l)

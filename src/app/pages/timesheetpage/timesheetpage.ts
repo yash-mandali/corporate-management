@@ -46,7 +46,7 @@ export class Timesheetpage implements OnInit {
 
   constructor(
     private auth: Authservice,
-    private svc: TimesheetService,
+    private timesheetService: TimesheetService,
     private fb: FormBuilder
   ) {
     // Set Monday as week start
@@ -73,7 +73,7 @@ export class Timesheetpage implements OnInit {
 
   loadEntries() {
     this.isLoading.set(true);
-    this.svc.getEntryByUserId(this.userId()).subscribe({
+    this.timesheetService.getEntryByUserId(this.userId()).subscribe({
       next: (res: any) => {
         this.entries.set(Array.isArray(res) ? res : res ? [res] : []);
         this.isLoading.set(false);
@@ -239,14 +239,14 @@ export class Timesheetpage implements OnInit {
     if (this.editingId()) {
       // sp_UpdateTimesheetEntry: @TimesheetId, @ProjectName, @TaskDescription, @StartTime, @EndTime, @WorkType
       // Only works when Status = 'Draft'
-      this.svc.updateEntry({ timesheetId: this.editingId(), projectName, taskDescription, startTime, endTime, workType })
+      this.timesheetService.updateEntry({ timesheetId: this.editingId(), projectName, taskDescription, startTime, endTime, workType })
         .subscribe({
           next: () => { this.loadEntries(); this.closeModal(); this.saving.set(false); this.hideLoader(); },
           error: err => { this.formErr.set('Update failed.'); this.saving.set(false); this.hideLoader(); console.error(err); }
         });
     } else {
       // sp_AddTimesheetEntry: @UserId, @WorkDate, @ProjectName, @TaskDescription, @StartTime, @EndTime, @WorkType
-      this.svc.addEntry({ userId: this.userId(), workDate, projectName, taskDescription, startTime, endTime, workType })
+      this.timesheetService.addEntry({ userId: this.userId(), workDate, projectName, taskDescription, startTime, endTime, workType })
         .subscribe({
           next: () => { this.loadEntries(); this.closeModal(); this.saving.set(false); this.hideLoader(); },
           error: err => { this.formErr.set('Failed to add entry.'); this.saving.set(false); this.hideLoader(); console.error(err); }
@@ -257,7 +257,7 @@ export class Timesheetpage implements OnInit {
   deleteEntry(id: number) {
     // sp_deleteTimesheetEntry: @sheetId
     this.deletingId.set(id);
-    this.svc.deleteEntry(id).subscribe({
+    this.timesheetService.deleteEntry(id).subscribe({
       next: () => { this.deletingId.set(null); this.loadEntries(); },
       error: err => { this.deletingId.set(null); console.error(err); }
     });
@@ -266,7 +266,7 @@ export class Timesheetpage implements OnInit {
   submitEntry(id: number) {
     // sp_SubmitTimesheet: @sheetId — only Draft → Submitted
     this.submittingId.set(id);
-    this.svc.submitEntry(id).subscribe({
+    this.timesheetService.submitEntry(id).subscribe({
       next: () => { this.submittingId.set(null); this.loadEntries(); },
       error: err => { this.submittingId.set(null); console.error(err); }
     });
@@ -279,7 +279,7 @@ export class Timesheetpage implements OnInit {
     this.showLoader(`Submitting ${drafts.length} entr${drafts.length > 1 ? 'ies' : 'y'}...`);
     let done = 0;
     drafts.forEach(e =>
-      this.svc.submitEntry(e.timesheetId).subscribe({
+      this.timesheetService.submitEntry(e.timesheetId).subscribe({
         next: () => { if (++done === drafts.length) { this.loadEntries(); this.submittingAll.set(false); this.hideLoader(); } },
         error: () => { if (++done === drafts.length) { this.loadEntries(); this.submittingAll.set(false); this.hideLoader(); } }
       })

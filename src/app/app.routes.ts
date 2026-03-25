@@ -19,6 +19,8 @@ import { Managerteampage } from './manager_pages/managerteamspage/managerteamspa
 import { Teamperformance } from './manager_pages/teamperformance/teamperformance';
 import { Notfound } from './pages/notfound/notfound';
 import { HrDashboard } from './hr_pages/hr-dashboard/hr-dashboard';
+import { HrEmployeesPage } from './hr_pages/hr-employees/hr-employees';
+import { HrLeavePage } from './hr_pages/hr-leave/hr-leave';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -114,6 +116,18 @@ export const routes: Routes = [
             {
                 path: 'hrdashboard',
                 component: HrDashboard,
+                canActivate: [authGuard, roleGuard],
+                data: { roles: ['HR'] }
+            },
+            {
+                path: 'hremployees',
+                component: HrEmployeesPage,
+                canActivate: [authGuard, roleGuard],
+                data: { roles: ['HR'] }
+            },
+            {
+                path: 'hrleave',
+                component: HrLeavePage,
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['HR'] }
             },

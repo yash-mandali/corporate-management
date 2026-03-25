@@ -16,6 +16,7 @@
     padding: 18px 20px 14px;
     border-bottom: 2px solid rgba(190, 184, 184, 0.605);
     flex-shrink: 0;
+    align-items: center;
 }
 
 .logo-text {

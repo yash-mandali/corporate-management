@@ -33,7 +33,7 @@ export class ManagerTimesheetpage implements OnInit {
 
   // ── Tracker ──
   trackerSearch = signal('');
-  weekStart = new Date();
+  weekStart = signal(new Date());
 
   // ── Color pool ──
   private colorPool = [
@@ -87,15 +87,15 @@ export class ManagerTimesheetpage implements OnInit {
 
   // ── Tracker tab ──
   weekLabel = computed(() => {
-    const end = new Date(this.weekStart);
+    const end = new Date(this.weekStart());
     end.setDate(end.getDate() + 6);
     const o: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
-    return `${this.weekStart.toLocaleDateString('en-IN', o)} – ${end.toLocaleDateString('en-IN', o)}`;
+    return `${this.weekStart().toLocaleDateString('en-IN', o)} – ${end.toLocaleDateString('en-IN', o)}`;
   });
 
   trackerRows = computed(() => {
-    const ws = this.localDate(this.weekStart);
-    const end = new Date(this.weekStart); end.setDate(end.getDate() + 6);
+    const ws = this.localDate(this.weekStart());
+    const end = new Date(this.weekStart()); end.setDate(end.getDate() + 6);
     const we = this.localDate(end);
     const today = this.localDate(new Date());
 
@@ -107,7 +107,7 @@ export class ManagerTimesheetpage implements OnInit {
       );
 
       const days = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(this.weekStart);
+        const d = new Date(this.weekStart());
         d.setDate(d.getDate() + i);
         const ds = this.localDate(d);
         const dow = d.getDay();
@@ -142,9 +142,9 @@ export class ManagerTimesheetpage implements OnInit {
     // set Monday as week start
     const now = new Date();
     const diff = now.getDay() === 0 ? -6 : 1 - now.getDay();
-    this.weekStart = new Date(now);
-    this.weekStart.setDate(now.getDate() + diff);
-    this.weekStart.setHours(0, 0, 0, 0);
+    this.weekStart.set(new Date(now));
+    this.weekStart().setDate(now.getDate() + diff);
+    this.weekStart().setHours(0, 0, 0, 0);
   }
 
   ngOnInit() {
@@ -180,7 +180,7 @@ export class ManagerTimesheetpage implements OnInit {
     this.timesheetService.managerApproveEntry(timesheetId).subscribe({
       next: () => {
         this.allEntries.update(list =>
-          list.map(e => e.timesheetId === timesheetId ? { ...e, status: 'ManagerApproved' } : e)
+          list.map(e => e.timesheetId === timesheetId ? { ...e, status: 'Approved' } : e)
         );
         this.tsActionLoading.set(null);
         // this.toast.success('Timesheet approved.');
@@ -212,7 +212,7 @@ export class ManagerTimesheetpage implements OnInit {
       next: () => {
         this.allEntries.update(list =>
           list.map(e => e.timesheetId === entry.timesheetId
-            ? { ...e, status: 'ManagerRejected', rejectReason: this.rejectReason.trim() }
+            ? { ...e, status: 'Rejected', rejectReason: this.rejectReason.trim() }
             : e)
         );
         this.tsActionLoading.set(null);
@@ -232,22 +232,22 @@ export class ManagerTimesheetpage implements OnInit {
 
   // ── Week navigation ──
   prevWeek() {
-    const w = new Date(this.weekStart);
+    const w = new Date(this.weekStart());
     w.setDate(w.getDate() - 7);
-    this.weekStart = w;
+    this.weekStart.set(w);
   }
 
   nextWeek() {
     if (this.isCurrentWeek()) return;
-    const w = new Date(this.weekStart);
+    const w = new Date(this.weekStart());
     w.setDate(w.getDate() + 7);
-    this.weekStart = w;
+    this.weekStart.set(w);
   }
 
   isCurrentWeek(): boolean {
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const end = new Date(this.weekStart); end.setDate(end.getDate() + 6);
-    return this.weekStart <= today && today <= end;
+    const end = new Date(this.weekStart()); end.setDate(end.getDate() + 6);
+    return this.weekStart() <= today && today <= end;
   }
 
   // ── Bar helpers ──

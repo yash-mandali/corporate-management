@@ -745,7 +745,7 @@ tbody td {
     background: rgba(39, 174, 96, 0.1);
     color: #1e8449;
 }
-.sp-hrapproved {
+.sp-approved {
     background: rgba(39, 174, 96, 0.1);
     color: #1e8449;
 }
@@ -754,7 +754,7 @@ tbody td {
     background: rgba(192, 57, 43, 0.1);
     color: #c0392b;
 }
-.sp-hrrejected {
+.sp-rejected {
     background: rgba(192, 57, 43, 0.1);
     color: #c0392b;
 }

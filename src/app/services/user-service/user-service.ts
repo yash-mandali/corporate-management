@@ -13,12 +13,14 @@ export class UserService {
   apiurl = environment.ApiUrl;
   loginApi = `${this.apiurl}/User/Login`;
   logoutApi = `${this.apiurl}/User/Logout`;
-  signupApi = `${this.apiurl}/User/AddUser`;
-  updateApi = `${this.apiurl}/User/UpdateUser`;
+  addUserApi = `${this.apiurl}/User/AddUser`;
+  updateUserApi = `${this.apiurl}/User/UpdateUser`;
+  delateUserApi = `${this.apiurl}/User/DeleteUser`;
   getUserbyIdApi = `${this.apiurl}/User/getUserById`;
   getManagerTeamApi = `${this.apiurl}/User/getManagerTeam`;
   getAlluserApi = `${this.apiurl}/User/getAllUsers`;
   getAllEmployeeApi = `${this.apiurl}/User/getAllEmployee`;
+  getAllEmployeeManagerApi = `${this.apiurl}/User/getAllEmployeeManager`;
   getAllManagerApi = `${this.apiurl}/User/getAllManagers`;
 
 
@@ -27,20 +29,28 @@ export class UserService {
   }
 
   logout(userId: any) {
-    return this.http.post(`${this.logoutApi}?userId=${userId}`,{})
+    return this.http.post(`${this.logoutApi}?userId=${userId}`, {})
   }
 
   signup(data: any) {
-    return this.http.post(this.signupApi, data);
+    return this.http.post(this.addUserApi, data);
   }
 
   updateUser(data: any) {
-    return this.http.put(this.updateApi, data);
+    return this.http.put(this.updateUserApi, data);
+  }
+
+  deleteUser(userId: any) {
+    return this.http.delete(`${this.delateUserApi}?id=${userId}`, {})
   }
 
 
   getAllUser() {
     return this.http.get<any[]>(this.getAlluserApi)
+  }
+  
+  getAllEmployeeManager() {
+    return this.http.get<any[]>(this.getAllEmployeeManagerApi)
   }
 
   getAllEmployee() {
@@ -61,5 +71,5 @@ export class UserService {
   getManagerTeam(userId: number) {
     return this.http.get<any[]>(`${this.getManagerTeamApi}?managerId=${userId}`, {});
   }
-// /User/getManagerTeam ? managerId = 20
+  // /User/getManagerTeam ? managerId = 20
 }

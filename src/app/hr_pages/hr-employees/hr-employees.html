@@ -1,0 +1,463 @@
+<main class="main">
+    <div class="content">
+
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+            <div class="ph-left">
+                <div class="ph-icon"><i class="fas fa-users"></i></div>
+                <div>
+                    <div class="ph-title">Employee Management</div>
+                    <div class="ph-sub">{{ totalCount() }} employees · {{ activeCount() }} active</div>
+                </div>
+            </div>
+            <div class="ph-right">
+                <button class="btn-add" (click)="openAddModal()">
+                    <i class="fas fa-user-plus"></i> Add Employee
+                </button>
+            </div>
+        </div>
+
+        <!-- STAT CARDS -->
+        <div class="stat-row">
+            <div class="stat-card sc-total">
+                <div class="sc-icon"><i class="fas fa-users"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ totalCount() }}</div>
+                    <div class="sc-lbl">Total</div>
+                </div>
+            </div>
+            <div class="stat-card sc-emp">
+                <div class="sc-icon"><i class="fas fa-user"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ empRoleCount() }}</div>
+                    <div class="sc-lbl">Employees</div>
+                </div>
+            </div>
+            <div class="stat-card sc-mgr">
+                <div class="sc-icon"><i class="fas fa-user-tie"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ mgrRoleCount() }}</div>
+                    <div class="sc-lbl">Managers</div>
+                </div>
+            </div>
+            <div class="stat-card sc-new">
+                <div class="sc-icon"><i class="fas fa-user-plus"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ newThisMonth() }}</div>
+                    <div class="sc-lbl">New This Month</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+            <div class="tb-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search by name, email or phone..." [value]="searchQ()"
+                    (input)="onSearch($any($event.target).value)">
+                @if (searchQ()) {
+                <button class="tb-clear" (click)="onSearch('')"><i class="fas fa-times"></i></button>
+                }
+            </div>
+            <div class="tb-filters">
+                <button class="tf-btn" [class.active]="roleFilter() === 'all'"
+                    (click)="setRoleFilter('all')">All</button>
+                <button class="tf-btn emp-f" [class.active]="roleFilter() === '2'"
+                    (click)="setRoleFilter('2')">Employee</button>
+                <button class="tf-btn mgr-f" [class.active]="roleFilter() === '3'"
+                    (click)="setRoleFilter('3')">Manager</button>
+            </div>
+        </div>
+
+        <!-- TABLE -->
+        @if (isLoading()) {
+        <div class="table-card">
+            <div class="skeleton-wrap">
+                @for (i of [1,2,3,4,5]; track i) {
+                <div class="sk-row">
+                    <div class="sk sk-av"></div>
+                    <div class="sk-lines">
+                        <div class="sk sk-lg"></div>
+                        <div class="sk sk-sm"></div>
+                    </div>
+                    <div class="sk sk-md"></div>
+                    <div class="sk sk-md"></div>
+                    <div class="sk sk-sm"></div>
+                    <div class="sk sk-badge"></div>
+                    <div class="sk sk-btn"></div>
+                </div>
+                }
+            </div>
+        </div>
+        } @else {
+        <div class="table-card">
+            <div class="tbl-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <!-- <th>#</th> -->
+                            <th>Employee</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Gender</th>
+                            <th>Role</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (emp of pagedEmployees(); track emp.id; let i = $index) {
+                        <tr (click)="openDetailModal(emp)">
+                            <!-- <td class="td-idx">{{ filteredEmployees().length - (currentPage()-1)*pageSize - i }}</td> -->
+                            <td class="td-emp">
+                                <div class="emp-cell">
+                                    <div class="emp-av" [style.background]="getColor(emp.id)">{{
+                                        getInitials(emp.userName) }}</div>
+                                    <div>
+                                        <div class="emp-name">{{ emp.userName }}</div>
+                                        <div class="emp-id">ID-{{ emp.id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="td-email">{{ emp.email }}</td>
+                            <td class="td-phone">{{ emp.phoneNumber || '—' }}</td>
+                            <td class="td-gender">{{ emp.gender || '—' }}</td>
+                            <td>
+                                <span class="role-chip"
+                                    [class.mgr]="emp.roleId === 3 || emp.roleName?.toLowerCase().includes('manager')">
+                                    {{ emp.roleName || '—' }}
+                                </span>
+                            </td>
+                            <td class="td-date">{{ formatDate(emp.createdAt) }}</td>
+                            <td class="td-act" (click)="$event.stopPropagation()">
+                                <button class="act-btn edit" (click)="openEditModal(emp)" title="Edit">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="act-btn del" (click)="confirmDelete(emp)" title="Delete"
+                                    [disabled]="deletingId() === emp.id">
+                                    @if (deletingId() === emp.id) { <span class="mini-spin red-spin"></span> }
+                                    @else { <i class="fas fa-trash"></i> }
+                                </button>
+                            </td>
+                        </tr>
+                        } @empty {
+                        <tr>
+                            <td colspan="8" class="td-empty">
+                                <i class="fas fa-users-slash"></i>
+                                <span>No employees found</span>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (totalPages() > 1) {
+            <div class="pagination">
+                <button class="pg-btn" (click)="currentPage.set(1)" [disabled]="currentPage()===1">
+                    <i class="fas fa-angle-double-left"></i>
+                </button>
+                <button class="pg-btn" (click)="currentPage.set(currentPage()-1)" [disabled]="currentPage()===1">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                @for (p of pageNumbers(); track p) {
+                <button class="pg-num" [class.active]="p===currentPage()" (click)="currentPage.set(p)">{{ p }}</button>
+                }
+                <button class="pg-btn" (click)="currentPage.set(currentPage()+1)"
+                    [disabled]="currentPage()===totalPages()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button class="pg-btn" (click)="currentPage.set(totalPages())"
+                    [disabled]="currentPage()===totalPages()">
+                    <i class="fas fa-angle-double-right"></i>
+                </button>
+                <span class="pg-info">{{ currentPage() }} of {{ totalPages() }} · {{ filteredEmployees().length }}
+                    employees</span>
+            </div>
+            }
+        </div>
+        }
+    </div>
+</main>
+
+<!-- ══ ADD / EDIT MODAL ══ -->
+@if (formModal()) {
+<div class="modal-overlay" (click)="closeFormModal()">
+    <div class="form-modal" (click)="$event.stopPropagation()">
+        <div class="fm-header" [class.edit-mode]="!!editingEmployee()">
+            <div class="fm-icon"><i class="fas fa-{{ editingEmployee() ? 'pen' : 'user-plus' }}"></i></div>
+            <div>
+                <div class="fm-title">{{ editingEmployee() ? 'Edit Employee' : 'Add New Employee' }}</div>
+                <div class="fm-sub">{{ editingEmployee() ? 'Update employee details' : 'Fill in employee information' }}
+                </div>
+            </div>
+            <button class="fm-close" (click)="closeFormModal()"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="fm-body" [formGroup]="empForm">
+            <div class="fm-grid">
+
+                <div class="ff full">
+                    <label>Full Name <span class="req">*</span></label>
+                    <input type="text" formControlName="userName" placeholder="e.g. Rahul Sharma">
+                </div>
+
+                <div class="ff">
+                    <label>Email <span class="req">*</span></label>
+                    <input type="email" formControlName="email" placeholder="employee@company.com">
+                </div>
+
+                <div class="ff">
+                    <label>Phone Number</label>
+                    <input type="tel" formControlName="phoneNumber" placeholder="+91 9876543210">
+                </div>
+                <div class="ff">
+                    <label>Department <span>*</span></label>
+                
+                    <select formControlName="department"
+                        [class.ef-error]="empForm.get('department')?.invalid && empForm.get('department')?.touched">
+                
+                        <option value="">Select Department</option>
+                        <option value="HR">Human Resources (HR)</option>
+                        <option value="IT">IT / Engineering</option>
+                        <option value="Development">Software Development</option>
+                        <option value="QA">Quality Assurance (QA)</option>
+                        <option value="DevOps">DevOps</option>
+                        <option value="UIUX">UI/UX Design</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Support">Customer Support</option>
+                        <option value="Finance">Finance & Accounts</option>
+                        <option value="Admin">Administration</option>
+                    </select>
+                
+                    @if (empForm.get('department')?.invalid && empForm.get('department')?.touched) {
+                    <span class="ef-err">
+                        <i class="fas fa-exclamation-circle"></i> Required
+                    </span>
+                    }
+                </div>
+
+                @if (!editingEmployee()) {
+                <div class="ff">
+                    <label>Password <span class="req">*</span></label>
+                    <div class="pw-wrap">
+                        <input [type]="showPass ? 'text' : 'password'" formControlName="password"
+                            placeholder="Min 6 characters">
+                        <button type="button" class="pw-eye" (click)="showPass = !showPass">
+                            <i class="fas fa-{{ showPass ? 'eye-slash' : 'eye' }}"></i>
+                        </button>
+                    </div>
+                </div>
+                }
+
+                <div class="ff">
+                    <label>Role <span class="req">*</span></label>
+                    <select formControlName="roleId">
+                        <option value="">Select role</option>
+                        <option value="2">Employee</option>
+                        <option value="3">Manager</option>
+                    </select>
+                </div>
+
+                <div class="ff">
+                    <label>Gender</label>
+                    <select formControlName="gender">
+                        <option value="">Select gender</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+
+                <div class="ff full">
+                    <label>Address</label>
+                    <textarea formControlName="address" rows="2" placeholder="Full address..."></textarea>
+                </div>
+
+            </div>
+
+            @if (formError()) {
+            <div class="fm-error"><i class="fas fa-exclamation-triangle"></i> {{ formError() }}</div>
+            }
+        </div>
+
+        <div class="fm-footer">
+            <button class="fm-cancel" (click)="closeFormModal()">Cancel</button>
+            <button class="fm-save" (click)="saveEmployee()" [disabled]="formSaving()">
+                @if (formSaving()) { <span class="mini-spin white-spin"></span> Saving... }
+                @else { <i class="fas fa-{{ editingEmployee() ? 'save' : 'user-plus' }}"></i> {{ editingEmployee() ?
+                'Save Changes' : 'Add Employee' }} }
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ══ DETAIL MODAL ══ -->
+@if (detailModal()) {
+<div class="modal-overlay" (click)="closeDetailModal()">
+    <div class="detail-modal" (click)="$event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="dm-header">
+            <div class="dm-hero">
+                <div class="dm-avatar" [style.background]="getColor(detailModal()!.id)">
+                    {{ getInitials(detailModal()!.userName) }}
+                </div>
+                <div class="dm-info">
+                    <div class="dm-name">{{ detailModal()!.userName }}</div>
+                    <div class="dm-role-row">
+                        <span class="dm-role">{{ detailModal()!.roleName }}</span>
+                        <span class="dm-id">ID-{{ detailModal()!.id }}</span>
+                    </div>
+                </div>
+            </div>
+            <button class="fm-close" (click)="closeDetailModal()"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- Body -->
+        <div class="dm-body">
+
+            <!-- Quick stats -->
+            <div class="dm-stats">
+                <div class="dms-card">
+                    <div class="dms-val">{{ detailAttendanceRate() }}%</div>
+                    <div class="dms-lbl">Attendance</div>
+                </div>
+                <div class="dms-card">
+                    <div class="dms-val">{{ detailPresentDays() }}</div>
+                    <div class="dms-lbl">Present Days</div>
+                </div>
+                <div class="dms-card">
+                    <div class="dms-val">{{ detailPendingLeaves() }}</div>
+                    <div class="dms-lbl">Pending Leaves</div>
+                </div>
+                <div class="dms-card">
+                    <div class="dms-val">{{ detailApprovedLeaves() }}</div>
+                    <div class="dms-lbl">Approved Leaves</div>
+                </div>
+            </div>
+
+            <div class="dm-grid">
+
+                <!-- Basic Info -->
+                <div class="dm-section">
+                    <div class="dm-sec-title"><i class="fas fa-id-card"></i> Basic Information</div>
+                    <div class="dm-rows">
+                        <div class="dm-row"><span class="dmr-k">Full Name</span><span class="dmr-v">{{
+                                detailModal()!.userName }}</span></div>
+                        <div class="dm-row"><span class="dmr-k">Email</span><span class="dmr-v">{{ detailModal()!.email
+                                }}</span></div>
+                        <div class="dm-row"><span class="dmr-k">Phone</span><span class="dmr-v">{{
+                                detailModal()!.phoneNumber || '—' }}</span></div>
+                        <div class="dm-row"><span class="dmr-k">Department</span><span class="dmr-v">{{
+                                detailModal()!.department || '—' }}</span></div>
+                        <div class="dm-row"><span class="dmr-k">Gender</span><span class="dmr-v">{{
+                                detailModal()!.gender || '—' }}</span></div>
+                        <div class="dm-row"><span class="dmr-k">Role</span><span class="dmr-v">{{
+                                detailModal()!.roleName }}</span></div>
+                        <div class="dm-row"><span class="dmr-k">Joined</span><span class="dmr-v">{{
+                                formatDate(detailModal()!.createdAt) }}</span></div>
+                        <div class="dm-row"><span class="dmr-k">Address</span><span class="dmr-v">{{
+                                detailModal()!.address || '—' }}</span></div>
+                    </div>
+                </div>
+
+                <!-- Attendance Summary -->
+                <div class="dm-section">
+                    <div class="dm-sec-title"><i class="fas fa-calendar-check"></i> This Month's Attendance</div>
+                    @if (detailLoading()) {
+                    <div class="dm-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+                    } @else {
+                    <div class="dm-att-body">
+                        <div class="dm-att-track">
+                            <div class="dm-att-fill" [style.width]="detailAttendanceRate() + '%'"
+                                [class.low]="detailAttendanceRate() < 75"></div>
+                        </div>
+                        <div class="dm-att-legend">
+                            <div class="dal green">
+                                <div class="dal-n">{{ detailPresentDays() }}</div>
+                                <div class="dal-l">Present</div>
+                            </div>
+                            <div class="dal amber">
+                                <div class="dal-n">{{ detailLateDays() }}</div>
+                                <div class="dal-l">Late</div>
+                            </div>
+                            <div class="dal red">
+                                <div class="dal-n">{{ detailAbsentDays() }}</div>
+                                <div class="dal-l">Absent</div>
+                            </div>
+                            <div class="dal teal">
+                                <div class="dal-n">{{ detailAttendanceRate() }}%</div>
+                                <div class="dal-l">Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+
+                <!-- Leave Summary -->
+                <div class="dm-section full-width">
+                    <div class="dm-sec-title"><i class="fas fa-calendar-minus"></i> Leave Summary</div>
+                    @if (detailLoading()) {
+                    <div class="dm-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+                    } @else {
+                    <div class="dm-leave-grid">
+                        <div class="dlg-card pending-c">
+                            <div class="dlg-n">{{ detailPendingLeaves() }}</div>
+                            <div class="dlg-l">Pending</div>
+                        </div>
+                        <div class="dlg-card approved-c">
+                            <div class="dlg-n">{{ detailApprovedLeaves() }}</div>
+                            <div class="dlg-l">Approved</div>
+                        </div>
+                        <div class="dlg-card rejected-c">
+                            <div class="dlg-n">{{ detailRejectedLeaves() }}</div>
+                            <div class="dlg-l">Rejected</div>
+                        </div>
+                        <div class="dlg-card withdrawn-c">
+                            <div class="dlg-n">{{ detailWithdrawnLeaves() }}</div>
+                            <div class="dlg-l">Withdrawn</div>
+                        </div>
+                        <div class="dlg-card total-c">
+                            <div class="dlg-n">{{ detailTotalLeaves() }}</div>
+                            <div class="dlg-l">Total</div>
+                        </div>
+                    </div>
+                    }
+                </div>
+
+            </div>
+        </div>
+
+        <div class="dm-footer">
+            <button class="fm-cancel" (click)="closeDetailModal()">Close</button>
+            <button class="fm-save" (click)="openEditModal(detailModal()!); closeDetailModal()">
+                <i class="fas fa-pen"></i> Edit Employee
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ══ DELETE CONFIRM MODAL ══ -->
+@if (deleteModal()) {
+<div class="modal-overlay" (click)="closeDeleteModal()">
+    <div class="delete-modal" (click)="$event.stopPropagation()">
+        <div class="del-icon-wrap"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="del-title">Delete Employee?</div>
+        <div class="del-sub">
+            Are you sure you want to delete <strong>{{ deleteModal()!.userName }}</strong>?
+            This action cannot be undone.
+        </div>
+        <div class="del-actions">
+            <button class="fm-cancel" (click)="closeDeleteModal()">Cancel</button>
+            <button class="del-confirm" (click)="executeDelete()" [disabled]="deletingId() === deleteModal()!.id">
+                @if (deletingId() === deleteModal()!.id) { <span class="mini-spin white-spin"></span> Deleting... }
+                @else { <i class="fas fa-trash"></i> Yes, Delete }
+            </button>
+        </div>
+    </div>
+</div>
+}

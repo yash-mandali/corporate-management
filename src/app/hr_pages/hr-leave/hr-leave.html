@@ -7,7 +7,7 @@
                 <div class="ph-icon"><i class="fas fa-calendar-minus"></i></div>
                 <div>
                     <div class="ph-title">Leave Management</div>
-                    <div class="ph-sub">Approve, reject and track team leave requests</div>
+                    <div class="ph-sub">Manage company-wide employee leave requests</div>
                 </div>
             </div>
             <div class="ph-right">
@@ -15,7 +15,7 @@
                     <button class="tab-btn" [class.active]="activeTab() === 'approvals'"
                         (click)="activeTab.set('approvals')">
                         <i class="fas fa-inbox"></i> Approvals
-                        @if (pendingCount() > 0) { <span class="tab-count">{{ pendingCount() }}</span> }
+                        @if (managerapprovedCount() > 0) { <span class="tab-count">{{ managerapprovedCount() }}</span> }
                     </button>
                     <button class="tab-btn" [class.active]="activeTab() === 'history'"
                         (click)="activeTab.set('history')">
@@ -162,7 +162,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <!-- <th>#</th> -->
+                                <th>#</th>
                                 <th>Employee</th>
                                 <th>Leave Type</th>
                                 <th>From</th>
@@ -175,7 +175,7 @@
                         <tbody>
                             @for (l of pagedHistory(); track l.leaveRequestId; let i = $index) {
                             <tr>
-                                <!-- <td class="td-idx">{{ (histPage() - 1) * pageSize + i + 1 }}</td> -->
+                                <td class="td-idx">{{ (histPage() - 1) * pageSize + i + 1 }}</td>
                                 <td class="td-emp">
                                     <div class="emp-cell">
                                         <div class="emp-av" [style.background]="getColor(l.userId)">{{
@@ -260,7 +260,7 @@
                             <div class="bc-name">{{ emp.userName }}</div>
                             <div class="bc-role">{{ emp.roleName }}</div>
                         </div>
-                        <div class="bc-total-badge">{{ emp.totalApproved }}d used</div>
+                        <div class="bc-total-badge">{{ emp.totalApproved }} used</div>
                     </div>
                     <div class="bc-bars">
                         @for (lt of leaveTypes; track lt.key) {

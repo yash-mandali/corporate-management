@@ -57,7 +57,7 @@ export class HrDashboard implements OnInit {
   recentEmployees = computed(() =>
     [...this.allEmployees()]
       .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-      .slice(0, 5)
+      .slice(0, 3)
   );
 
   // ── Attendance computed ──
@@ -99,7 +99,7 @@ export class HrDashboard implements OnInit {
     });
   });
 
-  slicedAttendance = computed(() => this.filteredAttendance().slice(0, 5));
+  slicedAttendance = computed(() => this.filteredAttendance().slice(0, 3));
 
   todayPresent = computed(() =>
     this.todayAttendance().filter(e => e.isCheckIn).length
@@ -122,17 +122,17 @@ export class HrDashboard implements OnInit {
   // ── Leave computed ──
   pendingLeaveCount = computed(() => this.pendingLeaves().length);
 
-  leaveStats = computed(() => ({
-    pending: this.allLeaves().filter(l => l.status === 'ManagerApproved').length,
-    approved: this.allLeaves().filter(l => l.status === 'Approved').length,
-    rejected: this.allLeaves().filter(l => l.status === 'Rejected').length,
-    withdrawn: this.allLeaves().filter(l => l.status === 'Withdrawn').length,
-  }));
+  // leaveStats = computed(() => ({
+  //   pending: this.allLeaves().filter(l => l.status === 'ManagerApproved').length,
+  //   approved: this.allLeaves().filter(l => l.status === 'Approved').length,
+  //   rejected: this.allLeaves().filter(l => l.status === 'Rejected').length,
+  //   withdrawn: this.allLeaves().filter(l => l.status === 'Withdrawn').length,
+  // }));
 
-  leaveBarPct(count: number): number {
-    const total = this.allLeaves().length;
-    return total ? Math.round((count / total) * 100) : 0;
-  }
+  // leaveBarPct(count: number): number {
+  //   const total = this.allLeaves().length;
+  //   return total ? Math.round((count / total) * 100) : 0;
+  // }
 
   constructor(
     private auth: Authservice,
@@ -189,7 +189,7 @@ export class HrDashboard implements OnInit {
   loadManagerApprovedLeaves() {
     this.leaveLoading.set(true);
     // Load all leaves for stats
-    this.leaveService.getmanagerApprovedleaves().subscribe({
+    this.leaveService.getAllLeaves().subscribe({
       next: (res: any) => {
         const list = Array.isArray(res) ? res : res?.data ?? (res ? [res] : []);
         this.allLeaves.set(list);

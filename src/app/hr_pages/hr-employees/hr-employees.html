@@ -49,23 +49,68 @@
             </div>
         </div>
 
-        <!-- TOOLBAR -->
-        <div class="toolbar">
-            <div class="tb-search">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search by name, email or phone..." [value]="searchQ()"
-                    (input)="onSearch($any($event.target).value)">
-                @if (searchQ()) {
-                <button class="tb-clear" (click)="onSearch('')"><i class="fas fa-times"></i></button>
-                }
+        <!-- FILTERS -->
+        <div class="filter-panel">
+            <div class="fp-row">
+                <div class="fp-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search by name, email or phone..." [value]="searchQ()"
+                        (input)="onSearch($any($event.target).value)">
+                    @if (searchQ()) {
+                    <button class="fp-clear" (click)="onSearch('')"><i class="fas fa-times"></i></button>
+                    }
+                </div>
+                <div class="fp-field">
+                    <label><i class="fas fa-building"></i> Department</label>
+                    <select [value]="deptFilter()" (change)="onDeptChange($any($event.target).value)">
+                        <option value="all">All Departments</option>
+                        @for (d of departments; track d) {
+                        <option [value]="d">{{ d }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="fp-field">
+                    <label><i class="fas fa-circle"></i> Status</label>
+                    <select [value]="statusFilter()" (change)="setStatusFilter($any($event.target).value)">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="offline">Offline</option>
+                    </select>
+                </div>
+                <div class="fp-field">
+                    <label><i class="fas fa-calendar-plus"></i> Joined From</label>
+                    <input type="date" [value]="joinFrom()" (change)="onJoinFrom($any($event.target).value)">
+                </div>
+                <div class="fp-field">
+                    <label><i class="fas fa-calendar-minus"></i> Joined To</label>
+                    <input type="date" [value]="joinTo()" (change)="onJoinTo($any($event.target).value)">
+                </div>
             </div>
-            <div class="tb-filters">
-                <button class="tf-btn" [class.active]="roleFilter() === 'all'"
-                    (click)="setRoleFilter('all')">All</button>
-                <button class="tf-btn emp-f" [class.active]="roleFilter() === '2'"
-                    (click)="setRoleFilter('2')">Employee</button>
-                <button class="tf-btn mgr-f" [class.active]="roleFilter() === '3'"
-                    (click)="setRoleFilter('3')">Manager</button>
+            <div class="fp-row fp-row-2">
+                <div class="fp-role-tabs">
+                    <button class="tf-btn" [class.active]="roleFilter() === 'all'" (click)="setRoleFilter('all')">
+                        All <span class="tf-count">{{ totalCount() }}</span>
+                    </button>
+                    <button class="tf-btn emp-f" [class.active]="roleFilter() === '2'" (click)="setRoleFilter('2')">
+                        Employee <span class="tf-count">{{ empRoleCount() }}</span>
+                    </button>
+                    <button class="tf-btn mgr-f" [class.active]="roleFilter() === '3'" (click)="setRoleFilter('3')">
+                        Manager <span class="tf-count">{{ mgrRoleCount() }}</span>
+                    </button>
+                </div>
+                @if (hasActiveFilters()) {
+                <div class="fp-active-info">
+                    <i class="fas fa-filter"></i>
+                    Showing {{ filteredEmployees().length }} of {{ totalCount() }} employees
+                    <button class="fp-clear-all" (click)="clearAllFilters()">
+                        <i class="fas fa-times"></i> Clear all
+                    </button>
+                </div>
+                } @else {
+                <div class="fp-active-info muted">
+                    <i class="fas fa-users"></i> {{ totalCount() }} total employees
+                </div>
+                }
             </div>
         </div>
 
@@ -102,6 +147,7 @@
                             <th>Gender</th>
                             <th>Role</th>
                             <th>Joined</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -129,6 +175,12 @@
                                 </span>
                             </td>
                             <td class="td-date">{{ formatDate(emp.createdAt) }}</td>
+                        <td>
+                            <span class="status-chip" [class.online]="emp.isActive">
+                                <span class="status-dot"></span>
+                                {{ emp.isActive ? 'Active' : 'Offline' }}
+                            </span>
+                        </td>
                             <td class="td-act" (click)="$event.stopPropagation()">
                                 <button class="act-btn edit" (click)="openEditModal(emp)" title="Edit">
                                     <i class="fas fa-pen"></i>
@@ -211,32 +263,6 @@
                     <label>Phone Number</label>
                     <input type="tel" formControlName="phoneNumber" placeholder="+91 9876543210">
                 </div>
-                <div class="ff">
-                    <label>Department <span>*</span></label>
-                
-                    <select formControlName="department"
-                        [class.ef-error]="empForm.get('department')?.invalid && empForm.get('department')?.touched">
-                
-                        <option value="">Select Department</option>
-                        <option value="HR">Human Resources (HR)</option>
-                        <option value="IT">IT / Engineering</option>
-                        <option value="Development">Software Development</option>
-                        <option value="QA">Quality Assurance (QA)</option>
-                        <option value="DevOps">DevOps</option>
-                        <option value="UIUX">UI/UX Design</option>
-                        <option value="Sales">Sales</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Support">Customer Support</option>
-                        <option value="Finance">Finance & Accounts</option>
-                        <option value="Admin">Administration</option>
-                    </select>
-                
-                    @if (empForm.get('department')?.invalid && empForm.get('department')?.touched) {
-                    <span class="ef-err">
-                        <i class="fas fa-exclamation-circle"></i> Required
-                    </span>
-                    }
-                </div>
 
                 @if (!editingEmployee()) {
                 <div class="ff">
@@ -259,6 +285,7 @@
                         <option value="3">Manager</option>
                     </select>
                 </div>
+
 
                 <div class="ff">
                     <label>Gender</label>
@@ -359,7 +386,7 @@
                                 detailModal()!.roleName }}</span></div>
                         <div class="dm-row"><span class="dmr-k">Joined</span><span class="dmr-v">{{
                                 formatDate(detailModal()!.createdAt) }}</span></div>
-                        <div class="dm-row"><span class="dmr-k">Address</span><span class="dmr-v">{{
+                        <div class="dm-row"><span class="dmr-k">Address</span><span class="dmr-v ">{{
                                 detailModal()!.address || '—' }}</span></div>
                     </div>
                 </div>

@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Authservice } from '../../services/Auth-service/authservice';
 import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { ToastService } from '../../services/toast-service/toast';
 
 // Six statuses from backend
 // pending | approved | managerapproved | rejected | managerrejected | withdrawn
@@ -84,7 +85,7 @@ export class ApplyLeave {
     private auth: Authservice,
     private leaveService: LeaveService,
     private router: Router,
-    private toast: ToastrService
+    private toast: ToastService
   ) { }
 
   ngOnInit() {

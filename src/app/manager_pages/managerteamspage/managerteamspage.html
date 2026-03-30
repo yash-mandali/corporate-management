@@ -75,7 +75,7 @@
                 <div class="ec-status-dot" [class.online]="emp.isActive"></div>
                 <div class="ec-avatar" [style.background]="getColor(emp.id)">{{ getInitials(emp.userName) }}</div>
                 <div class="ec-name">{{ emp.userName }}</div>
-                <div class="ec-role">{{ emp.roleName || 'Employee' }}</div>
+                <div class="ec-role">{{ emp.roleId == 2 ?'Employee':'-' }}</div>
                 <div class="ec-email">{{ emp.email }}</div>
                 <div class="ec-divider"></div>
                 <div class="ec-stats">
@@ -256,12 +256,12 @@
                                 <span class="emsr-val">{{ selectedEmployee()!.phoneNumber || '—' }}</span>
                             </div>
                             <div class="ems-row">
-                                <span class="emsr-key"><i class="fas fa-venus-mars"></i> Gender</span>
-                                <span class="emsr-val">{{ selectedEmployee()!.gender || '—' }}</span>
+                                <span class="emsr-key"><i class="fas fa-phone"></i> Department</span>
+                                <span class="emsr-val">{{ selectedEmployee()!.department || '—' }}</span>
                             </div>
                             <div class="ems-row">
-                                <span class="emsr-key"><i class="fas fa-briefcase"></i> Role</span>
-                                <span class="emsr-val">{{ selectedEmployee()!.roleName || '—' }}</span>
+                                <span class="emsr-key"><i class="fas fa-venus-mars"></i> Gender</span>
+                                <span class="emsr-val">{{ selectedEmployee()!.gender || '—' }}</span>
                             </div>
                             <div class="ems-row">
                                 <span class="emsr-key"><i class="fas fa-calendar-plus"></i> Joined</span>

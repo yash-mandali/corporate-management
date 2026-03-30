@@ -4,6 +4,7 @@ import { Authservice } from '../../services/Auth-service/authservice';
 import { UserService } from '../../services/user-service/user-service';
 import { LeaveService } from '../../services/leave-service/leave-service';
 import { ToastrService } from 'ngx-toastr';
+import { ToastService } from '../../services/toast-service/toast';
 
 // Manager statuses: Pending | ManagerApproved | ManagerRejected | Withdrawn
 const APPROVED_SET = new Set(['approved', 'managerapproved']);
@@ -114,7 +115,7 @@ export class ManagerLeavepage implements OnInit {
     private auth: Authservice,
     private userService: UserService,
     private leaveService: LeaveService,
-    private toast: ToastrService
+    private toast: ToastService
   ) { }
 
   ngOnInit() {

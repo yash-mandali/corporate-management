@@ -68,6 +68,14 @@
                 <span class="nav-icon"></span>
                 <span class="nav-label">Leaves</span>
             </a>
+            <a class="nav-item" routerLink="/dashboard/hrattendance" routerLinkActive="active" (click)="emp.closeSidebar()">
+                <span class="nav-icon"></span>
+                <span class="nav-label">Attendance</span>
+            </a>
+            <a class="nav-item" routerLink="/dashboard/hrpayroll" routerLinkActive="active" (click)="emp.closeSidebar()">
+                <span class="nav-icon"></span>
+                <span class="nav-label">Payroll</span>
+            </a>
 
         }
         @else {

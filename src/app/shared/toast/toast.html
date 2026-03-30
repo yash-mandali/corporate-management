@@ -1,0 +1,32 @@
+<div class="toast-stack">
+    @for (toast of toastService.toasts(); track trackById($index, toast)) {
+    <div class="toast" [class]="'toast toast--' + toast.type" [class.toast--out]="toast.removing"
+        (mouseenter)="toastService.pauseTimer(toast.id)" (mouseleave)="toastService.resumeTimer(toast.id)">
+        <!-- left accent bar -->
+        <div class="toast__accent"></div>
+
+        <!-- icon -->
+        <div class="toast__icon">
+            <i class="fas {{ icon(toast.type) }}"></i>
+        </div>
+
+        <!-- text -->
+        <div class="toast__body">
+            <div class="toast__title">{{ toast.title }}</div>
+            @if (toast.message) {
+            <div class="toast__msg">{{ toast.message }}</div>
+            }
+        </div>
+
+        <!-- close -->
+        <button class="toast__close" (click)="toastService.dismiss(toast.id)">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <!-- progress bar -->
+        <div class="toast__progress">
+            <div class="toast__bar" [style.width.%]="toast.progress"></div>
+        </div>
+    </div>
+    }
+</div>

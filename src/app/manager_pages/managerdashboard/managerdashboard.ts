@@ -8,6 +8,7 @@ import { AttendanceService } from '../../services/attendance-service';
 import { LeaveService } from '../../services/leave-service/leave-service';
 import { TimesheetService } from '../../services/timesheet-service/timesheet-service';
 import { ToastrService } from 'ngx-toastr';
+import { ToastService } from '../../services/toast-service/toast';
 
 @Component({
   selector: 'app-manager-dashboard',
@@ -143,7 +144,7 @@ export class ManagerDashboard implements OnInit {
     private attendanceService: AttendanceService,
     private leaveService: LeaveService,
     private timesheetService: TimesheetService,
-    private toast: ToastrService
+    private toast: ToastService
   ) { }
 
   ngOnInit() {
@@ -232,7 +233,7 @@ export class ManagerDashboard implements OnInit {
       next: () => {
         this.pendingLeaves.update(l => l.filter(x => x.leaveRequestId !== leaveRequestId));
         this.actionLoading.set(null);
-        // this.toast.success('Leave approved.');
+        this.toast.success('Leave approved.');
       },
       error: err => {
         this.toast.error(err?.error?.message ?? 'Failed to approve.');
@@ -247,7 +248,7 @@ export class ManagerDashboard implements OnInit {
       next: () => {
         this.pendingLeaves.update(l => l.filter(x => x.leaveRequestId !== leaveRequestId));
         this.actionLoading.set(null);
-        // this.toast.success('Leave rejected.');
+        this.toast.success('Leave rejected.');
       },
       error: err => {
         this.toast.error(err?.error?.message ?? 'Failed to reject.');
@@ -263,7 +264,7 @@ export class ManagerDashboard implements OnInit {
       next: () => {
         this.pendingTimesheets.update(l => l.filter(x => x.timesheetId !== timesheetId));
         this.tsActionLoading.set(null);
-        // this.toast.success('Timesheet approved.');
+        this.toast.success('Timesheet approved.');
       },
       error: err => {
         this.toast.error(err?.error?.message ?? 'Failed to approve.');
@@ -293,7 +294,7 @@ export class ManagerDashboard implements OnInit {
         this.pendingTimesheets.update(l => l.filter(x => x.timesheetId !== entry.timesheetId));
         this.tsActionLoading.set(null);
         this.closeRejectModal();
-        // this.toast.success('Timesheet rejected.');
+        this.toast.success('Timesheet rejected.');
       },
       error: err => {
         this.toast.error(err?.error?.message ?? 'Failed to reject.');

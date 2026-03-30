@@ -4,9 +4,16 @@ import { UserService } from '../../services/user-service/user-service';
 import { AttendanceService } from '../../services/attendance-service';
 import { LeaveService } from '../../services/leave-service/leave-service';
 import { ToastrService } from 'ngx-toastr';
+import { ToastService } from '../../services/toast-service/toast';
 
 const APPROVED_SET = new Set(['approved', 'managerapproved']);
 const REJECTED_SET = new Set(['rejected', 'managerrejected']);
+
+const DEPARTMENTS = [
+  'Human Resources (HR)', 'IT / Engineering', 'Software Development',
+  'Quality Assurance (QA)', 'DevOps', 'UI/UX Design', 'Sales',
+  'Marketing', 'Customer Support', 'Finance & Accounts', 'Administration',
+];
 
 @Component({
   selector: 'app-hr-employees',
@@ -16,6 +23,8 @@ const REJECTED_SET = new Set(['rejected', 'managerrejected']);
 })
 export class HrEmployeesPage implements OnInit {
 
+  readonly departments = DEPARTMENTS;
+  detailLoading = signal(false);
   // ── Data ──
   allEmployees = signal<any[]>([]);
   allAttendance = signal<any[]>([]);
@@ -24,7 +33,6 @@ export class HrEmployeesPage implements OnInit {
   deletingId = signal<any>(null);
   formSaving = signal(false);
   formError = signal<string | null>(null);
-  detailLoading = signal(false);
   showPass = false;
 
   // ── Modals ──
@@ -35,24 +43,26 @@ export class HrEmployeesPage implements OnInit {
 
   // ── Filters ──
   searchQ = signal('');
-  roleFilter = signal('all');
+  roleFilter = signal('all');        // all | 2 | 3
+  deptFilter = signal('all');        // all | dept name
+  statusFilter = signal('all');        // all | active | offline
+  joinFrom = signal('');           // YYYY-MM-DD
+  joinTo = signal('');           // YYYY-MM-DD
   currentPage = signal(1);
   readonly pageSize = 10;
 
   empForm: FormGroup;
 
-  // ── Colors ──
   private colorPool = [
     '#09637e', '#088395', '#27ae60', '#2980b9',
     '#8e44ad', '#d68910', '#c0392b', '#16a085', '#2c3e50', '#1e8449',
   ];
 
-  // ── Computed stats ──
+  // ── Computed stats (from full list, not filtered) ──
   totalCount = computed(() => this.allEmployees().length);
-  empRoleCount = computed(() => this.allEmployees().filter(e => e.roleId === 2 || e.roleName?.toLowerCase() === 'employee').length);
-  mgrRoleCount = computed(() => this.allEmployees().filter(e => e.roleId === 3 || e.roleName?.toLowerCase() === 'manager').length);
-  activeCount = computed(() => this.totalCount());
-  
+  empRoleCount = computed(() => this.allEmployees().filter(e => String(e.roleId) === '2' || e.roleName?.toLowerCase() === 'employee').length);
+  mgrRoleCount = computed(() => this.allEmployees().filter(e => String(e.roleId) === '3' || e.roleName?.toLowerCase() === 'manager').length);
+  activeCount = computed(() => this.allEmployees().filter(e => e.isActive).length);
   newThisMonth = computed(() => {
     const now = new Date();
     return this.allEmployees().filter(e => {
@@ -66,15 +76,35 @@ export class HrEmployeesPage implements OnInit {
   filteredEmployees = computed(() => {
     const q = this.searchQ().toLowerCase().trim();
     const rf = this.roleFilter();
+    const dept = this.deptFilter();
+    const sf = this.statusFilter();
+    const from = this.joinFrom();
+    const to = this.joinTo();
+
     return this.allEmployees().filter(emp => {
-      const matchQ = !q ||
+      // Search
+      if (q && !(
         (emp.userName || '').toLowerCase().includes(q) ||
         (emp.email || '').toLowerCase().includes(q) ||
-        (emp.phoneNumber || '').toLowerCase().includes(q);
-      const matchR = rf === 'all'
-        || (rf === '2' && (emp.roleId === 2 || emp.roleName?.toLowerCase() === 'employee'))
-        || (rf === '3' && (emp.roleId === 3 || emp.roleName?.toLowerCase() === 'manager'));
-      return matchQ && matchR;
+        (emp.phoneNumber || '').toLowerCase().includes(q)
+      )) return false;
+
+      // Role
+      if (rf === '2' && !(String(emp.roleId) === '2' || emp.roleName?.toLowerCase() === 'employee')) return false;
+      if (rf === '3' && !(String(emp.roleId) === '3' || emp.roleName?.toLowerCase() === 'manager')) return false;
+
+      // Department
+      if (dept !== 'all' && (emp.department || '').toLowerCase() !== dept.toLowerCase()) return false;
+
+      // Status
+      if (sf === 'active' && !emp.isActive) return false;
+      if (sf === 'offline' && emp.isActive) return false;
+
+      // Join date range
+      if (from && emp.createdAt && new Date(emp.createdAt) < new Date(from + 'T00:00:00')) return false;
+      if (to && emp.createdAt && new Date(emp.createdAt) > new Date(to + 'T23:59:59')) return false;
+
+      return true;
     });
   });
 
@@ -85,52 +115,31 @@ export class HrEmployeesPage implements OnInit {
     return this.filteredEmployees().slice(s, s + this.pageSize);
   });
 
-  // ── Detail modal computed (filter from already-loaded data) ──
-  detailAttendanceRate = computed(() => {
-    const emp = this.detailModal();
-    if (!emp) return 0;
+  hasActiveFilters = computed(() =>
+    this.roleFilter() !== 'all' || this.deptFilter() !== 'all' ||
+    this.statusFilter() !== 'all' || !!this.joinFrom() || !!this.joinTo() || !!this.searchQ()
+  );
+
+  // ── Detail modal computed ──
+  private detailMonthAtt = computed(() => {
+    const emp = this.detailModal(); if (!emp) return [];
     const now = new Date();
-    const monthAtt = this.allAttendance().filter(r => {
+    return this.allAttendance().filter(r => {
       const d = new Date(r.date);
       return r.userId === emp.id &&
         d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
     });
-    const workdays = monthAtt.length;
-    if (!workdays) return 0;
-    const present = monthAtt.filter(r => r.status === 'Present').length;
-    const late = monthAtt.filter(r => r.status === 'Late').length;
-    return Math.round(((present + late) / workdays) * 100);
   });
 
-  detailPresentDays = computed(() => {
-    const emp = this.detailModal(); if (!emp) return 0;
-    const now = new Date();
-    return this.allAttendance().filter(r =>
-      r.userId === emp.id && r.status === 'Present' &&
-      new Date(r.date).getMonth() === now.getMonth() &&
-      new Date(r.date).getFullYear() === now.getFullYear()
-    ).length;
+  detailAttendanceRate = computed(() => {
+    const att = this.detailMonthAtt(); if (!att.length) return 0;
+    const present = att.filter(r => r.status === 'Present').length;
+    const late = att.filter(r => r.status === 'Late').length;
+    return Math.round(((present + late) / att.length) * 100);
   });
-
-  detailLateDays = computed(() => {
-    const emp = this.detailModal(); if (!emp) return 0;
-    const now = new Date();
-    return this.allAttendance().filter(r =>
-      r.userId === emp.id && r.status === 'Late' &&
-      new Date(r.date).getMonth() === now.getMonth() &&
-      new Date(r.date).getFullYear() === now.getFullYear()
-    ).length;
-  });
-
-  detailAbsentDays = computed(() => {
-    const emp = this.detailModal(); if (!emp) return 0;
-    const now = new Date();
-    return this.allAttendance().filter(r =>
-      r.userId === emp.id && r.status === 'Absent' &&
-      new Date(r.date).getMonth() === now.getMonth() &&
-      new Date(r.date).getFullYear() === now.getFullYear()
-    ).length;
-  });
+  detailPresentDays = computed(() => this.detailMonthAtt().filter(r => r.status === 'Present').length);
+  detailLateDays = computed(() => this.detailMonthAtt().filter(r => r.status === 'Late').length);
+  detailAbsentDays = computed(() => this.detailMonthAtt().filter(r => r.status === 'Absent').length);
 
   detailLeaves = computed(() => this.allLeaves().filter(l => l.userId === this.detailModal()?.id));
   detailPendingLeaves = computed(() => this.detailLeaves().filter(l => l.status?.toLowerCase() === 'pending').length);
@@ -144,7 +153,7 @@ export class HrEmployeesPage implements OnInit {
     private userService: UserService,
     private attendanceService: AttendanceService,
     private leaveService: LeaveService,
-    private toast: ToastrService
+    private toast: ToastService
   ) {
     this.empForm = this.fb.group({
       userName: ['', Validators.required],
@@ -159,18 +168,15 @@ export class HrEmployeesPage implements OnInit {
   }
 
   ngOnInit() {
-    this.loadUsers();
+    this.loadEmployeesManagers();
     this.loadAttendance();
     this.loadLeaves();
   }
 
-  loadUsers() {
+  loadEmployeesManagers() {
     this.isLoading.set(true);
     this.userService.getAllEmployeeManager().subscribe({
-      next: (res: any) => {
-        this.allEmployees.set(Array.isArray(res) ? res : res ? [res] : []);
-        this.isLoading.set(false);
-      },
+      next: (res: any) => { this.allEmployees.set(Array.isArray(res) ? res : res ? [res] : []); this.isLoading.set(false); },
       error: err => { console.error(err); this.isLoading.set(false); }
     });
   }
@@ -192,13 +198,43 @@ export class HrEmployeesPage implements OnInit {
     });
   }
 
-  // ── Add Modal ──
+  // ── Department filter — uses API when a dept is selected ──
+  onDeptChange(dept: string) {
+    this.deptFilter.set(dept);
+    this.currentPage.set(1);
+    if (dept !== 'all') {
+      this.isLoading.set(true);
+      this.userService.getEmployeeByDepartment(dept).subscribe({
+        next: (res: any) => { this.allEmployees.set(Array.isArray(res) ? res : res ? [res] : []); this.isLoading.set(false); },
+        error: err => { console.error(err); this.isLoading.set(false); }
+      });
+    } else {
+      this.loadEmployeesManagers(); // reload full list
+    }
+  }
+
+  clearAllFilters() {
+    this.searchQ.set('');
+    this.roleFilter.set('all');
+    this.statusFilter.set('all');
+    this.joinFrom.set('');
+    this.joinTo.set('');
+    this.currentPage.set(1);
+    if (this.deptFilter() !== 'all') { this.deptFilter.set('all'); this.loadEmployeesManagers(); }
+  }
+
+  onSearch(val: string) { this.searchQ.set(val); this.currentPage.set(1); }
+  setRoleFilter(f: string) { this.roleFilter.set(f); this.currentPage.set(1); }
+  setStatusFilter(f: string) { this.statusFilter.set(f); this.currentPage.set(1); }
+  onJoinFrom(val: string) { this.joinFrom.set(val); this.currentPage.set(1); }
+  onJoinTo(val: string) { this.joinTo.set(val); this.currentPage.set(1); }
+
+  // ── Add / Edit modals ──
   openAddModal() {
     this.editingEmployee.set(null);
     this.formError.set(null);
     this.showPass = false;
     this.empForm.reset();
-    // password required for add
     this.empForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
     this.empForm.get('password')?.updateValueAndValidity();
     this.formModal.set(true);
@@ -209,7 +245,6 @@ export class HrEmployeesPage implements OnInit {
     this.editingEmployee.set(emp);
     this.formError.set(null);
     this.showPass = false;
-    // password not required for edit
     this.empForm.get('password')?.clearValidators();
     this.empForm.get('password')?.updateValueAndValidity();
     this.empForm.patchValue({
@@ -217,7 +252,7 @@ export class HrEmployeesPage implements OnInit {
       email: emp.email,
       phoneNumber: emp.phoneNumber || '',
       department: emp.department || '',
-      roleId: emp.roleId?.toString() || '',
+      roleId: String(emp.roleId || ''),
       gender: emp.gender || '',
       address: emp.address || '',
     });
@@ -253,17 +288,12 @@ export class HrEmployeesPage implements OnInit {
       };
       this.userService.updateUser(payload).subscribe({
         next: () => {
-          this.allEmployees.update(list =>
-            list.map(e => e.id === payload.id ? { ...e, ...payload } : e)
-          );
+          this.allEmployees.update(list => list.map(e => e.id === payload.id ? { ...e, ...payload } : e));
           this.formSaving.set(false);
           this.closeFormModal();
-          // this.toast.success('Employee updated successfully.');
+          this.toast.success('Employee updated successfully.');
         },
-        error: err => {
-          this.formSaving.set(false);
-          this.formError.set(err?.error?.message || 'Update failed. Please try again.');
-        }
+        error: err => { this.formSaving.set(false); this.formError.set(err?.error?.message || 'Update failed.'); }
       });
     } else {
       // POST /api/User/AddUser
@@ -277,66 +307,38 @@ export class HrEmployeesPage implements OnInit {
         gender: v.gender || '',
         address: v.address || '',
       };
-      this.userService.signup(payload).subscribe({
-        next: () => {
-          this.formSaving.set(false);
-          this.closeFormModal();
-          this.loadUsers();
-          // this.toast.success('Employee added successfully.');
-        },
-        error: err => {
-          this.formSaving.set(false);
-          this.formError.set(err?.error?.message || 'Failed to add employee. Please try again.');
-        }
+      this.userService.addUser(payload).subscribe({
+        next: () => { this.formSaving.set(false); this.closeFormModal(); this.loadEmployeesManagers(); this.toast.success('Employee added successfully.'); },
+        error: err => { this.formSaving.set(false); this.formError.set(err?.error?.message || 'Failed to add employee.'); }
       });
     }
   }
 
-  // ── Detail Modal ──
-  openDetailModal(emp: any) {
-    this.detailModal.set(emp);
-    document.body.style.overflow = 'hidden';
-  }
+  // ── Detail modal ──
+  openDetailModal(emp: any) { this.detailModal.set(emp); document.body.style.overflow = 'hidden'; }
+  closeDetailModal() { this.detailModal.set(null); document.body.style.overflow = ''; }
 
-  closeDetailModal() {
-    this.detailModal.set(null);
-    document.body.style.overflow = '';
-  }
-
-  // ── Delete ──
-  confirmDelete(emp: any) {
-    this.deleteModal.set(emp);
-    document.body.style.overflow = 'hidden';
-  }
-
-  closeDeleteModal() {
-    this.deleteModal.set(null);
-    document.body.style.overflow = '';
-  }
+  // ── Delete modal ──
+  confirmDelete(emp: any) { this.deleteModal.set(emp); document.body.style.overflow = 'hidden'; }
+  closeDeleteModal() { this.deleteModal.set(null); document.body.style.overflow = ''; }
 
   executeDelete() {
-    const emp = this.deleteModal();
-    if (!emp) return;
+    const emp = this.deleteModal(); if (!emp) return;
     this.deletingId.set(emp.id);
-    // DELETE /api/User/DeleteUser?id=
     this.userService.deleteUser(emp.id).subscribe({
       next: () => {
         this.allEmployees.update(list => list.filter(e => e.id !== emp.id));
         this.deletingId.set(null);
         this.closeDeleteModal();
-        // this.toast.success(`${emp.userName} has been removed.`);
+        this.toast.success(`${emp.userName} has been removed.`);
       },
       error: err => {
         this.deletingId.set(null);
         this.closeDeleteModal();
-        // this.toast.error(err?.error?.message || 'Failed to delete employee.');
+        this.toast.error(err?.error?.message || 'Failed to delete employee.');
       }
     });
   }
-
-  // ── Filter helpers ──
-  onSearch(val: string) { this.searchQ.set(val); this.currentPage.set(1); }
-  setRoleFilter(f: string) { this.roleFilter.set(f); this.currentPage.set(1); }
 
   // ── Helpers ──
   getInitials(name: string): string {
@@ -348,8 +350,8 @@ export class HrEmployeesPage implements OnInit {
     return this.colorPool[(Number(id) || 0) % this.colorPool.length];
   }
 
-  formatDate(dateStr: string): string {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  formatDate(ds: string): string {
+    if (!ds) return '—';
+    return new Date(ds).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 }

@@ -5,6 +5,7 @@ import { Authservice } from '../../services/Auth-service/authservice';
 import { LeaveService } from '../../services/leave-service/leave-service'
 import { ToastrService } from 'ngx-toastr';
 import { Backbtn } from "../../components/backbtn/backbtn";
+import { ToastService } from '../../services/toast-service/toast';
 
 @Component({
   selector: 'app-newleavepage',
@@ -22,7 +23,7 @@ export class Newleavepage {
     private router: Router,
     private auth: Authservice,
     private leaveService: LeaveService,
-    private toast: ToastrService,
+    private toast: ToastService,
     
   ) { }
 
@@ -53,7 +54,7 @@ export class Newleavepage {
       this.leaveService.createNewLeave(data).subscribe({
         next: res => {
           this.message.set(res.message);
-          // this.toast.success(this.message() || "Request submitted successfully!");
+          this.toast.success(this.message() || "Request submitted successfully!");
           this.leaveForm.reset();
           this.router.navigate(['/dashboard/Leavepage'])
         },

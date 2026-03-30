@@ -1,0 +1,392 @@
+<main class="main">
+    <div class="content">
+
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+            <div class="ph-left">
+                <div class="ph-icon"><i class="fas fa-money-bill-wave"></i></div>
+                <div>
+                    <div class="ph-title">Payroll Management</div>
+                    <div class="ph-sub">{{ currentMonthLabel() }} · {{ processedCount() }} of {{ allEmployees().length
+                        }} processed</div>
+                </div>
+            </div>
+            <div class="ph-right">
+                <div class="month-nav">
+                    <button class="mn-btn" (click)="prevMonth()"><i class="fas fa-chevron-left"></i></button>
+                    <span class="mn-label">{{ currentMonthLabel() }}</span>
+                    <button class="mn-btn" (click)="nextMonth()" [disabled]="isCurrentMonth()">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="tab-switcher">
+                    <button class="tab-btn" [class.active]="activeTab() === 'payroll'"
+                        (click)="activeTab.set('payroll')">
+                        <i class="fas fa-list"></i> Payroll
+                    </button>
+                    <button class="tab-btn" [class.active]="activeTab() === 'slips'" (click)="activeTab.set('slips')">
+                        <i class="fas fa-file-invoice-dollar"></i> Salary Slips
+                    </button>
+                    <button class="tab-btn" [class.active]="activeTab() === 'settings'"
+                        (click)="activeTab.set('settings')">
+                        <i class="fas fa-cog"></i> Salary Setup
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STAT CARDS -->
+        <div class="stat-row">
+            <div class="stat-card sc-total">
+                <div class="sc-icon"><i class="fas fa-users"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ allEmployees().length }}</div>
+                    <div class="sc-lbl">Total Employees</div>
+                </div>
+            </div>
+            <div class="stat-card sc-processed">
+                <div class="sc-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ processedCount() }}</div>
+                    <div class="sc-lbl">Processed</div>
+                </div>
+            </div>
+            <div class="stat-card sc-pending">
+                <div class="sc-icon"><i class="fas fa-hourglass-half"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ allEmployees().length - processedCount() }}</div>
+                    <div class="sc-lbl">Pending</div>
+                </div>
+            </div>
+            <div class="stat-card sc-gross">
+                <div class="sc-icon"><i class="fas fa-rupee-sign"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ formatAmount(totalGross()) }}</div>
+                    <div class="sc-lbl">Total Gross</div>
+                </div>
+            </div>
+            <div class="stat-card sc-net">
+                <div class="sc-icon"><i class="fas fa-wallet"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ formatAmount(totalNet()) }}</div>
+                    <div class="sc-lbl">Total Net Pay</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ TAB: PAYROLL ══ -->
+        @if (activeTab() === 'payroll') {
+        <div class="tab-content">
+
+            <div class="toolbar">
+                <div class="tb-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search employee..." [value]="searchQ()"
+                        (input)="searchQ.set($any($event.target).value)">
+                </div>
+                <div class="tb-filters">
+                    <button class="tf-btn" [class.active]="statusFilter() === 'all'"
+                        (click)="statusFilter.set('all')">All</button>
+                    <button class="tf-btn processed" [class.active]="statusFilter() === 'processed'"
+                        (click)="statusFilter.set('processed')">Processed</button>
+                    <button class="tf-btn pending" [class.active]="statusFilter() === 'pending'"
+                        (click)="statusFilter.set('pending')">Pending</button>
+                </div>
+                <button class="btn-generate-all" (click)="generateAllPayroll()" [disabled]="generatingAll()">
+                    @if (generatingAll()) { <span class="mini-spin white-spin"></span> Generating... }
+                    @else { <i class="fas fa-bolt"></i> Generate All }
+                </button>
+                <button class="btn-export-csv" (click)="exportPayrollCSV()">
+                    <i class="fas fa-file-csv"></i> Export CSV
+                </button>
+            </div>
+
+            <div class="table-card">
+                @if (isLoading()) {
+                <div class="loading-row"><i class="fas fa-spinner fa-spin"></i> Loading employees...</div>
+                } @else {
+                <div class="tbl-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Role</th>
+                                <th>Present Days</th>
+                                <th>Absent Days</th>
+                                <th>Basic Salary</th>
+                                <th>Deductions</th>
+                                <th>Allowances</th>
+                                <th>Gross</th>
+                                <th>Net Pay</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (row of filteredPayroll(); track row.empId) {
+                            <tr [class.tr-processed]="row.status === 'processed'">
+                                <td class="td-emp">
+                                    <div class="emp-cell">
+                                        <div class="emp-av" [style.background]="getColor(row.empId)">{{
+                                            getInitials(row.userName) }}</div>
+                                        <div>
+                                            <div class="emp-name">{{ row.userName }}</div>
+                                            <div class="emp-id">EMP-{{ row.empId }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="td-role">{{ row.roleName }}</td>
+                                <td class="td-num green">{{ row.presentDays }}</td>
+                                <td class="td-num red">{{ row.absentDays }}</td>
+                                <td class="td-amt">₹{{ formatAmount(row.basicSalary) }}</td>
+                                <td class="td-amt red">₹{{ formatAmount(row.deductions) }}</td>
+                                <td class="td-amt green">₹{{ formatAmount(row.allowances) }}</td>
+                                <td class="td-amt bold">₹{{ formatAmount(row.gross) }}</td>
+                                <td class="td-amt bold teal">₹{{ formatAmount(row.netPay) }}</td>
+                                <td>
+                                    <span class="status-pill" [class.processed]="row.status === 'processed'">
+                                        <span class="sp-dot"></span>
+                                        {{ row.status === 'processed' ? 'Processed' : 'Pending' }}
+                                    </span>
+                                </td>
+                                <td class="td-act" (click)="$event.stopPropagation()">
+                                    @if (row.basicSalary === 0) {
+                                    <span class="no-salary-tip" title="Set salary first in Salary Setup">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                    </span>
+                                    } @else if (row.status !== 'processed') {
+                                    <button class="act-btn process" (click)="processPayroll(row)" title="Process">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    } @else {
+                                    <button class="act-btn view" (click)="openSlip(row)" title="View Slip">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="act-btn reset" (click)="resetPayroll(row.empId)" title="Reset">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                    }
+                                </td>
+                            </tr>
+                            } @empty {
+                            <tr>
+                                <td colspan="11" class="td-empty">
+                                    <i class="fas fa-search"></i><span>No employees found</span>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                }
+            </div>
+        </div>
+        }
+
+        <!-- ══ TAB: SALARY SLIPS ══ -->
+        @if (activeTab() === 'slips') {
+        <div class="tab-content">
+            <div class="slips-toolbar">
+                <div class="tb-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search employee..." [value]="slipSearch()"
+                        (input)="slipSearch.set($any($event.target).value)">
+                </div>
+            </div>
+
+            @if (filteredSlips().length === 0) {
+            <div class="empty-state">
+                <div class="es-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                <div class="es-title">No salary slips yet</div>
+                <div class="es-sub">Process payroll for employees to generate salary slips</div>
+            </div>
+            } @else {
+            <div class="slips-grid">
+                @for (slip of filteredSlips(); track slip.empId) {
+                <div class="slip-card" (click)="openSlip(slip)">
+                    <div class="slip-header">
+                        <div class="slip-av" [style.background]="getColor(slip.empId)">{{ getInitials(slip.userName) }}
+                        </div>
+                        <div class="slip-info">
+                            <div class="slip-name">{{ slip.userName }}</div>
+                            <div class="slip-role">{{ slip.roleName }}</div>
+                        </div>
+                        <div class="slip-month-badge">{{ currentMonthLabel() }}</div>
+                    </div>
+                    <div class="slip-amounts">
+                        <div class="sa-row">
+                            <span>Basic Salary</span><span>₹{{ formatAmount(slip.basicSalary) }}</span>
+                        </div>
+                        <div class="sa-row green">
+                            <span>Allowances</span><span>+₹{{ formatAmount(slip.allowances) }}</span>
+                        </div>
+                        <div class="sa-row red">
+                            <span>Deductions</span><span>-₹{{ formatAmount(slip.deductions) }}</span>
+                        </div>
+                        <div class="sa-divider"></div>
+                        <div class="sa-row net">
+                            <span>Net Pay</span><span>₹{{ formatAmount(slip.netPay) }}</span>
+                        </div>
+                    </div>
+                    <div class="slip-footer">
+                        <span class="slip-days">
+                            <i class="fas fa-calendar-check"></i> {{ slip.presentDays }} days present
+                        </span>
+                        <button class="slip-download" (click)="$event.stopPropagation(); downloadSlip(slip)">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+                }
+            </div>
+            }
+        </div>
+        }
+
+        <!-- ══ TAB: SALARY SETUP ══ -->
+        @if (activeTab() === 'settings') {
+        <div class="tab-content">
+            <div class="setup-info">
+                <i class="fas fa-info-circle"></i>
+                Set basic salary and allowances per employee. Deductions are auto-calculated based on absent days.
+            </div>
+
+            <div class="setup-search">
+                <div class="tb-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search employee..." [value]="setupSearch()"
+                        (input)="setupSearch.set($any($event.target).value)">
+                </div>
+            </div>
+
+            <div class="setup-list">
+                @for (emp of filteredSetupEmployees(); track emp.id) {
+                <div class="setup-row">
+                    <div class="sr-emp">
+                        <div class="emp-av" [style.background]="getColor(emp.id)">{{ getInitials(emp.userName) }}</div>
+                        <div>
+                            <div class="emp-name">{{ emp.userName }}</div>
+                            <div class="emp-id">{{ emp.roleName }} · EMP-{{ emp.id }}</div>
+                        </div>
+                    </div>
+                    <div class="sr-fields">
+                        <div class="sf">
+                            <label>Basic Salary (₹/month)</label>
+                            <input type="number" min="0" placeholder="e.g. 50000"
+                                [value]="getSalaryConfig(emp.id).basicSalary"
+                                (change)="updateSalaryField(emp.id, 'basicSalary', +$any($event.target).value)">
+                        </div>
+                        <div class="sf">
+                            <label>HRA (₹)</label>
+                            <input type="number" min="0" placeholder="e.g. 10000" [value]="getSalaryConfig(emp.id).hra"
+                                (change)="updateSalaryField(emp.id, 'hra', +$any($event.target).value)">
+                        </div>
+                        <div class="sf">
+                            <label>Transport (₹)</label>
+                            <input type="number" min="0" placeholder="e.g. 2000"
+                                [value]="getSalaryConfig(emp.id).transport"
+                                (change)="updateSalaryField(emp.id, 'transport', +$any($event.target).value)">
+                        </div>
+                        <div class="sf">
+                            <label>Other Allowance (₹)</label>
+                            <input type="number" min="0" placeholder="e.g. 5000"
+                                [value]="getSalaryConfig(emp.id).otherAllowance"
+                                (change)="updateSalaryField(emp.id, 'otherAllowance', +$any($event.target).value)">
+                        </div>
+                    </div>
+                    <div class="sr-preview">
+                        <div class="srp-item">
+                            <span>Total Allowances</span>
+                            <strong class="green">₹{{ formatAmount(getSalaryConfig(emp.id).hra +
+                                getSalaryConfig(emp.id).transport + getSalaryConfig(emp.id).otherAllowance) }}</strong>
+                        </div>
+                        <div class="srp-item">
+                            <span>Gross (if full month)</span>
+                            <strong>₹{{ formatAmount(getSalaryConfig(emp.id).basicSalary + getSalaryConfig(emp.id).hra +
+                                getSalaryConfig(emp.id).transport + getSalaryConfig(emp.id).otherAllowance) }}</strong>
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+        }
+
+    </div>
+</main>
+
+<!-- ══ SALARY SLIP MODAL ══ -->
+@if (slipModal()) {
+<div class="modal-overlay" (click)="slipModal.set(null)">
+    <div class="slip-modal" (click)="$event.stopPropagation()" id="salary-slip-print">
+
+        <div class="sm-header">
+            <div class="sm-company">
+                <div class="sm-company-icon"><i class="fas fa-building"></i></div>
+                <div>
+                    <div class="sm-company-name">HRMS Company</div>
+                    <div class="sm-company-sub">Human Resource Management System</div>
+                </div>
+            </div>
+            <div class="sm-title">SALARY SLIP</div>
+            <button class="sm-close" (click)="slipModal.set(null)"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="sm-body">
+            <div class="sm-emp-info">
+                <div class="sm-info-grid">
+                    <div class="smi"><span>Employee Name</span><strong>{{ slipModal()!.userName }}</strong></div>
+                    <div class="smi"><span>Employee ID</span><strong>EMP-{{ slipModal()!.empId }}</strong></div>
+                    <div class="smi"><span>Designation</span><strong>{{ slipModal()!.roleName }}</strong></div>
+                    <div class="smi"><span>Pay Period</span><strong>{{ currentMonthLabel() }}</strong></div>
+                    <div class="smi"><span>Working Days</span><strong>{{ workingDaysInMonth() }}</strong></div>
+                    <div class="smi"><span>Days Present</span><strong>{{ slipModal()!.presentDays }}</strong></div>
+                    <div class="smi"><span>Days Absent</span><strong>{{ slipModal()!.absentDays }}</strong></div>
+                    <div class="smi"><span>Generated On</span><strong>{{ todayStr }}</strong></div>
+                </div>
+            </div>
+
+            <div class="sm-salary-table">
+                <div class="sst-col earnings">
+                    <div class="sst-head">Earnings</div>
+                    <div class="sst-row"><span>Basic Salary</span><span>₹{{ formatAmount(slipModal()!.basicSalary)
+                            }}</span></div>
+                    <div class="sst-row"><span>HRA</span><span>₹{{ formatAmount(slipModal()!.hra) }}</span></div>
+                    <div class="sst-row"><span>Transport Allowance</span><span>₹{{ formatAmount(slipModal()!.transport)
+                            }}</span></div>
+                    <div class="sst-row"><span>Other Allowance</span><span>₹{{ formatAmount(slipModal()!.otherAllowance)
+                            }}</span></div>
+                    <div class="sst-total"><span>Total Earnings</span><span>₹{{ formatAmount(slipModal()!.gross)
+                            }}</span></div>
+                </div>
+                <div class="sst-col deductions">
+                    <div class="sst-head">Deductions</div>
+                    <div class="sst-row"><span>Absent Day Deduction</span><span>₹{{
+                            formatAmount(slipModal()!.absentDeduction) }}</span></div>
+                    <div class="sst-row"><span>PF (12%)</span><span>₹{{ formatAmount(slipModal()!.pf) }}</span></div>
+                    <div class="sst-row"><span>Professional Tax</span><span>₹{{
+                            formatAmount(slipModal()!.professionalTax) }}</span></div>
+                    <div class="sst-row muted"><span>TDS</span><span>₹0</span></div>
+                    <div class="sst-total red"><span>Total Deductions</span><span>₹{{
+                            formatAmount(slipModal()!.deductions) }}</span></div>
+                </div>
+            </div>
+
+            <div class="sm-net-pay">
+                <span>Net Pay</span>
+                <span class="sm-net-val">₹{{ formatAmount(slipModal()!.netPay) }}</span>
+            </div>
+        </div>
+
+        <div class="sm-footer">
+            <button class="sm-print-btn" (click)="printSlip()">
+                <i class="fas fa-print"></i> Print Slip
+            </button>
+            <button class="sm-download-btn" (click)="downloadSlip(slipModal()!)">
+                <i class="fas fa-download"></i> Download CSV
+            </button>
+            <button class="sm-close-btn" (click)="slipModal.set(null)">Close</button>
+        </div>
+    </div>
+</div>
+}

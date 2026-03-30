@@ -4,6 +4,7 @@ import { Authservice } from '../../services/Auth-service/authservice';
 import { UserService } from '../../services/user-service/user-service';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
+import { ToastService } from '../../services/toast-service/toast';
 
 @Component({
   selector: 'app-profile',
@@ -34,7 +35,7 @@ export class MyProfile {
     private fb: FormBuilder,
     private auth: Authservice,
     private userService: UserService,
-    private toast: ToastrService,
+    private toast: ToastService,
     private router: Router
   ) { }
 
@@ -47,6 +48,11 @@ export class MyProfile {
       gender: ['', Validators.required],
       address: [''],
     });
+    
+    //disable to edit 
+    this.profileForm.get('gender')?.disable();
+    this.profileForm.get('department')?.disable();
+    
 
     this.pwdForm = this.fb.group({
       currentPassword: ['', Validators.required],
@@ -99,7 +105,7 @@ export class MyProfile {
     };
     this.userService.updateUser(payload).subscribe({
       next: () => {
-        // this.toast.success('Profile updated successfully!');
+        this.toast.success('Profile updated successfully!');
         this.editMode = false;
         this.isSaving = false;
         this.loadProfile();

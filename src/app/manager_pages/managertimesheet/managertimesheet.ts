@@ -5,6 +5,7 @@ import { UserService } from '../../services/user-service/user-service';
 import { TimesheetService } from '../../services/timesheet-service/timesheet-service';
 import { ToastrService } from 'ngx-toastr';
 import { Authservice } from '../../services/Auth-service/authservice';
+import { ToastService } from '../../services/toast-service/toast';
 
 @Component({
   selector: 'app-manager-timesheet',
@@ -137,7 +138,7 @@ export class ManagerTimesheetpage implements OnInit {
     private userService: UserService,
     private timesheetService: TimesheetService,
     private auth:Authservice,
-    private toast: ToastrService
+    private toast: ToastService
   ) {
     // set Monday as week start
     const now = new Date();
@@ -183,7 +184,7 @@ export class ManagerTimesheetpage implements OnInit {
           list.map(e => e.timesheetId === timesheetId ? { ...e, status: 'Approved' } : e)
         );
         this.tsActionLoading.set(null);
-        // this.toast.success('Timesheet approved.');
+        this.toast.success('Timesheet approved.');
       },
       error: err => {
         this.toast.error(err?.error?.message ?? 'Failed to approve.');
@@ -217,7 +218,7 @@ export class ManagerTimesheetpage implements OnInit {
         );
         this.tsActionLoading.set(null);
         this.closeRejectModal();
-        // this.toast.success('Timesheet rejected.');
+        this.toast.success('Timesheet rejected.');
       },
       error: err => {
         this.toast.error(err?.error?.message ?? 'Failed to reject.');

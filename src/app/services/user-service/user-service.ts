@@ -22,6 +22,7 @@ export class UserService {
   getAllEmployeeApi = `${this.apiurl}/User/getAllEmployee`;
   getAllEmployeeManagerApi = `${this.apiurl}/User/getAllEmployeeManager`;
   getAllManagerApi = `${this.apiurl}/User/getAllManagers`;
+  AssignManagerApi = `${this.apiurl}/User/assign-manager`;
 
 
   login(data: any) {
@@ -33,6 +34,10 @@ export class UserService {
   }
 
   signup(data: any) {
+    return this.http.post(this.addUserApi, data);
+  }
+
+  addUser(data: any) {
     return this.http.post(this.addUserApi, data);
   }
 
@@ -72,4 +77,16 @@ export class UserService {
     return this.http.get<any[]>(`${this.getManagerTeamApi}?managerId=${userId}`, {});
   }
   // /User/getManagerTeam ? managerId = 20
+
+  getEmployeeByDepartment(data: any) {
+    return this.http.get<any[]>(`${this.apiurl}/User/getEmployeeByDepartment`, {
+      params: data
+    });
+  }
+
+  assignManager(employeeId: any, managerId:any) {
+    return this.http.post(`${this.AssignManagerApi}?userId=${employeeId}&managerId=${managerId}`, {});
+  }
+
+  // ?userId = 12 & managerId=20
 }

@@ -126,7 +126,7 @@
 
                         <div class="ef">
                             <label>Email Address <span>*</span></label>
-                            <input type="email" formControlName="email" placeholder="Enter email"
+                            <input type="email" formControlName="email" readonly placeholder="Enter email"
                                 [class.ef-error]="profileForm.get('email')?.invalid && profileForm.get('email')?.touched" />
                             @if (profileForm.get('email')?.invalid && profileForm.get('email')?.touched) {
                             <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Valid email required</span>
@@ -135,15 +135,15 @@
 
                         <div class="ef">
                             <label>Phone Number <span>*</span></label>
-                            <input type="text" formControlName="phoneNumber" placeholder="Enter phone"
+                            <input type="text" formControlName="phoneNumber" readonly placeholder="Enter phone"
                                 [class.ef-error]="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched" />
                             @if (profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched) {
                             <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
                             }
                         </div>
-                        <!-- <div class="ef">
+                        <div class="ef">
                             <label>Department <span>*</span></label>                    
-                            <select formControlName="department"
+                            <select formControlName="department" readonly
                                 [class.ef-error]="profileForm.get('department')?.invalid && profileForm.get('department')?.touched">
                                 <option value="">Select Department</option>
                                 <option value="HR">Human Resources (HR)</option>
@@ -164,14 +164,14 @@
                                 <i class="fas fa-exclamation-circle"></i> Required
                             </span>
                             }
-                        </div> -->
+                        </div>
 
                         <div class="ef">
                             <label>Gender <span>*</span></label>
                             <div class="ef-select-wrap">
-                                <select formControlName="gender"
+                                <select formControlName="gender" 
                                     [class.ef-error]="profileForm.get('gender')?.invalid && profileForm.get('gender')?.touched">
-                                    <option value="">Select Gender</option>
+                                    <option value="" >Select Gender</option>
                                     <option>Male</option>
                                     <option>Female</option>
                                     <option>Other</option>

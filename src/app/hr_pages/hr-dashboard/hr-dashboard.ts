@@ -4,7 +4,7 @@ import { UserService } from '../../services/user-service/user-service';
 import { AttendanceService } from '../../services/attendance-service';
 import { LeaveService } from '../../services/leave-service/leave-service';
 import { Authservice } from '../../services/Auth-service/authservice';
-import { ToastrService } from 'ngx-toastr';
+import { ToastService } from '../../services/toast-service/toast';
 
 @Component({
   selector: 'app-hr-dashboard',
@@ -139,7 +139,7 @@ export class HrDashboard implements OnInit {
     private userService: UserService,
     private attendanceService: AttendanceService,
     private leaveService: LeaveService,
-    private toast: ToastrService
+    private toast: ToastService
   ) { }
 
   ngOnInit() {
@@ -207,7 +207,7 @@ export class HrDashboard implements OnInit {
       next: () => {
         this.pendingLeaves.update(l => l.filter(x => x.leaveRequestId !== leaveRequestId));
         this.allLeaves.update(l => l.map(x =>
-          x.leaveRequestId === leaveRequestId ? { ...x, status: 'HrApproved' } : x
+          x.leaveRequestId === leaveRequestId ? { ...x, status: 'Approved' } : x
         ));
         this.actionLoading.set(null);
         this.toast.success('Leave approved successfully.');
@@ -225,7 +225,7 @@ export class HrDashboard implements OnInit {
       next: () => {
         this.pendingLeaves.update(l => l.filter(x => x.leaveRequestId !== leaveRequestId));
         this.allLeaves.update(l => l.map(x =>
-          x.leaveRequestId === leaveRequestId ? { ...x, status: 'HrRejected' } : x
+          x.leaveRequestId === leaveRequestId ? { ...x, status: 'Rejected' } : x
         ));
         this.actionLoading.set(null);
         this.toast.success('Leave rejected.');

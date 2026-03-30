@@ -40,7 +40,7 @@ export class Timesheetpage implements OnInit {
   readonly pageSize = 5;
 
   // ── Week ──
-  weekStart = new Date();
+  weekStart = signal(new Date());
   todayStr  = this.localDate(new Date());
   entryForm: FormGroup;
 
@@ -52,9 +52,11 @@ export class Timesheetpage implements OnInit {
     // Set Monday as week start
     const now  = new Date();
     const diff = now.getDay() === 0 ? -6 : 1 - now.getDay();
-    this.weekStart = new Date(now);
-    this.weekStart.setDate(now.getDate() + diff);
-    this.weekStart.setHours(0, 0, 0, 0);
+    const start = new Date(now);
+    start.setDate(now.getDate() + diff);
+    start.setHours(0, 0, 0, 0);
+
+    this.weekStart.set(start);
 
     this.entryForm = this.fb.group({
       workDate:        [this.todayStr, Validators.required],
@@ -69,6 +71,8 @@ export class Timesheetpage implements OnInit {
   ngOnInit() {
     const id = this.auth.getUserId();
     if (id) { this.userId.set(id); this.loadEntries(); }
+    // this.filteredEntries();
+    this.weekDays;
   }
 
   loadEntries() {
@@ -84,20 +88,20 @@ export class Timesheetpage implements OnInit {
 
   // ── Week helpers ──
   get weekEnd(): Date {
-    const d = new Date(this.weekStart);
+    const d = new Date(this.weekStart());
     d.setDate(d.getDate() + 6);
     return d;
   }
 
   get weekRange(): string {
     const o: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
-    return `${this.weekStart.toLocaleDateString('en-IN', o)} – ${this.weekEnd.toLocaleDateString('en-IN', o)}`;
+    return `${this.weekStart().toLocaleDateString('en-IN', o)} – ${this.weekEnd.toLocaleDateString('en-IN', o)}`;
   }
 
   get weekDays() {
     const today = this.localDate(new Date());
     return Array.from({ length: 7 }, (_, i) => {
-      const d   = new Date(this.weekStart);
+      const d   = new Date(this.weekStart());
       d.setDate(d.getDate() + i);
       const ds  = this.localDate(d);
       const dow = d.getDay();
@@ -115,25 +119,25 @@ export class Timesheetpage implements OnInit {
   }
 
   prevWeek() {
-    const w = new Date(this.weekStart);
+    const w = new Date(this.weekStart());
     w.setDate(w.getDate() - 7);
-    this.weekStart = w;
+    this.weekStart.set(w);
     this.selectedDate.set(null);
     this.currentPage.set(1);
   }
 
   nextWeek() {
     if (this.isCurrentWeek()) return;
-    const w = new Date(this.weekStart);
+    const w = new Date(this.weekStart());
     w.setDate(w.getDate() + 7);
-    this.weekStart = w;
+    this.weekStart.set(w);
     this.selectedDate.set(null);
     this.currentPage.set(1);
   }
 
   isCurrentWeek(): boolean {
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    return this.weekStart <= today && today <= this.weekEnd;
+    return this.weekStart() <= today && today <= this.weekEnd;
   }
 
   selectDate(ds: string) {
@@ -153,7 +157,7 @@ export class Timesheetpage implements OnInit {
   });
 
   weekHours = computed(() => {
-    const ws = this.localDate(this.weekStart);
+    const ws = this.localDate(this.weekStart());
     const we = this.localDate(this.weekEnd);
     return Math.round(
       this.entries()
@@ -168,7 +172,7 @@ export class Timesheetpage implements OnInit {
 
   // ── Filtered + paginated ──
   filteredEntries = computed(() => {
-    const ws = this.localDate(this.weekStart);
+    const ws = this.localDate(this.weekStart());
     const we = this.localDate(this.weekEnd);
     let list = this.entries().filter(e => {
       const d = this.dateStr(e.workDate);

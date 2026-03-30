@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../environments/environment';
 import { Observable } from 'rxjs';
@@ -16,13 +16,14 @@ export class AttendanceService {
   getTeamAllAttendanceApi = `${this.apiurl}/Attendance/GetTeamAllAttendance`; //for manager
   getByUserId = `${this.apiurl}/Attendance/getByUserId`;
   getByAttendanceId = `${this.apiurl}/Attendance/getByAttendanceId`;
+  generateReportApi = `${this.apiurl}/Attendance/GetAttendanceReport`;
 
   checkIn(Id: number) {
     return this.http.post<any>(`${this.checkInApi}?Id=${Id}`, {});
   }
 
   checkOut(AId: number) {
-    return this.http.put<any>(`${this.checkOutApi}?AId=${AId}`, {AId})
+    return this.http.put<any>(`${this.checkOutApi}?AId=${AId}`, { AId })
   }
 
   getByUID(Id: number) {
@@ -37,7 +38,7 @@ export class AttendanceService {
 
   getByAID(Id: number) {
     return this.http.get<any[]>(this.getByAttendanceId, {
-      params:{Id:Id.toString()}
+      params: { Id: Id.toString() }
     })
   }
 
@@ -47,6 +48,31 @@ export class AttendanceService {
 
   getTeamAllattendance(managerId: number) {
     return this.http.get<any[]>(`${this.getTeamAllAttendanceApi}?managerId=${managerId}`, {});
+  }
+
+  // generateReport(data: any) {
+  //   return this.http.get(`${this.getTeamAllAttendanceApi}`, {
+  //     params: data,
+  //     responseType: 'blob'
+  //   });
+  // }
+  exportAttendanceReport(fromDate: string, toDate: string, userId?: number, department?: string) {
+
+    let params: any = {
+      FromDate: fromDate,
+      ToDate: toDate
+    };
+
+    if (userId) params.UserId = userId;
+    if (department) params.Department = department;
+
+    return this.http.get(
+      `https://localhost:44346/api/Attendance/ExportAttendanceReport`,
+      {
+        params: params,
+        responseType: 'blob'
+      }
+    );
   }
 
 

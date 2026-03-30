@@ -8,6 +8,7 @@ import { AttendanceService } from '../../services/attendance-service';
 import { TimesheetService } from '../../services/timesheet-service/timesheet-service';
 import { ToastrService } from 'ngx-toastr';
 import { RouterLink } from '@angular/router';
+import { ToastService } from '../../services/toast-service/toast';
 
 @Component({
   selector: 'app-dashboardpage',
@@ -23,6 +24,7 @@ export class Dashboardpage implements OnInit, OnDestroy {
   isLoading = false;
   userId = signal<any>(null);
   userInfo = signal<any>(null);
+  buttonAnimating = signal(false);
 
   // ── Attendance check-in ──
   checkedIn = signal(false);
@@ -121,7 +123,7 @@ export class Dashboardpage implements OnInit, OnDestroy {
     private userService: UserService,
     private attendanceService: AttendanceService,
     private timesheetService: TimesheetService,
-    private toast: ToastrService
+    private toast: ToastService
   ) { }
 
   ngOnInit() {
@@ -219,10 +221,11 @@ export class Dashboardpage implements OnInit, OnDestroy {
     });
   }
 
-  checkIn() {
+  async checkIn() {
     if (this.attendanceLoading()) return;
     this.attendanceLoading.set(true);
-    this.attendanceService.checkIn(this.userId()).subscribe({
+    this.buttonAnimating.set(true); 
+    await this.attendanceService.checkIn(this.userId()).subscribe({
       next: (res: any) => {
         const aid = res?.attendanceId ?? res?.AttendanceId ?? res?.aId;
         if (aid) this.attendanceId.set(aid);
@@ -233,6 +236,9 @@ export class Dashboardpage implements OnInit, OnDestroy {
         this.attendanceLoading.set(false);
         this.startTimer();
         this.scheduleAutoCheckout();
+        setTimeout(() => {
+          this.buttonAnimating.set(false);
+        }, 600);
       },
       error: err => {
         this.toast.error(err?.error?.message ?? 'Check-in failed.');
@@ -241,10 +247,11 @@ export class Dashboardpage implements OnInit, OnDestroy {
     });
   }
 
-  checkOut() {
+ async checkOut() {
     if (this.attendanceLoading()) return;
-    this.attendanceLoading.set(true);
-    this.attendanceService.checkOut(this.attendanceId()).subscribe({
+   this.attendanceLoading.set(true);
+   this.buttonAnimating.set(true);
+    await this.attendanceService.checkOut(this.attendanceId()).subscribe({
       next: () => {
         const now = new Date();
         this.checkOutTime.set(this.formatTime(now.toISOString()));
@@ -253,6 +260,9 @@ export class Dashboardpage implements OnInit, OnDestroy {
         if (this.checkInDate) this.workHours.set(this.calcWorkHours(this.checkInDate, now));
         this.stopTimer();
         if (this.autoCheckoutTimeout) { clearTimeout(this.autoCheckoutTimeout); this.autoCheckoutTimeout = null; }
+        setTimeout(() => {
+          this.buttonAnimating.set(false);
+        }, 600);
       },
       error: err => {
         this.toast.error(err?.error?.message ?? 'Check-out failed.');
@@ -281,7 +291,7 @@ export class Dashboardpage implements OnInit, OnDestroy {
         this.stopTimer();
         // this.toast.info('Auto checked out at 9:00 PM.', 'Auto Checkout', { timeOut: 8000, progressBar: true });
       },
-      error: () => this.toast.warning('Auto check-out failed.', 'Auto Checkout Failed', { timeOut: 10000, progressBar: true })
+      error: () => this.toast.warning('Auto check-out failed.', 'Auto Checkout Failed')
     });
   }
 

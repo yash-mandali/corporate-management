@@ -21,6 +21,8 @@ import { Notfound } from './pages/notfound/notfound';
 import { HrDashboard } from './hr_pages/hr-dashboard/hr-dashboard';
 import { HrEmployeesPage } from './hr_pages/hr-employees/hr-employees';
 import { HrLeavePage } from './hr_pages/hr-leave/hr-leave';
+import { HrAttendancePage } from './hr_pages/hr-attendance/hr-attendance';
+import { HrPayroll } from './hr_pages/hr-payroll/hr-payroll';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -63,7 +65,7 @@ export const routes: Routes = [
                 path: 'myprofile',
                 component:MyProfile,
                 canActivate: [authGuard, roleGuard],
-                data: { roles: ['Employee','Manager'] }
+                data: { roles: ['Employee','Manager','HR','Admin'] }
             },
             {
                 path: 'Attendance',
@@ -128,6 +130,18 @@ export const routes: Routes = [
             {
                 path: 'hrleave',
                 component: HrLeavePage,
+                canActivate: [authGuard, roleGuard],
+                data: { roles: ['HR'] }
+            },
+            {
+                path: 'hrattendance',
+                component: HrAttendancePage,
+                canActivate: [authGuard, roleGuard],
+                data: { roles: ['HR'] }
+            },
+            {
+                path: 'hrpayroll',
+                component: HrPayroll,
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['HR'] }
             },

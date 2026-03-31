@@ -113,7 +113,6 @@
                 }
             </div>
         </div>
-
         <!-- TABLE -->
         @if (isLoading()) {
         <div class="table-card">
@@ -280,9 +279,19 @@
                 <div class="ff">
                     <label>Role <span class="req">*</span></label>
                     <select formControlName="roleId">
-                        <option value="">Select role</option>
+                        <option value="" selected>Select role</option>
                         <option value="2">Employee</option>
                         <option value="3">Manager</option>
+                    </select>
+                </div>
+
+                <div class="ff">
+                    <label>Department <span class="req">*</span></label>
+                    <select formControlName="department">
+                        <option value="">All Department</option>
+                        @for (d of departments; track d) {
+                        <option [value]="d">{{ d }}</option>
+                        }
                     </select>
                 </div>
 

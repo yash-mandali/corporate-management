@@ -7,8 +7,8 @@
                 <div class="ph-icon"><i class="fas fa-money-bill-wave"></i></div>
                 <div>
                     <div class="ph-title">Payroll Management</div>
-                    <div class="ph-sub">{{ currentMonthLabel() }} · {{ processedCount() }} of {{ allEmployees().length
-                        }} processed</div>
+                    <div class="ph-sub">{{ currentMonthLabel() }} · {{ generatedCount() }} of {{ allEmployees().length
+                        }} generated</div>
                 </div>
             </div>
             <div class="ph-right">
@@ -22,7 +22,7 @@
                 <div class="tab-switcher">
                     <button class="tab-btn" [class.active]="activeTab() === 'payroll'"
                         (click)="activeTab.set('payroll')">
-                        <i class="fas fa-list"></i> Payroll
+                        <i class="fas fa-list-alt"></i> Payroll
                     </button>
                     <button class="tab-btn" [class.active]="activeTab() === 'slips'" (click)="activeTab.set('slips')">
                         <i class="fas fa-file-invoice-dollar"></i> Salary Slips
@@ -44,31 +44,31 @@
                     <div class="sc-lbl">Total Employees</div>
                 </div>
             </div>
-            <div class="stat-card sc-processed">
-                <div class="sc-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-card sc-setup">
+                <div class="sc-icon"><i class="fas fa-file-contract"></i></div>
                 <div class="sc-body">
-                    <div class="sc-val">{{ processedCount() }}</div>
-                    <div class="sc-lbl">Processed</div>
+                    <div class="sc-val">{{ withSalaryCount() }}</div>
+                    <div class="sc-lbl">Salary Configured</div>
                 </div>
             </div>
-            <div class="stat-card sc-pending">
-                <div class="sc-icon"><i class="fas fa-hourglass-half"></i></div>
+            <div class="stat-card sc-generated">
+                <div class="sc-icon"><i class="fas fa-check-circle"></i></div>
                 <div class="sc-body">
-                    <div class="sc-val">{{ allEmployees().length - processedCount() }}</div>
-                    <div class="sc-lbl">Pending</div>
+                    <div class="sc-val">{{ generatedCount() }}</div>
+                    <div class="sc-lbl">Generated</div>
                 </div>
             </div>
             <div class="stat-card sc-gross">
                 <div class="sc-icon"><i class="fas fa-rupee-sign"></i></div>
                 <div class="sc-body">
-                    <div class="sc-val">{{ formatAmount(totalGross()) }}</div>
+                    <div class="sc-val">₹{{ formatAmt(totalGross()) }}</div>
                     <div class="sc-lbl">Total Gross</div>
                 </div>
             </div>
             <div class="stat-card sc-net">
                 <div class="sc-icon"><i class="fas fa-wallet"></i></div>
                 <div class="sc-body">
-                    <div class="sc-val">{{ formatAmount(totalNet()) }}</div>
+                    <div class="sc-val">₹{{ formatAmt(totalNet()) }}</div>
                     <div class="sc-lbl">Total Net Pay</div>
                 </div>
             </div>
@@ -77,7 +77,6 @@
         <!-- ══ TAB: PAYROLL ══ -->
         @if (activeTab() === 'payroll') {
         <div class="tab-content">
-
             <div class="toolbar">
                 <div class="tb-search">
                     <i class="fas fa-search"></i>
@@ -85,25 +84,27 @@
                         (input)="searchQ.set($any($event.target).value)">
                 </div>
                 <div class="tb-filters">
-                    <button class="tf-btn" [class.active]="statusFilter() === 'all'"
+                    <button class="tf-btn" [class.active]="statusFilter()==='all'"
                         (click)="statusFilter.set('all')">All</button>
-                    <button class="tf-btn processed" [class.active]="statusFilter() === 'processed'"
-                        (click)="statusFilter.set('processed')">Processed</button>
-                    <button class="tf-btn pending" [class.active]="statusFilter() === 'pending'"
-                        (click)="statusFilter.set('pending')">Pending</button>
+                    <button class="tf-btn gen-f" [class.active]="statusFilter()==='generated'"
+                        (click)="statusFilter.set('generated')">Generated</button>
+                    <button class="tf-btn ready-f" [class.active]="statusFilter()==='ready'"
+                        (click)="statusFilter.set('ready')">Ready</button>
+                    <button class="tf-btn no-f" [class.active]="statusFilter()==='no salary'"
+                        (click)="statusFilter.set('no salary')">No Salary</button>
                 </div>
-                <button class="btn-generate-all" (click)="generateAllPayroll()" [disabled]="generatingAll()">
+                <button class="btn-generate-all" (click)="generateAll()" [disabled]="generatingAll()">
                     @if (generatingAll()) { <span class="mini-spin white-spin"></span> Generating... }
                     @else { <i class="fas fa-bolt"></i> Generate All }
                 </button>
-                <button class="btn-export-csv" (click)="exportPayrollCSV()">
+                <button class="btn-export" (click)="exportPayrollCSV()">
                     <i class="fas fa-file-csv"></i> Export CSV
                 </button>
             </div>
 
             <div class="table-card">
-                @if (isLoading()) {
-                <div class="loading-row"><i class="fas fa-spinner fa-spin"></i> Loading employees...</div>
+                @if (isLoading() || payrollLoading()) {
+                <div class="tbl-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
                 } @else {
                 <div class="tbl-scroll">
                     <table>
@@ -111,67 +112,70 @@
                             <tr>
                                 <th>Employee</th>
                                 <th>Role</th>
-                                <th>Present Days</th>
-                                <th>Absent Days</th>
                                 <th>Basic Salary</th>
-                                <th>Deductions</th>
+                                <th>HRA (40%)</th>
+                                <th>Other Allow.</th>
                                 <th>Allowances</th>
+                                <th>PF (12%)</th>
+                                <th>Tax Ded.</th>
                                 <th>Gross</th>
-                                <th>Net Pay</th>
+                                <th>Net Salary</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @for (row of filteredPayroll(); track row.empId) {
-                            <tr [class.tr-processed]="row.status === 'processed'">
+                            @for (r of filteredRows(); track r.empId) {
+                            <tr [class.tr-generated]="r.hasPayroll">
                                 <td class="td-emp">
                                     <div class="emp-cell">
-                                        <div class="emp-av" [style.background]="getColor(row.empId)">{{
-                                            getInitials(row.userName) }}</div>
+                                        <div class="emp-av" [style.background]="getColor(r.empId)">{{
+                                            getInitials(r.userName) }}</div>
                                         <div>
-                                            <div class="emp-name">{{ row.userName }}</div>
-                                            <div class="emp-id">EMP-{{ row.empId }}</div>
+                                            <div class="emp-name">{{ r.userName }}</div>
+                                            <div class="emp-id">EMP-{{ r.empId }}</div>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="td-role">{{ row.roleName }}</td>
-                                <td class="td-num green">{{ row.presentDays }}</td>
-                                <td class="td-num red">{{ row.absentDays }}</td>
-                                <td class="td-amt">₹{{ formatAmount(row.basicSalary) }}</td>
-                                <td class="td-amt red">₹{{ formatAmount(row.deductions) }}</td>
-                                <td class="td-amt green">₹{{ formatAmount(row.allowances) }}</td>
-                                <td class="td-amt bold">₹{{ formatAmount(row.gross) }}</td>
-                                <td class="td-amt bold teal">₹{{ formatAmount(row.netPay) }}</td>
+                                <td class="td-muted">{{ r.roleName }}</td>
+                                <td class="td-amt">₹{{ formatAmt(r.basicSalary) }}</td>
+                                <td class="td-amt">₹{{ formatAmt(r.hra) }}</td>
+                                <td class="td-amt">₹{{ formatAmt(r.otherAllowance) }}</td>
+                                <td class="td-amt green">₹{{ formatAmt(r.allowances) }}</td>
+                                <td class="td-amt red">₹{{ formatAmt(r.pf) }}</td>
+                                <td class="td-amt red">₹{{ formatAmt(r.taxDeduction) }}</td>
+                                <td class="td-amt bold">₹{{ formatAmt(r.gross) }}</td>
+                                <td class="td-amt bold teal">₹{{ formatAmt(r.netSalary) }}</td>
                                 <td>
-                                    <span class="status-pill" [class.processed]="row.status === 'processed'">
-                                        <span class="sp-dot"></span>
-                                        {{ row.status === 'processed' ? 'Processed' : 'Pending' }}
+                                    <span class="s-pill" [class]="'sp-' + r.status.toLowerCase().replace(' ','-')">
+                                        <span class="spd"></span>{{ r.status }}
                                     </span>
                                 </td>
                                 <td class="td-act" (click)="$event.stopPropagation()">
-                                    @if (row.basicSalary === 0) {
-                                    <span class="no-salary-tip" title="Set salary first in Salary Setup">
+                                    @if (actionLoading() === r.empId) {
+                                    <span class="mini-spin teal-spin"></span>
+                                    } @else if (!r.hasSalaryStruct) {
+                                    <span class="warn-tip" title="Go to Salary Setup first">
                                         <i class="fas fa-exclamation-circle"></i>
                                     </span>
-                                    } @else if (row.status !== 'processed') {
-                                    <button class="act-btn process" (click)="processPayroll(row)" title="Process">
-                                        <i class="fas fa-check"></i>
+                                    } @else if (!r.hasPayroll) {
+                                    <button class="act-btn generate" (click)="openTaxModal(r)" title="Generate Payroll">
+                                        <i class="fas fa-bolt"></i> Generate
                                     </button>
                                     } @else {
-                                    <button class="act-btn view" (click)="openSlip(row)" title="View Slip">
+                                    <button class="act-btn view" (click)="openSlip(r)" title="View Salary Slip">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <button class="act-btn reset" (click)="resetPayroll(row.empId)" title="Reset">
-                                        <i class="fas fa-undo"></i>
+                                    <button class="act-btn del" (click)="deletePayroll(r)" title="Delete Payroll">
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                     }
                                 </td>
                             </tr>
                             } @empty {
                             <tr>
-                                <td colspan="11" class="td-empty">
-                                    <i class="fas fa-search"></i><span>No employees found</span>
+                                <td colspan="12" class="td-empty">
+                                    <i class="fas fa-search"></i><span>No records found</span>
                                 </td>
                             </tr>
                             }
@@ -186,53 +190,42 @@
         <!-- ══ TAB: SALARY SLIPS ══ -->
         @if (activeTab() === 'slips') {
         <div class="tab-content">
-            <div class="slips-toolbar">
-                <div class="tb-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search employee..." [value]="slipSearch()"
-                        (input)="slipSearch.set($any($event.target).value)">
-                </div>
+            <div class="tb-search slip-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search employee..." [value]="slipSearch()"
+                    (input)="slipSearch.set($any($event.target).value)">
             </div>
 
             @if (filteredSlips().length === 0) {
             <div class="empty-state">
                 <div class="es-icon"><i class="fas fa-file-invoice-dollar"></i></div>
                 <div class="es-title">No salary slips yet</div>
-                <div class="es-sub">Process payroll for employees to generate salary slips</div>
+                <div class="es-sub">Generate payroll for employees to create salary slips</div>
             </div>
             } @else {
             <div class="slips-grid">
-                @for (slip of filteredSlips(); track slip.empId) {
-                <div class="slip-card" (click)="openSlip(slip)">
-                    <div class="slip-header">
-                        <div class="slip-av" [style.background]="getColor(slip.empId)">{{ getInitials(slip.userName) }}
-                        </div>
+                @for (r of filteredSlips(); track r.empId) {
+                <div class="slip-card" (click)="openSlip(r)">
+                    <div class="slip-top">
+                        <div class="slip-av" [style.background]="getColor(r.empId)">{{ getInitials(r.userName) }}</div>
                         <div class="slip-info">
-                            <div class="slip-name">{{ slip.userName }}</div>
-                            <div class="slip-role">{{ slip.roleName }}</div>
+                            <div class="slip-name">{{ r.userName }}</div>
+                            <div class="slip-role">{{ r.roleName }}</div>
                         </div>
-                        <div class="slip-month-badge">{{ currentMonthLabel() }}</div>
+                        <span class="slip-month">{{ currentMonthLabel() }}</span>
                     </div>
-                    <div class="slip-amounts">
-                        <div class="sa-row">
-                            <span>Basic Salary</span><span>₹{{ formatAmount(slip.basicSalary) }}</span>
+                    <div class="slip-rows">
+                        <div class="sr"><span>Basic + HRA + Allowances</span><span>₹{{ formatAmt(r.gross) }}</span>
                         </div>
-                        <div class="sa-row green">
-                            <span>Allowances</span><span>+₹{{ formatAmount(slip.allowances) }}</span>
-                        </div>
-                        <div class="sa-row red">
-                            <span>Deductions</span><span>-₹{{ formatAmount(slip.deductions) }}</span>
-                        </div>
-                        <div class="sa-divider"></div>
-                        <div class="sa-row net">
-                            <span>Net Pay</span><span>₹{{ formatAmount(slip.netPay) }}</span>
-                        </div>
+                        <div class="sr red"><span>PF + Deductions</span><span>-₹{{ formatAmt(r.pf + r.taxDeduction)
+                                }}</span></div>
+                        <div class="sr-sep"></div>
+                        <div class="sr net"><span>Net Salary</span><span>₹{{ formatAmt(r.netSalary) }}</span></div>
                     </div>
-                    <div class="slip-footer">
-                        <span class="slip-days">
-                            <i class="fas fa-calendar-check"></i> {{ slip.presentDays }} days present
-                        </span>
-                        <button class="slip-download" (click)="$event.stopPropagation(); downloadSlip(slip)">
+                    <div class="slip-foot">
+                        <span class="slip-gen">Generated: {{ formatDate(r.generatedDate) }}</span>
+                        <button class="slip-dl" (click)="$event.stopPropagation(); downloadSlip(r)"
+                            title="Download CSV">
                             <i class="fas fa-download"></i>
                         </button>
                     </div>
@@ -246,12 +239,13 @@
         <!-- ══ TAB: SALARY SETUP ══ -->
         @if (activeTab() === 'settings') {
         <div class="tab-content">
-            <div class="setup-info">
+            <div class="setup-info-bar">
                 <i class="fas fa-info-circle"></i>
-                Set basic salary and allowances per employee. Deductions are auto-calculated based on absent days.
+                <span>HRA is auto-calculated as <strong>40% of Basic</strong>. PF is auto-calculated as <strong>12% of
+                        Basic</strong>. Enter Basic Salary and Other Allowance only.</span>
             </div>
 
-            <div class="setup-search">
+            <div class="setup-search-row">
                 <div class="tb-search">
                     <i class="fas fa-search"></i>
                     <input type="text" placeholder="Search employee..." [value]="setupSearch()"
@@ -260,52 +254,103 @@
             </div>
 
             <div class="setup-list">
-                @for (emp of filteredSetupEmployees(); track emp.id) {
-                <div class="setup-row">
+                @for (emp of filteredSetupRows(); track emp.id) {
+                @let struct = salaryStructMap().get(emp.id);
+                @let edit = getEdit(emp.id);
+                @let inEdit = isEditMode(emp.id);
+
+                <div class="setup-row" [class.has-struct]="!!struct">
+                    <!-- Employee info -->
                     <div class="sr-emp">
                         <div class="emp-av" [style.background]="getColor(emp.id)">{{ getInitials(emp.userName) }}</div>
                         <div>
                             <div class="emp-name">{{ emp.userName }}</div>
                             <div class="emp-id">{{ emp.roleName }} · EMP-{{ emp.id }}</div>
                         </div>
+                        @if (struct) {
+                        <span class="setup-badge configured">Configured</span>
+                        } @else {
+                        <span class="setup-badge not-set">Not Set</span>
+                        }
                     </div>
+
+                    <!-- Fields: view-only when not in edit mode, editable when in edit mode -->
                     <div class="sr-fields">
                         <div class="sf">
                             <label>Basic Salary (₹/month)</label>
-                            <input type="number" min="0" placeholder="e.g. 50000"
-                                [value]="getSalaryConfig(emp.id).basicSalary"
-                                (change)="updateSalaryField(emp.id, 'basicSalary', +$any($event.target).value)">
+                            @if (inEdit || !struct) {
+                            <input type="number" min="0" placeholder="e.g. 50000" [value]="edit.basicSalary || ''"
+                                (input)="updateEdit(emp.id, 'basicSalary', +$any($event.target).value)">
+                            } @else {
+                            <div class="sf-readonly">₹{{ formatAmt(edit.basicSalary) }}</div>
+                            }
                         </div>
-                        <div class="sf">
-                            <label>HRA (₹)</label>
-                            <input type="number" min="0" placeholder="e.g. 10000" [value]="getSalaryConfig(emp.id).hra"
-                                (change)="updateSalaryField(emp.id, 'hra', +$any($event.target).value)">
-                        </div>
-                        <div class="sf">
-                            <label>Transport (₹)</label>
-                            <input type="number" min="0" placeholder="e.g. 2000"
-                                [value]="getSalaryConfig(emp.id).transport"
-                                (change)="updateSalaryField(emp.id, 'transport', +$any($event.target).value)">
+                        <div class="sf computed">
+                            <label>HRA (auto 40%)</label>
+                            <div class="sf-computed-val">₹{{ formatAmt(Math.round(edit.basicSalary * 0.40)) }}</div>
                         </div>
                         <div class="sf">
                             <label>Other Allowance (₹)</label>
-                            <input type="number" min="0" placeholder="e.g. 5000"
-                                [value]="getSalaryConfig(emp.id).otherAllowance"
-                                (change)="updateSalaryField(emp.id, 'otherAllowance', +$any($event.target).value)">
+                            @if (inEdit || !struct) {
+                            <input type="number" min="0" placeholder="e.g. 5000" [value]="edit.otherAllowance || ''"
+                                (input)="updateEdit(emp.id, 'otherAllowance', +$any($event.target).value)">
+                            } @else {
+                            <div class="sf-readonly">₹{{ formatAmt(edit.otherAllowance) }}</div>
+                            }
+                        </div>
+                        <div class="sf computed">
+                            <label>PF (auto 12%)</label>
+                            <div class="sf-computed-val red">₹{{ formatAmt(Math.round(edit.basicSalary * 0.12)) }}</div>
                         </div>
                     </div>
+
+                    <!-- Preview -->
                     <div class="sr-preview">
-                        <div class="srp-item">
-                            <span>Total Allowances</span>
-                            <strong class="green">₹{{ formatAmount(getSalaryConfig(emp.id).hra +
-                                getSalaryConfig(emp.id).transport + getSalaryConfig(emp.id).otherAllowance) }}</strong>
+                        <div class="srp"><span>Gross (full month)</span>
+                            <strong>₹{{ formatAmt(edit.basicSalary + Math.round(edit.basicSalary * 0.40) +
+                                edit.otherAllowance) }}</strong>
                         </div>
-                        <div class="srp-item">
-                            <span>Gross (if full month)</span>
-                            <strong>₹{{ formatAmount(getSalaryConfig(emp.id).basicSalary + getSalaryConfig(emp.id).hra +
-                                getSalaryConfig(emp.id).transport + getSalaryConfig(emp.id).otherAllowance) }}</strong>
+                        <div class="srp"><span>Net (est.)</span>
+                            <strong class="teal">₹{{ formatAmt(edit.basicSalary + Math.round(edit.basicSalary * 0.40) +
+                                edit.otherAllowance - Math.round(edit.basicSalary * 0.12)) }}</strong>
                         </div>
                     </div>
+
+                    <!-- Actions -->
+                    <div class="sr-actions">
+                        @if (!struct) {
+                        <!-- New employee: show create button directly -->
+                        <button class="sr-save" (click)="saveSalaryStructure(emp.id)"
+                            [disabled]="actionLoading() === 'setup_' + emp.id || edit.basicSalary === 0">
+                            @if (actionLoading() === 'setup_' + emp.id) { <span class="mini-spin white-spin"></span> }
+                            @else { <i class="fas fa-plus"></i> }
+                            Create
+                        </button>
+                        } @else if (inEdit) {
+                        <!-- In edit mode: save + cancel -->
+                        <button class="sr-save" (click)="saveSalaryStructure(emp.id)"
+                            [disabled]="actionLoading() === 'setup_' + emp.id || edit.basicSalary === 0">
+                            @if (actionLoading() === 'setup_' + emp.id) { <span class="mini-spin white-spin"></span> }
+                            @else { <i class="fas fa-save"></i> }
+                            Update
+                        </button>
+                        <button class="sr-cancel" (click)="cancelEditMode(emp.id)"
+                            [disabled]="actionLoading() === 'setup_' + emp.id">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <button class="sr-del" (click)="deleteSalaryStructure(emp.id)"
+                            [disabled]="actionLoading() === 'del_' + emp.id">
+                            @if (actionLoading() === 'del_' + emp.id) { <span class="mini-spin red-spin"></span> }
+                            @else { <i class="fas fa-trash"></i> }
+                        </button>
+                        } @else {
+                        <!-- View mode: show edit button -->
+                        <button class="sr-edit" (click)="enableEditMode(emp.id)">
+                            <i class="fas fa-pencil-alt"></i> Edit
+                        </button>
+                        }
+                    </div>
+
                 </div>
                 }
             </div>
@@ -315,77 +360,150 @@
     </div>
 </main>
 
+<!-- ══ TAX DEDUCTION MODAL ══ -->
+@if (taxModal()) {
+<div class="modal-overlay" (click)="closeTaxModal()">
+    <div class="tax-modal" (click)="$event.stopPropagation()">
+        <div class="tm-header">
+            <div class="tm-icon"><i class="fas fa-bolt"></i></div>
+            <div>
+                <div class="tm-title">Generate Payroll</div>
+                <div class="tm-sub">{{ taxModal()!.userName }} · {{ currentMonthLabel() }}</div>
+            </div>
+            <button class="tm-close" (click)="closeTaxModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="tm-body">
+            <div class="tm-preview">
+                <div class="tmp-row"><span>Basic Salary</span><strong>₹{{ formatAmt(taxModal()!.basicSalary)
+                        }}</strong></div>
+                <div class="tmp-row"><span>HRA (40%)</span><strong>₹{{ formatAmt(taxModal()!.hra) }}</strong></div>
+                <div class="tmp-row"><span>Other Allowance</span><strong>₹{{ formatAmt(taxModal()!.otherAllowance)
+                        }}</strong></div>
+                <div class="tmp-row green"><span>Total Allowances</span><strong>₹{{ formatAmt(taxModal()!.allowances)
+                        }}</strong></div>
+                <div class="tmp-row red"><span>PF Deduction (12%)</span><strong>₹{{ formatAmt(taxModal()!.pf)
+                        }}</strong></div>
+            </div>
+            <div class="tm-field">
+                <label>Tax Deduction (₹) <span class="opt">optional</span></label>
+                <input type="number" min="0" [ngModel]="taxAmount()" (ngModelChange)="taxAmount.set(+$event || 0)"
+                    placeholder="0">
+                <div class="tm-hint">Leave 0 if no tax applies this month</div>
+            </div>
+            <div class="tm-net">
+                <span>Estimated Net Salary</span>
+                <strong>₹{{ formatAmt(taxModal()!.gross - taxModal()!.pf - taxAmount()) }}</strong>
+            </div>
+        </div>
+        <div class="tm-footer">
+            <button class="tm-cancel" (click)="closeTaxModal()">Cancel</button>
+            <button class="tm-confirm" (click)="confirmGenerate()">
+                <i class="fas fa-bolt"></i> Generate Payroll
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ══ DELETE CONFIRMATION MODAL ══ -->
+@if (deleteConfirmModal()) {
+<div class="modal-overlay" (click)="closeDeleteConfirm()">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <div class="cm-header">
+            <div class="cm-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <button class="tm-close" (click)="closeDeleteConfirm()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="cm-body">
+            <div class="cm-title">Confirm Delete</div>
+            @if (deleteConfirmModal()!.type === 'payroll') {
+            <div class="cm-msg">
+                Are you sure you want to delete the payroll for
+                <strong>{{ deleteConfirmModal()!.row.userName }}</strong>
+                for <strong>{{ currentMonthLabel() }}</strong>?
+                This action cannot be undone.
+            </div>
+            } @else {
+            <div class="cm-msg">
+                Are you sure you want to delete the salary structure for
+                <strong>{{ deleteConfirmModal()!.row.struct?.userName ?? 'this employee' }}</strong>?
+                This will also affect future payroll generation.
+            </div>
+            }
+        </div>
+        <div class="cm-footer">
+            <button class="tm-cancel" (click)="closeDeleteConfirm()">Cancel</button>
+            <button class="cm-confirm-del" (click)="confirmDelete()">
+                <i class="fas fa-trash"></i> Yes, Delete
+            </button>
+        </div>
+    </div>
+</div>
+}
+
 <!-- ══ SALARY SLIP MODAL ══ -->
 @if (slipModal()) {
-<div class="modal-overlay" (click)="slipModal.set(null)">
-    <div class="slip-modal" (click)="$event.stopPropagation()" id="salary-slip-print">
+<div class="modal-overlay" (click)="closeSlip()">
+    <div class="slip-modal" (click)="$event.stopPropagation()" id="slip-print">
 
-        <div class="sm-header">
+        <div class="sm-head">
             <div class="sm-company">
-                <div class="sm-company-icon"><i class="fas fa-building"></i></div>
+                <div class="sm-co-icon"><i class="fas fa-building"></i></div>
                 <div>
-                    <div class="sm-company-name">HRMS Company</div>
-                    <div class="sm-company-sub">Human Resource Management System</div>
+                    <div class="sm-co-name">HRMS Company</div>
+                    <div class="sm-co-sub">Payroll Department</div>
                 </div>
             </div>
-            <div class="sm-title">SALARY SLIP</div>
-            <button class="sm-close" (click)="slipModal.set(null)"><i class="fas fa-times"></i></button>
+            <div class="sm-slip-title">SALARY SLIP — {{ currentMonthLabel() }}</div>
+            <button class="tm-close" (click)="closeSlip()"><i class="fas fa-times"></i></button>
         </div>
 
         <div class="sm-body">
-            <div class="sm-emp-info">
-                <div class="sm-info-grid">
-                    <div class="smi"><span>Employee Name</span><strong>{{ slipModal()!.userName }}</strong></div>
-                    <div class="smi"><span>Employee ID</span><strong>EMP-{{ slipModal()!.empId }}</strong></div>
-                    <div class="smi"><span>Designation</span><strong>{{ slipModal()!.roleName }}</strong></div>
-                    <div class="smi"><span>Pay Period</span><strong>{{ currentMonthLabel() }}</strong></div>
-                    <div class="smi"><span>Working Days</span><strong>{{ workingDaysInMonth() }}</strong></div>
-                    <div class="smi"><span>Days Present</span><strong>{{ slipModal()!.presentDays }}</strong></div>
-                    <div class="smi"><span>Days Absent</span><strong>{{ slipModal()!.absentDays }}</strong></div>
-                    <div class="smi"><span>Generated On</span><strong>{{ todayStr }}</strong></div>
+            <div class="sm-emp-grid">
+                <div class="seg"><span>Employee Name</span><strong>{{ slipModal()!.userName }}</strong></div>
+                <div class="seg"><span>Employee ID</span><strong>EMP-{{ slipModal()!.empId }}</strong></div>
+                <div class="seg"><span>Designation</span><strong>{{ slipModal()!.roleName }}</strong></div>
+                <div class="seg"><span>Pay Period</span><strong>{{ currentMonthLabel() }}</strong></div>
+                <div class="seg"><span>Generated On</span><strong>{{ formatDate(slipModal()!.generatedDate) }}</strong>
+                </div>
+                <div class="seg"><span>Status</span><strong>{{ slipModal()!.status }}</strong></div>
+            </div>
+
+            <div class="sm-table">
+                <div class="sm-col earnings">
+                    <div class="sm-col-head">Earnings</div>
+                    <div class="sm-row"><span>Basic Salary</span><span>₹{{ formatAmt(slipModal()!.basicSalary) }}</span>
+                    </div>
+                    <div class="sm-row"><span>HRA (40% of Basic)</span><span>₹{{ formatAmt(slipModal()!.hra) }}</span>
+                    </div>
+                    <div class="sm-row"><span>Other Allowance</span><span>₹{{ formatAmt(slipModal()!.otherAllowance)
+                            }}</span></div>
+                    <div class="sm-total"><span>Total Earnings</span><span>₹{{ formatAmt(slipModal()!.gross) }}</span>
+                    </div>
+                </div>
+                <div class="sm-col deductions">
+                    <div class="sm-col-head">Deductions</div>
+                    <div class="sm-row"><span>Provident Fund (12%)</span><span>₹{{ formatAmt(slipModal()!.pf) }}</span>
+                    </div>
+                    <div class="sm-row"><span>Tax Deduction (TDS)</span><span>₹{{ formatAmt(slipModal()!.taxDeduction)
+                            }}</span></div>
+                    <div class="sm-row muted"><span>Other Deductions</span><span>₹{{
+                            formatAmt(slipModal()!.otherDeductions - slipModal()!.pf) }}</span></div>
+                    <div class="sm-total red"><span>Total Deductions</span><span>₹{{ formatAmt(slipModal()!.taxDeduction
+                            + slipModal()!.otherDeductions) }}</span></div>
                 </div>
             </div>
 
-            <div class="sm-salary-table">
-                <div class="sst-col earnings">
-                    <div class="sst-head">Earnings</div>
-                    <div class="sst-row"><span>Basic Salary</span><span>₹{{ formatAmount(slipModal()!.basicSalary)
-                            }}</span></div>
-                    <div class="sst-row"><span>HRA</span><span>₹{{ formatAmount(slipModal()!.hra) }}</span></div>
-                    <div class="sst-row"><span>Transport Allowance</span><span>₹{{ formatAmount(slipModal()!.transport)
-                            }}</span></div>
-                    <div class="sst-row"><span>Other Allowance</span><span>₹{{ formatAmount(slipModal()!.otherAllowance)
-                            }}</span></div>
-                    <div class="sst-total"><span>Total Earnings</span><span>₹{{ formatAmount(slipModal()!.gross)
-                            }}</span></div>
-                </div>
-                <div class="sst-col deductions">
-                    <div class="sst-head">Deductions</div>
-                    <div class="sst-row"><span>Absent Day Deduction</span><span>₹{{
-                            formatAmount(slipModal()!.absentDeduction) }}</span></div>
-                    <div class="sst-row"><span>PF (12%)</span><span>₹{{ formatAmount(slipModal()!.pf) }}</span></div>
-                    <div class="sst-row"><span>Professional Tax</span><span>₹{{
-                            formatAmount(slipModal()!.professionalTax) }}</span></div>
-                    <div class="sst-row muted"><span>TDS</span><span>₹0</span></div>
-                    <div class="sst-total red"><span>Total Deductions</span><span>₹{{
-                            formatAmount(slipModal()!.deductions) }}</span></div>
-                </div>
-            </div>
-
-            <div class="sm-net-pay">
-                <span>Net Pay</span>
-                <span class="sm-net-val">₹{{ formatAmount(slipModal()!.netPay) }}</span>
+            <div class="sm-net-banner">
+                <span>Net Salary Payable</span>
+                <strong>₹{{ formatAmt(slipModal()!.netSalary) }}</strong>
             </div>
         </div>
 
-        <div class="sm-footer">
-            <button class="sm-print-btn" (click)="printSlip()">
-                <i class="fas fa-print"></i> Print Slip
-            </button>
-            <button class="sm-download-btn" (click)="downloadSlip(slipModal()!)">
-                <i class="fas fa-download"></i> Download CSV
-            </button>
-            <button class="sm-close-btn" (click)="slipModal.set(null)">Close</button>
+        <div class="sm-foot">
+            <button class="sm-print" (click)="printSlip()"><i class="fas fa-print"></i> Print</button>
+            <button class="sm-dl" (click)="downloadSlip(slipModal()!)"><i class="fas fa-download"></i> Download
+                CSV</button>
+            <button class="sm-close-btn" (click)="closeSlip()">Close</button>
         </div>
     </div>
 </div>

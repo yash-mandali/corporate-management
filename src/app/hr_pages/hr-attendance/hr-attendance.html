@@ -312,13 +312,13 @@
                     <div class="modal-field">
                         <label class="mf-label"><i class="fas fa-calendar-alt"></i> From Date</label>
                         <input type="date" class="mf-input" [value]="exportFromDate()"
-                            (change)="exportFromDate.set($any($event.target).value)" [max]="exportToDate()">
+                            (change)="exportFromDate.set($any($event.target).value)" [max]="exportFromDate()">
                     </div>
                     <div class="modal-date-sep"><i class="fas fa-arrow-right"></i></div>
                     <div class="modal-field">
                         <label class="mf-label"><i class="fas fa-calendar-alt"></i> To Date</label>
                         <input type="date" class="mf-input" [value]="exportToDate()"
-                            (change)="exportToDate.set($any($event.target).value)" [min]="exportFromDate()"
+                            (change)="exportToDate.set($any($event.target).value)" [max]="exportToDate()"
                             [max]="exportToDate()">
                     </div>
                 </div>

@@ -1,37 +1,8 @@
 import { Component, computed, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../services/user-service/user-service';
-import { AttendanceService } from '../../services/attendance-service';
-
-interface SalaryConfig {
-  basicSalary: number;
-  hra: number;
-  transport: number;
-  otherAllowance: number;
-}
-
-interface PayrollRow {
-  empId: number;
-  userName: string;
-  roleName: string;
-  presentDays: number;
-  absentDays: number;
-  basicSalary: number;
-  hra: number;
-  transport: number;
-  otherAllowance: number;
-  allowances: number;
-  absentDeduction: number;
-  pf: number;
-  professionalTax: number;
-  deductions: number;
-  gross: number;
-  netPay: number;
-  status: 'pending' | 'processed';
-}
-
-const STORAGE_SALARY = 'hrms_salary_config';
-const STORAGE_PAYROLL = 'hrms_payroll_';   // + YYYY-MM
+import { PayrollService } from '../../services/payroll-service/payrollservice';
+import { ToastService } from '../../services/toast-service/toast';
 
 @Component({
   selector: 'app-hr-payroll',
@@ -41,15 +12,22 @@ const STORAGE_PAYROLL = 'hrms_payroll_';   // + YYYY-MM
 })
 export class HrPayroll implements OnInit {
 
-  // ── Data ──
+  // ── Raw API data ──
   allEmployees = signal<any[]>([]);
-  allAttendance = signal<any[]>([]);
-  isLoading = signal(false);
-  generatingAll = signal(false);
+  allSalaryStruct = signal<any[]>([]);
+  monthPayroll = signal<any[]>([]);
+  Math = Math;
 
-  // ── Month navigation ──
-  currentYear = new Date().getFullYear();
-  currentMonth = signal(new Date().getMonth()); // 0-indexed
+  // ── Loading flags ──
+  isLoading = signal(false);
+  payrollLoading = signal(false);
+  structLoading = signal(false);
+  generatingAll = signal(false);
+  actionLoading = signal<any>(null);
+
+  // ── Month navigation (signals for reactivity) ──
+  currentYear = signal(new Date().getFullYear());
+  currentMonth = signal(new Date().getMonth() + 1); // 1-indexed
 
   // ── Tabs ──
   activeTab = signal<'payroll' | 'slips' | 'settings'>('payroll');
@@ -60,280 +38,418 @@ export class HrPayroll implements OnInit {
   slipSearch = signal('');
   setupSearch = signal('');
 
-  // ── Salary configs (persisted) ──
-  salaryConfigs = signal<Record<number, SalaryConfig>>({});
+  // ── Salary setup: per-employee edit mode + edits ──
+  editMode = signal<Record<number, boolean>>({});
+  salaryEdits = signal<Record<number, { basicSalary: number; otherAllowance: number }>>({});
 
-  // ── Processed payroll for current month (persisted) ──
-  monthPayroll = signal<Record<number, PayrollRow>>({});
-
-  // ── Modal ──
-  slipModal = signal<PayrollRow | null>(null);
+  // ── Modals ──
+  slipModal = signal<any | null>(null);
+  taxModal = signal<any | null>(null);
+  taxAmount = signal<number>(0);
+  deleteConfirmModal = signal<{ type: 'payroll' | 'salary'; row: any } | null>(null);
 
   readonly todayStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
-  // ── Color pool ──
   private colorPool = [
     '#09637e', '#088395', '#27ae60', '#2980b9',
     '#8e44ad', '#d68910', '#c0392b', '#16a085', '#2c3e50', '#1e8449',
   ];
 
-  // ── Computed month label ──
+  // ── Computed labels ──
   currentMonthLabel = computed(() =>
-    new Date(this.currentYear, this.currentMonth(), 1)
+    new Date(this.currentYear(), this.currentMonth() - 1, 1)
       .toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
   );
 
   isCurrentMonth = computed(() => {
     const now = new Date();
-    return this.currentYear === now.getFullYear() && this.currentMonth() === now.getMonth();
+    return this.currentYear() === now.getFullYear() && this.currentMonth() === (now.getMonth() + 1);
   });
 
-  // ── Attendance for current month ──
-  private monthAttendance = computed(() => {
-    const y = this.currentYear, m = this.currentMonth();
-    return this.allAttendance().filter(r => {
-      const d = new Date(r.date);
-      return d.getFullYear() === y && d.getMonth() === m;
-    });
+  // ── Maps ──
+  salaryStructMap = computed(() => {
+    const m = new Map<number, any>();
+    this.allSalaryStruct().forEach(s => m.set(s.userId, s));
+    return m;
   });
 
-  workingDaysInMonth = computed(() => {
-    const y = this.currentYear, m = this.currentMonth();
-    const days = new Date(y, m + 1, 0).getDate();
-    let count = 0;
-    for (let d = 1; d <= days; d++) {
-      const dow = new Date(y, m, d).getDay();
-      if (dow !== 0 && dow !== 6) count++;
-    }
-    return count;
+  payrollMap = computed(() => {
+    const m = new Map<number, any>();
+    this.monthPayroll().forEach(p => m.set(p.userId, p));
+    return m;
   });
 
-  // ── Build payroll rows (all employees) ──
-  allPayrollRows = computed(() => {
-    const attMap = new Map<number, { present: number; absent: number }>();
-    this.allEmployees().forEach(emp => attMap.set(emp.id, { present: 0, absent: 0 }));
-
-    this.monthAttendance().forEach(r => {
-      const entry = attMap.get(r.userId);
-      if (!entry) return;
-      if (r.status === 'Present' || r.status === 'Late') entry.present++;
-      else if (r.status === 'Absent') entry.absent++;
-    });
-
-    const configs = this.salaryConfigs();
-    const payrolls = this.monthPayroll();
-
+  // ── Merged rows ──
+  allRows = computed(() => {
     return this.allEmployees().map(emp => {
-      const saved = payrolls[emp.id];
-      if (saved) return saved;
+      const struct = this.salaryStructMap().get(emp.id);
+      const payroll = this.payrollMap().get(emp.id);
 
-      const att = attMap.get(emp.id) ?? { present: 0, absent: 0 };
-      const cfg = configs[emp.id] ?? this.defaultConfig();
-      const wdays = this.workingDaysInMonth();
-      const dailyRate = wdays > 0 ? cfg.basicSalary / wdays : 0;
-      const absentDeduction = Math.round(dailyRate * att.absent);
-      const pf = Math.round(cfg.basicSalary * 0.12);
-      const professionalTax = this.calcProfessionalTax(cfg.basicSalary);
-      const allowances = cfg.hra + cfg.transport + cfg.otherAllowance;
-      const gross = cfg.basicSalary + allowances;
-      const deductions = absentDeduction + pf + professionalTax;
-      const netPay = Math.max(0, gross - deductions);
+      const basicSalary = struct?.basicSalary ?? 0;
+      const hra = struct?.hra ?? 0;
+      const pf = struct?.pf ?? 0;
+      const otherAllowance = struct?.otherAllowance ?? 0;
+      const allowances = hra + otherAllowance;
+
+      const hasPayroll = !!payroll;
+      const taxDeduction = payroll?.taxDeduction ?? 0;
+      const otherDeductions = payroll?.otherDeductions ?? (hasPayroll ? 0 : pf);
+      const netSalary = payroll?.netSalary ?? (basicSalary + allowances - taxDeduction - pf);
+      const gross = basicSalary + allowances;
+      const status = payroll?.status ?? (struct ? 'Ready' : 'No Salary');
 
       return {
-        empId: emp.id, userName: emp.userName, roleName: emp.roleName,
-        presentDays: att.present, absentDays: att.absent,
-        basicSalary: cfg.basicSalary, hra: cfg.hra,
-        transport: cfg.transport, otherAllowance: cfg.otherAllowance,
-        allowances, absentDeduction, pf, professionalTax,
-        deductions, gross, netPay, status: 'pending' as const,
+        empId: emp.id,
+        payrollId: payroll?.payrollId ?? null,
+        salaryStructureId: struct?.salaryStructureId ?? null,
+        userName: emp.userName,
+        roleName: emp.roleName,
+        hasSalaryStruct: !!struct,
+        hasPayroll,
+        basicSalary, hra, pf, otherAllowance, allowances,
+        gross, taxDeduction, otherDeductions, netSalary,
+        status,
+        generatedDate: payroll?.generatedDate ?? null,
       };
     });
   });
 
-  filteredPayroll = computed(() => {
+  filteredRows = computed(() => {
     const q = this.searchQ().toLowerCase().trim();
     const sf = this.statusFilter();
-    return this.allPayrollRows()
-      .filter(r => {
-        const matchQ = !q || r.userName.toLowerCase().includes(q);
-        const matchS = sf === 'all' || r.status === sf;
-        return matchQ && matchS;
-      });
+    return this.allRows().filter(r =>
+      (!q || r.userName.toLowerCase().includes(q)) &&
+      (sf === 'all' || r.status.toLowerCase() === sf.toLowerCase())
+    );
   });
 
-  processedCount = computed(() => this.allPayrollRows().filter(r => r.status === 'processed').length);
-  totalGross = computed(() => this.allPayrollRows().filter(r => r.status === 'processed').reduce((s, r) => s + r.gross, 0));
-  totalNet = computed(() => this.allPayrollRows().filter(r => r.status === 'processed').reduce((s, r) => s + r.netPay, 0));
+  // ── Stats ──
+  generatedCount = computed(() => this.allRows().filter(r => r.hasPayroll).length);
+  totalGross = computed(() => this.allRows().filter(r => r.hasPayroll).reduce((s, r) => s + r.gross, 0));
+  totalNet = computed(() => this.allRows().filter(r => r.hasPayroll).reduce((s, r) => s + r.netSalary, 0));
+  withSalaryCount = computed(() => this.allRows().filter(r => r.hasSalaryStruct).length);
 
-  // ── Slips tab ──
   filteredSlips = computed(() => {
     const q = this.slipSearch().toLowerCase().trim();
-    return this.allPayrollRows()
-      .filter(r => r.status === 'processed' && (!q || r.userName.toLowerCase().includes(q)));
+    return this.allRows().filter(r =>
+      r.hasPayroll && (!q || r.userName.toLowerCase().includes(q))
+    );
   });
 
-  // ── Setup tab ──
-  filteredSetupEmployees = computed(() => {
+  filteredSetupRows = computed(() => {
     const q = this.setupSearch().toLowerCase().trim();
     return this.allEmployees().filter(e => !q || e.userName.toLowerCase().includes(q));
   });
 
   constructor(
     private userService: UserService,
-    private attendanceService: AttendanceService
+    private payrollService: PayrollService,
+    private toast: ToastService
   ) { }
 
   ngOnInit() {
-    this.loadFromStorage();
     this.isLoading.set(true);
-
-    let pending = 2;
-    const done = () => { if (--pending === 0) this.isLoading.set(false); };
-
     this.userService.getAllEmployee().subscribe({
-      next: (res: any) => { this.allEmployees.set(Array.isArray(res) ? res : res ? [res] : []); done(); },
-      error: err => { console.error(err); done(); }
+      next: (res: any) => {
+        this.allEmployees.set(Array.isArray(res) ? res : res ? [res] : []);
+        this.isLoading.set(false);
+      },
+      error: err => { console.error(err); this.isLoading.set(false); }
     });
+    this.loadSalaryStructures();
+    this.loadMonthPayroll();
+  }
 
-    this.attendanceService.getAllattendance().subscribe({
-      next: (res: any) => { this.allAttendance.set(Array.isArray(res) ? res : res ? [res] : []); done(); },
-      error: err => { console.error(err); done(); }
+  loadSalaryStructures() {
+    this.structLoading.set(true);
+    this.payrollService.getAllSalaryStructure().subscribe({
+      next: (res: any) => {
+        const list = Array.isArray(res) ? res : res?.data ?? (res ? [res] : []);
+        this.allSalaryStruct.set(list);
+        this.structLoading.set(false);
+      },
+      error: err => { console.error(err); this.structLoading.set(false); }
+    });
+  }
+
+  loadMonthPayroll() {
+    this.payrollLoading.set(true);
+    this.payrollService.getAllPayrollByMonth(this.currentMonth()).subscribe({
+      next: (res: any) => {
+        const list = Array.isArray(res) ? res : res?.data ?? (res ? [res] : []);
+        this.monthPayroll.set(list.filter((p: any) => p.year === this.currentYear()));
+        this.payrollLoading.set(false);
+      },
+      error: err => { console.error(err); this.payrollLoading.set(false); }
     });
   }
 
   // ── Month navigation ──
   prevMonth() {
-    if (this.currentMonth() === 0) { this.currentMonth.set(11); this.currentYear--; }
-    else this.currentMonth.update(m => m - 1);
+    if (this.currentMonth() === 1) {
+      this.currentMonth.set(12);
+      this.currentYear.update(y => y - 1);
+    } else {
+      this.currentMonth.update(m => m - 1);
+    }
     this.loadMonthPayroll();
   }
 
   nextMonth() {
     if (this.isCurrentMonth()) return;
-    if (this.currentMonth() === 11) { this.currentMonth.set(0); this.currentYear++; }
-    else this.currentMonth.update(m => m + 1);
+    if (this.currentMonth() === 12) {
+      this.currentMonth.set(1);
+      this.currentYear.update(y => y + 1);
+    } else {
+      this.currentMonth.update(m => m + 1);
+    }
     this.loadMonthPayroll();
   }
 
-  // ── Payroll actions ──
-  processPayroll(row: PayrollRow) {
-    const processed = { ...row, status: 'processed' as const };
-    this.monthPayroll.update(p => ({ ...p, [row.empId]: processed }));
-    this.saveMonthPayroll();
+  // ── Tax modal ──
+  openTaxModal(row: any) {
+    this.taxAmount.set(0);
+    this.taxModal.set(row);
+    document.body.style.overflow = 'hidden';
   }
 
-  resetPayroll(empId: number) {
-    this.monthPayroll.update(p => { const n = { ...p }; delete n[empId]; return n; });
-    this.saveMonthPayroll();
+  closeTaxModal() {
+    this.taxModal.set(null);
+    this.taxAmount.set(0);
+    document.body.style.overflow = '';
   }
 
-  generateAllPayroll() {
+  confirmGenerate() {
+    const row = this.taxModal();
+    if (!row) return;
+    // Capture tax amount BEFORE closing modal (closing resets it)
+    const tax = this.taxAmount();
+    this.closeTaxModal();
+    this.generatePayroll(row, tax);
+  }
+
+  generatePayroll(row: any, taxDeduction = 0) {
+    this.actionLoading.set(row.empId);
+    this.payrollService.generatePayroll({
+      userId: row.empId,
+      month: this.currentMonth(),
+      year: this.currentYear(),
+      taxDeduction,
+    }).subscribe({
+      next: () => {
+        this.loadMonthPayroll();
+        this.actionLoading.set(null);
+        this.toast.success(`Payroll generated for ${row.userName}.`);
+      },
+      error: err => {
+        this.toast.error(err?.error?.message || 'Failed to generate payroll.');
+        this.actionLoading.set(null);
+      }
+    });
+  }
+
+  // ── Generate all ──
+  generateAll() {
     this.generatingAll.set(true);
-    const rows = this.allPayrollRows().filter(r => r.status === 'pending' && r.basicSalary > 0);
-    const update: Record<number, PayrollRow> = { ...this.monthPayroll() };
-    rows.forEach(r => update[r.empId] = { ...r, status: 'processed' });
-    this.monthPayroll.set(update);
-    this.saveMonthPayroll();
-    setTimeout(() => this.generatingAll.set(false), 500);
+    this.payrollService.generateAllPayroll(this.currentMonth(), this.currentYear()).subscribe({
+      next: () => {
+        this.loadMonthPayroll();
+        this.generatingAll.set(false);
+        this.toast.success('All payrolls generated successfully.');
+      },
+      error: err => {
+        this.toast.error(err?.error?.message || 'Failed to generate all payrolls.');
+        this.generatingAll.set(false);
+      }
+    });
+  }
+
+  // ── Delete confirmation modal ──
+  openDeleteConfirm(type: 'payroll' | 'salary', row: any) {
+    this.deleteConfirmModal.set({ type, row });
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeDeleteConfirm() {
+    this.deleteConfirmModal.set(null);
+    document.body.style.overflow = '';
+  }
+
+  confirmDelete() {
+    const modal = this.deleteConfirmModal();
+    if (!modal) return;
+    this.closeDeleteConfirm();
+    if (modal.type === 'payroll') {
+      this.executeDeletePayroll(modal.row);
+    } else {
+      this.executeDeleteSalaryStructure(modal.row);
+    }
+  }
+
+  deletePayroll(row: any) {
+    if (!row.payrollId) return;
+    this.openDeleteConfirm('payroll', row);
+  }
+
+  private executeDeletePayroll(row: any) {
+    this.actionLoading.set(row.empId);
+    this.payrollService.deletePayroll(row.payrollId).subscribe({
+      next: () => {
+        this.loadMonthPayroll();
+        this.actionLoading.set(null);
+        this.toast.success('Payroll deleted.');
+      },
+      error: err => {
+        this.toast.error(err?.error?.message || 'Failed to delete payroll.');
+        this.actionLoading.set(null);
+      }
+    });
+  }
+
+  // ── Salary setup ──
+  isEditMode(empId: number): boolean {
+    return !!this.editMode()[empId];
+  }
+
+  enableEditMode(empId: number) {
+    const struct = this.salaryStructMap().get(empId);
+    // Pre-fill edits from existing struct when entering edit mode
+    this.salaryEdits.update(e => ({
+      ...e,
+      [empId]: {
+        basicSalary: struct?.basicSalary ?? 0,
+        otherAllowance: struct?.otherAllowance ?? 0,
+      }
+    }));
+    this.editMode.update(m => ({ ...m, [empId]: true }));
+  }
+
+  cancelEditMode(empId: number) {
+    this.editMode.update(m => { const n = { ...m }; delete n[empId]; return n; });
+    this.salaryEdits.update(e => { const n = { ...e }; delete n[empId]; return n; });
+  }
+
+  getEdit(empId: number) {
+    const struct = this.salaryStructMap().get(empId);
+    const edits = this.salaryEdits()[empId];
+    return {
+      basicSalary: edits?.basicSalary ?? struct?.basicSalary ?? 0,
+      otherAllowance: edits?.otherAllowance ?? struct?.otherAllowance ?? 0,
+    };
+  }
+
+  updateEdit(empId: number, field: 'basicSalary' | 'otherAllowance', value: number) {
+    const current = this.getEdit(empId);
+    this.salaryEdits.update(e => ({ ...e, [empId]: { ...current, [field]: value } }));
+  }
+
+  saveSalaryStructure(empId: number) {
+    const edit = this.getEdit(empId);
+    const struct = this.salaryStructMap().get(empId);
+    this.actionLoading.set(`setup_${empId}`);
+
+    if (struct) {
+      this.payrollService.updateSalaryStructure({
+        salaryStructureId: struct.salaryStructureId,
+        basicSalary: edit.basicSalary,
+        otherAllowance: edit.otherAllowance,
+      }).subscribe({
+        next: () => {
+          this.loadSalaryStructures();
+          this.cancelEditMode(empId);
+          this.actionLoading.set(null);
+          this.toast.success(`Salary updated for ${struct.userName ?? 'employee'}.`);
+        },
+        error: err => {
+          this.toast.error(err?.error?.message || 'Update failed.');
+          this.actionLoading.set(null);
+        }
+      });
+    } else {
+      this.payrollService.createSalaryStructure({
+        userId: empId,
+        basicSalary: edit.basicSalary,
+        otherAllowance: edit.otherAllowance,
+      }).subscribe({
+        next: () => {
+          this.loadSalaryStructures();
+          this.cancelEditMode(empId);
+          this.actionLoading.set(null);
+          this.toast.success('Salary structure created.');
+        },
+        error: err => {
+          this.toast.error(err?.error?.message || 'Create failed.');
+          this.actionLoading.set(null);
+        }
+      });
+    }
+  }
+
+  deleteSalaryStructure(empId: number) {
+    const struct = this.salaryStructMap().get(empId);
+    if (!struct) return;
+    this.openDeleteConfirm('salary', { empId, struct });
+  }
+
+  private executeDeleteSalaryStructure(payload: { empId: number; struct: any }) {
+    this.actionLoading.set(`del_${payload.empId}`);
+    this.payrollService.deleteSalaryStructure(payload.struct.salaryStructureId).subscribe({
+      next: () => {
+        this.loadSalaryStructures();
+        this.cancelEditMode(payload.empId);
+        this.actionLoading.set(null);
+        this.toast.success('Salary structure deleted.');
+      },
+      error: err => {
+        this.toast.error(err?.error?.message || 'Delete failed.');
+        this.actionLoading.set(null);
+      }
+    });
   }
 
   // ── Slip modal ──
-  openSlip(row: PayrollRow) { this.slipModal.set(row); document.body.style.overflow = 'hidden'; }
-
+  openSlip(row: any) { this.slipModal.set(row); document.body.style.overflow = 'hidden'; }
+  closeSlip() { this.slipModal.set(null); document.body.style.overflow = ''; }
   printSlip() { window.print(); }
 
-  downloadSlip(slip: PayrollRow) {
+  downloadSlip(row: any) {
     const rows = [
-      ['SALARY SLIP', `${this.currentMonthLabel()}`],
-      [],
-      ['Employee Name', slip.userName],
-      ['Employee ID', `EMP-${slip.empId}`],
-      ['Designation', slip.roleName],
+      ['SALARY SLIP', this.currentMonthLabel()], [],
+      ['Employee', row.userName],
+      ['Employee ID', `EMP-${row.empId}`],
+      ['Role', row.roleName],
       ['Pay Period', this.currentMonthLabel()],
-      ['Days Present', slip.presentDays],
-      ['Days Absent', slip.absentDays],
-      [],
+      ['Generated', this.todayStr], [],
       ['EARNINGS', '', 'DEDUCTIONS', ''],
-      ['Basic Salary', slip.basicSalary, 'Absent Deduction', slip.absentDeduction],
-      ['HRA', slip.hra, 'PF (12%)', slip.pf],
-      ['Transport', slip.transport, 'Professional Tax', slip.professionalTax],
-      ['Other Allowance', slip.otherAllowance, '', ''],
-      ['Total Earnings', slip.gross, 'Total Deductions', slip.deductions],
-      [],
-      ['NET PAY', slip.netPay],
+      ['Basic Salary', row.basicSalary, 'PF (12%)', row.pf],
+      ['HRA (40%)', row.hra, 'Tax Deduction', row.taxDeduction],
+      ['Other Allowance', row.otherAllowance, 'Other Deductions', row.otherDeductions],
+      ['Total Earnings', row.gross, 'Total Deductions', row.taxDeduction + row.otherDeductions],
+      [], ['NET SALARY', row.netSalary],
     ];
     const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-    a.download = `salary-slip-${slip.userName.replace(/ /g, '-')}-${this.currentMonthLabel().replace(/ /g, '-')}.csv`;
+    a.download = `slip-${row.userName.replace(/ /g, '-')}-${this.currentYear()}-${this.currentMonth()}.csv`;
     a.click();
   }
 
   exportPayrollCSV() {
-    const headers = ['Employee', 'ID', 'Role', 'Present', 'Absent', 'Basic', 'Allowances', 'Deductions', 'Gross', 'Net Pay', 'Status'];
-    const rows = [headers, ...this.filteredPayroll().map(r => [
+    const headers = ['Employee', 'ID', 'Role', 'Basic', 'HRA', 'Other Allow.', 'Allowances', 'PF', 'Tax Ded.', 'Other Ded.', 'Gross', 'Net Salary', 'Status'];
+    const rows = [headers, ...this.filteredRows().map(r => [
       r.userName, `EMP-${r.empId}`, r.roleName,
-      r.presentDays, r.absentDays, r.basicSalary,
-      r.allowances, r.deductions, r.gross, r.netPay, r.status
+      r.basicSalary, r.hra, r.otherAllowance, r.allowances,
+      r.pf, r.taxDeduction, r.otherDeductions, r.gross, r.netSalary, r.status
     ])];
     const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-    a.download = `payroll-${this.currentMonthLabel().replace(/ /g, '-')}.csv`;
+    a.download = `payroll-${this.currentYear()}-${this.currentMonth()}.csv`;
     a.click();
   }
 
-  // ── Salary config ──
-  getSalaryConfig(empId: number): SalaryConfig {
-    return this.salaryConfigs()[empId] ?? this.defaultConfig();
-  }
-
-  updateSalaryField(empId: number, field: keyof SalaryConfig, value: number) {
-    const current = this.getSalaryConfig(empId);
-    this.salaryConfigs.update(c => ({ ...c, [empId]: { ...current, [field]: value } }));
-    this.saveSalaryConfigs();
-  }
-
-  private defaultConfig(): SalaryConfig {
-    return { basicSalary: 0, hra: 0, transport: 0, otherAllowance: 0 };
-  }
-
-  private calcProfessionalTax(basic: number): number {
-    if (basic <= 10000) return 0;
-    if (basic <= 15000) return 150;
-    return 200;
-  }
-
-  // ── LocalStorage ──
-  private monthKey() { return `${STORAGE_PAYROLL}${this.currentYear}-${String(this.currentMonth() + 1).padStart(2, '0')}`; }
-
-  loadFromStorage() {
-    try {
-      const cfg = localStorage.getItem(STORAGE_SALARY);
-      if (cfg) this.salaryConfigs.set(JSON.parse(cfg));
-    } catch { }
-    this.loadMonthPayroll();
-  }
-
-  loadMonthPayroll() {
-    try {
-      const p = localStorage.getItem(this.monthKey());
-      this.monthPayroll.set(p ? JSON.parse(p) : {});
-    } catch { this.monthPayroll.set({}); }
-  }
-
-  saveSalaryConfigs() {
-    try { localStorage.setItem(STORAGE_SALARY, JSON.stringify(this.salaryConfigs())); } catch { }
-  }
-
-  saveMonthPayroll() {
-    try { localStorage.setItem(this.monthKey(), JSON.stringify(this.monthPayroll())); } catch { }
-  }
-
   // ── Helpers ──
-  formatAmount(n: number): string {
-    return (n || 0).toLocaleString('en-IN');
-  }
+  formatAmt(n: number) { return (n || 0).toLocaleString('en-IN'); }
 
   getInitials(name: string): string {
     if (!name) return '?';
@@ -342,5 +458,10 @@ export class HrPayroll implements OnInit {
 
   getColor(id: any): string {
     return this.colorPool[(Number(id) || 0) % this.colorPool.length];
+  }
+
+  formatDate(ds: string): string {
+    if (!ds) return '—';
+    return new Date(ds).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 }

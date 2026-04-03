@@ -16,7 +16,7 @@ export const roleGuard: CanActivateFn = (route, state) => {
     return false;
   }
   if (!userRole || (expectedRoles && !expectedRoles.includes(userRole))) {
-    toast.error("UnAuthorized Access");
+    // toast.error("UnAuthorized Access");
 
     if (userRole === 'Employee') {
       router.navigate(['dashboard/dashboardpage']);

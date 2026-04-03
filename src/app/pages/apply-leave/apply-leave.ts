@@ -175,6 +175,7 @@ export class ApplyLeave {
     if (type?.includes('Sick')) return 'sick';
     if (type?.includes('Emergency')) return 'emergency';
     if (type?.includes('Comp')) return 'compoff';
+    if (type?.includes('Unpaid')) return 'unpaid';
     return 'annual';
   }
 }

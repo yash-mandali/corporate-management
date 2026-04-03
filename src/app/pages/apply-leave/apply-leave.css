@@ -322,6 +322,10 @@ tbody td {
     color: #1e8449;
 }
 
+.type-tag.unpaid {
+    background: rgba(179, 179, 179, 0.15);
+    color: #616161;
+}
 /* ── STATUS BADGES ── */
 .status-badge {
     display: inline-flex;
@@ -367,6 +371,11 @@ tbody td {
 .status-badge.withdrawn {
     background: rgba(120, 120, 120, 0.12);
     color: #555;
+}
+
+.status-badge.expired {
+    background: rgba(52, 152, 219, 0.12);
+    color: #21618c;
 }
 
 /* ── SIDEBAR OVERLAY (mobile) ── */

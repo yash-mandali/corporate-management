@@ -32,7 +32,7 @@ export class AttendancePage {
 
   // ── Pagination ──
   currentPage = signal(1);
-  readonly pageSize = 5;
+  readonly pageSize = 10;
 
   get monthLabel(): string {
     return new Date(this.viewYear(), this.viewMonth()).toLocaleDateString('en-IN', {

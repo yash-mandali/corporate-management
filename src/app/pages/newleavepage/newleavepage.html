@@ -3,7 +3,7 @@
     <!-- Page Header -->
     <div class="page-header">
         <div class="header-left">
-           <app-backbtn></app-backbtn>
+            <app-backbtn></app-backbtn>
             <div class="header-title">
                 <h2>Apply Leave</h2>
                 <p>Submit your leave request</p>
@@ -31,7 +31,8 @@
                             Request Type <span class="required">*</span>
                         </label>
                         <div class="select-wrap">
-                            <select formControlName="requestType" class="form-control">
+                            <select formControlName="requestType" class="form-control"
+                                [class.input-error]="leaveForm.get('requestType')?.invalid && leaveForm.get('requestType')?.touched">
                                 <option value="">Select Leave Type</option>
                                 <option>Annual Leave</option>
                                 <option>Sick Leave</option>
@@ -41,6 +42,9 @@
                             </select>
                             <span class="select-arrow">&#8964;</span>
                         </div>
+                        @if (leaveForm.get('requestType')?.invalid && leaveForm.get('requestType')?.touched) {
+                        <span class="field-error">Please select a leave type.</span>
+                        }
                     </div>
 
                     <!-- Session -->
@@ -49,13 +53,17 @@
                             Session <span class="required">*</span>
                         </label>
                         <div class="select-wrap">
-                            <select formControlName="session" class="form-control">
+                            <select formControlName="session" class="form-control"
+                                [class.input-error]="leaveForm.get('session')?.invalid && leaveForm.get('session')?.touched">
                                 <option value="">Select Session</option>
                                 <option>Full Day</option>
                                 <option>Half Day</option>
                             </select>
                             <span class="select-arrow">&#8964;</span>
                         </div>
+                        @if (leaveForm.get('session')?.invalid && leaveForm.get('session')?.touched) {
+                        <span class="field-error">Please select a session.</span>
+                        }
                     </div>
 
                     <!-- From Date -->
@@ -63,7 +71,12 @@
                         <label class="form-label">
                             From Date <span class="required">*</span>
                         </label>
-                        <input type="date" formControlName="fromDate" class="form-control"/>
+                        <input type="date" formControlName="fromDate" class="form-control"
+                            [class.input-error]="leaveForm.get('fromDate')?.invalid && leaveForm.get('fromDate')?.touched"
+                            [min]="minDate" />
+                        @if (fromDateError()) {
+                        <span class="field-error">{{ fromDateError() }}</span>
+                        }
                     </div>
 
                     <!-- To Date -->
@@ -71,7 +84,18 @@
                         <label class="form-label">
                             To Date <span class="required">*</span>
                         </label>
-                        <input type="date" formControlName="toDate" class="form-control" />
+                        <input type="date" formControlName="toDate" class="form-control"
+                            [class.input-error]="leaveForm.get('toDate')?.invalid && leaveForm.get('toDate')?.touched"
+                            [min]="toDateMin" [max]="toDateMax" [attr.disabled]="toDateDisabled ? true : null" />
+                        @if (toDateDisabled) {
+                        <span class="field-hint">Select a From Date first.</span>
+                        }
+                        @if (!toDateDisabled && leaveForm.get('session')?.value === 'Half Day') {
+                        <span class="field-hint">Half day: same date as From Date.</span>
+                        }
+                        @if (toDateError()) {
+                        <span class="field-error">{{ toDateError() }}</span>
+                        }
                     </div>
 
                     <!-- Handover To -->
@@ -89,7 +113,11 @@
                         Reason <span class="required">*</span>
                     </label>
                     <textarea rows="4" formControlName="reason" class="form-control textarea"
+                        [class.input-error]="leaveForm.get('reason')?.invalid && leaveForm.get('reason')?.touched"
                         placeholder="Describe the reason for your leave..."></textarea>
+                    @if (leaveForm.get('reason')?.invalid && leaveForm.get('reason')?.touched) {
+                    <span class="field-error">Reason is required.</span>
+                    }
                 </div>
 
             </div>
@@ -100,7 +128,7 @@
                     &#10226; Reset
                 </button>
                 <button type="submit" class="btn btn-apply">
-                     Apply Leave
+                    Apply Leave
                 </button>
             </div>
 

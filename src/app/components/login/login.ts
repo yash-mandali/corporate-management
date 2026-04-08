@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { Router, RouterLink } from '@angular/router';
 import { UserService } from '../../services/user-service/user-service';
 import { Authservice } from '../../services/Auth-service/authservice';
+import { LeaveService } from '../../services/leave-service/leave-service';
 
 @Component({
   selector: 'app-login',
@@ -21,6 +22,7 @@ export class Login {
     private fb: FormBuilder,
     private userservice: UserService,
     private authService: Authservice,
+    private leaveService: LeaveService,
     private router: Router
   ) { }
 
@@ -61,6 +63,8 @@ export class Login {
           }
           this.loginForm.reset();
         }, 800);
+
+        this.leaveService.InitillizeLeaveBalanceApi().subscribe();
       },
       error: () => {
         this.errorMessage.set('Invalid email or password. Please try again.');

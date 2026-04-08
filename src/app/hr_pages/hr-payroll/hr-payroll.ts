@@ -1,12 +1,17 @@
 import { Component, computed, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { UserService } from '../../services/user-service/user-service';
 import { PayrollService } from '../../services/payroll-service/payrollservice';
 import { ToastService } from '../../services/toast-service/toast';
+import { LeaveService } from '../../services/leave-service/leave-service';
+import { AttendanceService } from '../../services/attendance-service';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-hr-payroll',
-  imports: [FormsModule],
+  imports: [FormsModule,DatePipe],
   templateUrl: './hr-payroll.html',
   styleUrl: './hr-payroll.css',
 })
@@ -25,9 +30,10 @@ export class HrPayroll implements OnInit {
   generatingAll = signal(false);
   actionLoading = signal<any>(null);
 
-  // ── Month navigation (signals for reactivity) ──
-  currentYear = signal(new Date().getFullYear());
-  currentMonth = signal(new Date().getMonth() + 1); // 1-indexed
+  // ── Month navigation ──
+  // Default: previous month (payroll is generated for last month)
+  currentYear = signal(this.getDefaultYear());
+  currentMonth = signal(this.getDefaultMonth());
 
   // ── Tabs ──
   activeTab = signal<'payroll' | 'slips' | 'settings'>('payroll');
@@ -47,6 +53,12 @@ export class HrPayroll implements OnInit {
   taxModal = signal<any | null>(null);
   taxAmount = signal<number>(0);
   deleteConfirmModal = signal<{ type: 'payroll' | 'salary'; row: any } | null>(null);
+  payrollDetailModal = signal<any | null>(null);
+  markPaidConfirmModal = signal<any | null>(null);
+
+  // ── Generate confirmation modals ──
+  generateConfirmModal = signal<any | null>(null);  // single employee row
+  generateAllConfirmModal = signal(false);           // generate all
 
   readonly todayStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -55,15 +67,59 @@ export class HrPayroll implements OnInit {
     '#8e44ad', '#d68910', '#c0392b', '#16a085', '#2c3e50', '#1e8449',
   ];
 
+  // ── Default to PREVIOUS month ──
+  private getDefaultMonth(): number {
+    const now = new Date();
+    return now.getMonth() === 0 ? 12 : now.getMonth(); // getMonth() is 0-indexed, so getMonth() gives previous month
+  }
+
+  private getDefaultYear(): number {
+    const now = new Date();
+    return now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+  }
+
+  // ── Payroll lock logic ──
+  // HR can generate payroll only in the first 10 days of the following month.
+  // Example: March payroll can be generated from Apr 1 to Apr 10.
+  // After Apr 10, it's locked.
+  isPayrollLocked = computed(() => {
+    const now = new Date();
+    const today = now.getDate();
+    const currentRealMonth = now.getMonth() + 1; // 1-indexed
+    const currentRealYear = now.getFullYear();
+
+    // The "allowed generation month" for the selected payroll month is the next month
+    const allowedMonth = this.currentMonth() === 12 ? 1 : this.currentMonth() + 1;
+    const allowedYear = this.currentMonth() === 12 ? this.currentYear() + 1 : this.currentYear();
+
+    // If we are in the allowed month and within first 10 days → not locked
+    if (currentRealYear === allowedYear && currentRealMonth === allowedMonth && today <= 10) {
+      return false;
+    }
+    // If the generation window hasn't opened yet (allowed month is in the future) → not locked but warn
+    if (
+      allowedYear > currentRealYear ||
+      (allowedYear === currentRealYear && allowedMonth > currentRealMonth)
+    ) {
+      return 'future'; // month not yet finished
+    }
+    // Otherwise locked
+    return true;
+  });
+
   // ── Computed labels ──
   currentMonthLabel = computed(() =>
     new Date(this.currentYear(), this.currentMonth() - 1, 1)
       .toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
   );
 
-  isCurrentMonth = computed(() => {
+  // Navigation: cannot go beyond previous month (payroll for current month not allowed)
+  isPrevMonthDisabled = computed(() => false); // can always go further back
+  isNextMonthDisabled = computed(() => {
     const now = new Date();
-    return this.currentYear() === now.getFullYear() && this.currentMonth() === (now.getMonth() + 1);
+    const prevMonth = now.getMonth() === 0 ? 12 : now.getMonth();
+    const prevYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+    return this.currentYear() === prevYear && this.currentMonth() === prevMonth;
   });
 
   // ── Maps ──
@@ -85,18 +141,35 @@ export class HrPayroll implements OnInit {
       const struct = this.salaryStructMap().get(emp.id);
       const payroll = this.payrollMap().get(emp.id);
 
-      const basicSalary = struct?.basicSalary ?? 0;
+      const basicSalary = payroll?.basicSalary ?? struct?.basicSalary ?? 0;
       const hra = struct?.hra ?? 0;
-      const pf = struct?.pf ?? 0;
+      const pf = payroll?.pf ?? struct?.pf ?? 0;
       const otherAllowance = struct?.otherAllowance ?? 0;
-      const allowances = hra + otherAllowance;
+
+      // Use allowances from payroll API response directly
+      const allowances = payroll?.allowances ?? (hra + otherAllowance);
+      const gross = payroll?.grossSalary ?? (basicSalary + allowances);
+      const taxDeduction = payroll?.taxDeduction ?? 0;
+      const leaveDeduction = payroll?.leaveDeduction ?? 0;
+      const totalDeductions = payroll?.totalDeductions ?? (pf + taxDeduction + leaveDeduction);
+      const netSalary = payroll?.netSalary ?? (gross - totalDeductions);
+      const unpaidLeaveDays = payroll?.unpaidLeaveDays ?? 0;
 
       const hasPayroll = !!payroll;
-      const taxDeduction = payroll?.taxDeduction ?? 0;
-      const otherDeductions = payroll?.otherDeductions ?? (hasPayroll ? 0 : pf);
-      const netSalary = payroll?.netSalary ?? (basicSalary + allowances - taxDeduction - pf);
-      const gross = basicSalary + allowances;
-      const status = payroll?.status ?? (struct ? 'Ready' : 'No Salary');
+
+      // Status logic with lock
+      let status: string;
+      if (payroll?.status === 'Paid') {
+        status = 'Paid';
+      } else if (payroll?.status) {
+        status = payroll.status;
+      } else if (this.isPayrollLocked() === true) {
+        status = 'Locked';
+      } else if (struct) {
+        status = 'Ready';
+      } else {
+        status = 'No Salary';
+      }
 
       return {
         empId: emp.id,
@@ -106,10 +179,22 @@ export class HrPayroll implements OnInit {
         roleName: emp.roleName,
         hasSalaryStruct: !!struct,
         hasPayroll,
-        basicSalary, hra, pf, otherAllowance, allowances,
-        gross, taxDeduction, otherDeductions, netSalary,
+        basicSalary,
+        hra,
+        pf,
+        otherAllowance,
+        allowances,
+        gross,
+        taxDeduction,
+        leaveDeduction,
+        totalDeductions,
+        unpaidLeaveDays,
+        netSalary,
         status,
         generatedDate: payroll?.generatedDate ?? null,
+        paidDate: payroll?.paidDate ?? null,
+        leaveInfo: null,
+        performanceInfo: payroll?.performanceInfo ?? null,
       };
     });
   });
@@ -125,6 +210,7 @@ export class HrPayroll implements OnInit {
 
   // ── Stats ──
   generatedCount = computed(() => this.allRows().filter(r => r.hasPayroll).length);
+  paidCount = computed(() => this.allRows().filter(r => r.status === 'Paid').length);
   totalGross = computed(() => this.allRows().filter(r => r.hasPayroll).reduce((s, r) => s + r.gross, 0));
   totalNet = computed(() => this.allRows().filter(r => r.hasPayroll).reduce((s, r) => s + r.netSalary, 0));
   withSalaryCount = computed(() => this.allRows().filter(r => r.hasSalaryStruct).length);
@@ -144,6 +230,8 @@ export class HrPayroll implements OnInit {
   constructor(
     private userService: UserService,
     private payrollService: PayrollService,
+    private leaveService: LeaveService,
+    private attendanceService: AttendanceService,
     private toast: ToastService
   ) { }
 
@@ -184,7 +272,7 @@ export class HrPayroll implements OnInit {
     });
   }
 
-  // ── Month navigation ──
+  // ── Month navigation (max = previous month) ──
   prevMonth() {
     if (this.currentMonth() === 1) {
       this.currentMonth.set(12);
@@ -196,7 +284,7 @@ export class HrPayroll implements OnInit {
   }
 
   nextMonth() {
-    if (this.isCurrentMonth()) return;
+    if (this.isNextMonthDisabled()) return;
     if (this.currentMonth() === 12) {
       this.currentMonth.set(1);
       this.currentYear.update(y => y + 1);
@@ -206,8 +294,91 @@ export class HrPayroll implements OnInit {
     this.loadMonthPayroll();
   }
 
+  // ── Lock banner label ──
+  getLockStatusLabel(): string {
+    const locked = this.isPayrollLocked();
+    if (locked === true) {
+      const allowedMonth = this.currentMonth() === 12 ? 1 : this.currentMonth() + 1;
+      const allowedYear = this.currentMonth() === 12 ? this.currentYear() + 1 : this.currentYear();
+      const monthName = new Date(allowedYear, allowedMonth - 1, 1)
+        .toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+      return `Payroll generation window closed. ${this.currentMonthLabel()} payroll could only be generated in first 10 days of ${monthName}.`;
+    }
+    if (locked === 'future') {
+      const allowedMonth = this.currentMonth() === 12 ? 1 : this.currentMonth() + 1;
+      const allowedYear = this.currentMonth() === 12 ? this.currentYear() + 1 : this.currentYear();
+      const monthName = new Date(allowedYear, allowedMonth - 1, 1)
+        .toLocaleDateString('en-IN', { month: 'long' });
+      return `${this.currentMonthLabel()} is not yet complete. Payroll can be generated from 1–10 ${monthName}.`;
+    }
+    const allowedMonth = this.currentMonth() === 12 ? 1 : this.currentMonth() + 1;
+    const allowedYear = this.currentMonth() === 12 ? this.currentYear() + 1 : this.currentYear();
+    const now = new Date();
+    const daysLeft = 10 - now.getDate();
+    const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
+    // console.log(currentMonthName);
+    return `Generation window open. ${daysLeft} day(s) remaining (closes on 10th ${currentMonthName}).`;
+  }
+
+  getLockClass(): string {
+    const locked = this.isPayrollLocked();
+    if (locked === true) return 'lock-closed';
+    if (locked === 'future') return 'lock-future';
+    return 'lock-open';
+  }
+
+  canGenerate(): boolean {
+    return this.isPayrollLocked() === false;
+  }
+
+  // ── Generate single: show confirm first ──
+  openGenerateConfirm(row: any) {
+    if (!this.canGenerate()) {
+      this.toast.error('Payroll generation window is closed for this month.');
+      return;
+    }
+    this.generateConfirmModal.set(row);
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeGenerateConfirm() {
+    this.generateConfirmModal.set(null);
+    document.body.style.overflow = '';
+  }
+
+  confirmGenerateSingle() {
+    const row = this.generateConfirmModal();
+    if (!row) return;
+    this.closeGenerateConfirm();
+    this.openTaxModal(row);
+  }
+
+  // ── Generate all: show confirm first ──
+  openGenerateAllConfirm() {
+    if (!this.canGenerate()) {
+      this.toast.error('Payroll generation window is closed for this month.');
+      return;
+    }
+    this.generateAllConfirmModal.set(true);
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeGenerateAllConfirm() {
+    this.generateAllConfirmModal.set(false);
+    document.body.style.overflow = '';
+  }
+
+  confirmGenerateAll() {
+    this.closeGenerateAllConfirm();
+    this.executeGenerateAll();
+  }
+
   // ── Tax modal ──
   openTaxModal(row: any) {
+    if (!this.canGenerate()) {
+      this.toast.error('Payroll generation window is closed for this month.');
+      return;
+    }
     this.taxAmount.set(0);
     this.taxModal.set(row);
     document.body.style.overflow = 'hidden';
@@ -222,7 +393,6 @@ export class HrPayroll implements OnInit {
   confirmGenerate() {
     const row = this.taxModal();
     if (!row) return;
-    // Capture tax amount BEFORE closing modal (closing resets it)
     const tax = this.taxAmount();
     this.closeTaxModal();
     this.generatePayroll(row, tax);
@@ -250,6 +420,10 @@ export class HrPayroll implements OnInit {
 
   // ── Generate all ──
   generateAll() {
+    this.openGenerateAllConfirm();
+  }
+
+  private executeGenerateAll() {
     this.generatingAll.set(true);
     this.payrollService.generateAllPayroll(this.currentMonth(), this.currentYear()).subscribe({
       next: () => {
@@ -260,6 +434,115 @@ export class HrPayroll implements OnInit {
       error: err => {
         this.toast.error(err?.error?.message || 'Failed to generate all payrolls.');
         this.generatingAll.set(false);
+      }
+    });
+  }
+
+  // ── Payroll Detail Modal — fetches leave + attendance data ──
+  openPayrollDetail(row: any) {
+    this.payrollDetailModal.set(row);
+    document.body.style.overflow = 'hidden';
+
+    // Fetch all three APIs in parallel
+    forkJoin({
+      myLeaves: this.leaveService.getMyleaveList(row.empId).pipe(catchError(() => of([]))),
+      leaveBalance: this.leaveService.getUserLeaveBalance(row.empId).pipe(catchError(() => of([]))),
+      attendance: this.attendanceService.getByUID(row.empId).pipe(catchError(() => of([]))),
+    }).subscribe(({ myLeaves, leaveBalance, attendance }) => {
+      const leaveList: any[] = Array.isArray(myLeaves) ? myLeaves : (myLeaves as any)?.data ?? [];
+      const balanceList: any[] = Array.isArray(leaveBalance) ? leaveBalance : (leaveBalance as any)?.data ?? [];
+      const attendanceList: any[] = Array.isArray(attendance) ? attendance : (attendance as any)?.data ?? [];
+
+      const payrollYear = this.currentYear();
+      const payrollMonth = this.currentMonth();
+
+      // ── Leave summary — filter by payroll month ──
+
+      // Total leaves taken = count of leave requests that fall in the payroll month
+      const monthLeaves = leaveList.filter((l: any) => {
+        const from = new Date(l.fromDate);
+        return from.getFullYear() === payrollYear && (from.getMonth() + 1) === payrollMonth;
+      });
+      const totalLeaves = monthLeaves.length;
+
+      // Approved leaves (used) in payroll month = sum of totalDays for Approved leaves in that month
+      const approvedLeaves = monthLeaves
+        .filter((l: any) => l.status === 'Approved')
+        .reduce((s: number, l: any) => s + (l.totalDays ?? 0), 0);
+
+      // Remaining leave balance = sum of remainingLeaveBalance (yearly, from balance API)
+      const leaveBalance2 = balanceList.reduce((s: number, l: any) => s + (l.remainingLeaveBalance ?? 0), 0);
+
+      // Unpaid leaves = from payroll API response (already in row)
+      const unpaidLeaves = row.unpaidLeaveDays ?? 0;
+
+      const monthAttendance = attendanceList.filter((a: any) => {
+        const d = new Date(a.date);
+        return d.getFullYear() === payrollYear && (d.getMonth() + 1) === payrollMonth;
+      });
+
+      const daysPresent = monthAttendance.length;
+
+      // Working days = total days in month minus Saturdays & Sundays
+      const totalDaysInMonth = new Date(payrollYear, payrollMonth, 0).getDate();
+      let weekendCount = 0;
+      for (let d = 1; d <= totalDaysInMonth; d++) {
+        const day = new Date(payrollYear, payrollMonth - 1, d).getDay();
+        if (day === 0 || day === 6) weekendCount++;
+      }
+      const workingDays = totalDaysInMonth - weekendCount;
+      const daysAbsent = Math.max(0, workingDays - daysPresent);
+
+      this.payrollDetailModal.update(r => r ? {
+        ...r,
+        leaveInfo: {
+          totalLeaves,
+          approvedLeaves,
+          leaveBalance: leaveBalance2,
+          unpaidLeaves,
+          daysPresent,
+          daysAbsent,
+          workingDays,
+          leaveDeduction: row.leaveDeduction ?? 0,
+        }
+      } : r);
+    });
+  }
+
+  closePayrollDetail() {
+    this.payrollDetailModal.set(null);
+    document.body.style.overflow = '';
+  }
+
+  // ── Mark as Paid ──
+  openMarkPaidConfirm(row: any) {
+    this.markPaidConfirmModal.set(row);
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeMarkPaidConfirm() {
+    this.markPaidConfirmModal.set(null);
+    document.body.style.overflow = '';
+  }
+
+  confirmMarkPaid() {
+    const row = this.markPaidConfirmModal();
+    if (!row) return;
+    this.closeMarkPaidConfirm();
+    this.executeMarkPaid(row);
+  }
+
+  private executeMarkPaid(row: any) {
+    this.actionLoading.set(row.empId);
+    this.payrollService.markPayrollAsPaid(row.payrollId).subscribe({
+      next: () => {
+        this.loadMonthPayroll();
+        this.actionLoading.set(null);
+        this.toast.success(`Payroll marked as paid for ${row.userName}.`);
+      },
+      error: err => {
+        this.toast.error(err?.error?.message || 'Failed to mark as paid.');
+        this.actionLoading.set(null);
       }
     });
   }
@@ -288,6 +571,10 @@ export class HrPayroll implements OnInit {
 
   deletePayroll(row: any) {
     if (!row.payrollId) return;
+    if (row.status === 'Paid') {
+      this.toast.error('Paid payrolls cannot be deleted.');
+      return;
+    }
     this.openDeleteConfirm('payroll', row);
   }
 
@@ -313,7 +600,6 @@ export class HrPayroll implements OnInit {
 
   enableEditMode(empId: number) {
     const struct = this.salaryStructMap().get(empId);
-    // Pre-fill edits from existing struct when entering edit mode
     this.salaryEdits.update(e => ({
       ...e,
       [empId]: {
@@ -419,12 +705,13 @@ export class HrPayroll implements OnInit {
       ['Employee ID', `EMP-${row.empId}`],
       ['Role', row.roleName],
       ['Pay Period', this.currentMonthLabel()],
-      ['Generated', this.todayStr], [],
+      ['Generated', this.todayStr],
+      ['Status', row.status], [],
       ['EARNINGS', '', 'DEDUCTIONS', ''],
       ['Basic Salary', row.basicSalary, 'PF (12%)', row.pf],
-      ['HRA (40%)', row.hra, 'Tax Deduction', row.taxDeduction],
-      ['Other Allowance', row.otherAllowance, 'Other Deductions', row.otherDeductions],
-      ['Total Earnings', row.gross, 'Total Deductions', row.taxDeduction + row.otherDeductions],
+      ['Allowances', row.allowances, 'Tax Deduction', row.taxDeduction],
+      ['', '', 'Leave Deduction', row.leaveDeduction],
+      ['Total Earnings', row.gross, 'Total Deductions', row.totalDeductions],
       [], ['NET SALARY', row.netSalary],
     ];
     const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
@@ -435,11 +722,11 @@ export class HrPayroll implements OnInit {
   }
 
   exportPayrollCSV() {
-    const headers = ['Employee', 'ID', 'Role', 'Basic', 'HRA', 'Other Allow.', 'Allowances', 'PF', 'Tax Ded.', 'Other Ded.', 'Gross', 'Net Salary', 'Status'];
+    const headers = ['Employee', 'ID', 'Role', 'Basic', 'Allowances', 'Gross', 'PF', 'Tax Ded.', 'Leave Ded.', 'Total Ded.', 'Net Salary', 'Status'];
     const rows = [headers, ...this.filteredRows().map(r => [
       r.userName, `EMP-${r.empId}`, r.roleName,
-      r.basicSalary, r.hra, r.otherAllowance, r.allowances,
-      r.pf, r.taxDeduction, r.otherDeductions, r.gross, r.netSalary, r.status
+      r.basicSalary, r.allowances, r.gross,
+      r.pf, r.taxDeduction, r.leaveDeduction, r.totalDeductions, r.netSalary, r.status
     ])];
     const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
     const a = document.createElement('a');
@@ -462,6 +749,8 @@ export class HrPayroll implements OnInit {
 
   formatDate(ds: string): string {
     if (!ds) return '—';
-    return new Date(ds).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const d = new Date(ds);
+    if (isNaN(d.getTime()) || d.getFullYear() < 2000) return '—';
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 }

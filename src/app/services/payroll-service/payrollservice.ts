@@ -59,4 +59,10 @@ export class PayrollService {
   deletePayroll(payrollId: number) {
     return this.http.delete<any>(`${this.api}/deletePayroll?PayrollId=${payrollId}`);
   }
+
+  // -----------------dummy api service----------------
+  markPayrollAsPaid(payrollId: number) {
+    return this.http.post<any>(`${this.api}/markPayrollAsPaid?payrollId=${payrollId}`, {});
+  }
+  
 }

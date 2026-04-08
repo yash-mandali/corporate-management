@@ -5,6 +5,7 @@ import { Authservice } from '../../services/Auth-service/authservice';
 import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { ToastService } from '../../services/toast-service/toast';
+import { SlicePipe } from '@angular/common';
 
 // Six statuses from backend
 // pending | approved | managerapproved | rejected | managerrejected | withdrawn
@@ -15,7 +16,7 @@ const REJECTED_SET = new Set(['rejected', 'managerrejected']);
 
 @Component({
   selector: 'app-apply-leave',
-  imports: [RouterLink, ReactiveFormsModule],
+  imports: [RouterLink, ReactiveFormsModule, SlicePipe],
   templateUrl: './apply-leave.html',
   styleUrl: './apply-leave.css',
 })

@@ -24,7 +24,9 @@ export class LeaveService {
   HrApproveleaveApi = `${this.apiurl}/Leave/HrApproveLeave`;  //HR
   managerRejectleaveApi = `${this.apiurl}/Leave/ManagerRejectLeave`;  //manager
   HrRejectleaveApi = `${this.apiurl}/Leave/HrRejectLeave`;  //HR
-  AutoRejectLeaveApi = `${this.apiurl}/Leave/AutoRejectLeave`;  //manager
+  AutoRejectLeaveApi = `${this.apiurl}/Leave/AutoRejectLeave`;  //auto
+  InitilizeApi = `${this.apiurl}/Leave/initializeUsersLeaveBalance`;  //auto
+  getUserLeaveBalanceApi = `${this.apiurl}/Leave/getUserLeaveBalance`;  //All
 
   // /Hr/GetManagerApprovedLeaves
 
@@ -58,7 +60,6 @@ export class LeaveService {
     return this.http.get<any[]>(`${this.getManagerTeamPendingLeaves}?managerId=${managerId}`, {});
   }
 
-
   getMyleaveList(Id: number) {
     return this.http.get<any[]>(this.getmyleavesApi, {
       params: { Id: Id.toString() }
@@ -88,6 +89,14 @@ export class LeaveService {
 
   autorejectLeave() {
     return this.http.put<any>(this.AutoRejectLeaveApi, {});
+  }
+
+  InitillizeLeaveBalanceApi() {
+    return this.http.post<any>(this.InitilizeApi, {});
+  }
+
+  getUserLeaveBalance(userId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.getUserLeaveBalanceApi}?userId=${userId}`);
   }
   
 }

@@ -152,7 +152,7 @@ export class HrLeavePage implements OnInit {
         this.toast.success('Leave approved successfully.');
       },
       error: err => {
-        this.toast.error(err?.error?.message ?? 'Failed to approve leave.');
+        this.toast.error(err?.error?.error ?? 'Failed to approve leave.');
         this.actionLoading.set(null);
       }
     });

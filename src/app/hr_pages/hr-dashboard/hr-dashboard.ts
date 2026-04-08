@@ -154,6 +154,7 @@ export class HrDashboard implements OnInit {
     this.loadEmployees();
     this.loadAttendance();
     this.loadManagerApprovedLeaves();
+    this.leaveService.autorejectLeave().subscribe();
   }
 
   setGreeting() {

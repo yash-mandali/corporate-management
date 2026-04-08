@@ -106,7 +106,7 @@
           (click)="setFilter('approved')">
           Approved <span class="filter-count">{{ approvedleaves() }}</span>
         </button>
-        
+
         <button class="filter-tab rejected" [class.active]="activeFilter() === 'rejected'"
           (click)="setFilter('rejected')">
           Rejected <span class="filter-count">{{ rejectedleaves() }}</span>
@@ -121,7 +121,7 @@
       <div class="table-scroll">
         <table>
           <thead>
-            <tr>          
+            <tr>
               <th>Request Type</th>
               <th>From</th>
               <th>To</th>
@@ -135,8 +135,8 @@
             </tr>
           </thead>
           <tbody>
-            @for (r of pagedLeaves(); track r.leaveRequestId + r.fromDate) {          
-            <tr> 
+            @for (r of pagedLeaves(); track r.leaveRequestId + r.fromDate) {
+            <tr>
               <td>
                 <span class="type-tag {{ typeClass(r.requestType) }}">
                   {{ r.requestType.split(' ')[0] }}
@@ -147,7 +147,7 @@
               <td>{{ r.totalDays }}</td>
               <td>{{ r.session }}</td>
               <td>{{ r.handoverTo || '—' }}</td>
-              <td>{{ r.reason || '—' }}</td>
+              <td>{{ r.reason.length > 25 ? (r.reason | slice:0:25)+ '...' : r.reason || '—' }}</td>
               <td>{{ formatDate(r.appliedOn) }}</td>
               <td>
                 <span class="status-badge {{ r.status.toLowerCase() }}">
@@ -157,11 +157,11 @@
               <td>
                 @if (r.status.toLowerCase() == 'pending') {
 
-                  <div class="action-btns">
-                    <button class="action-btn edit-btn" (click)="editLeave(r)" title="Edit Leave"
-                      [disabled]="r.status.toLowerCase() !== 'pending'">
-                      <i class="fas fa-pen"></i>
-                    </button>
+                <div class="action-btns">
+                  <button class="action-btn edit-btn" (click)="editLeave(r)" title="Edit Leave"
+                    [disabled]="r.status.toLowerCase() !== 'pending'">
+                    <i class="fas fa-pen"></i>
+                  </button>
                   <button class="action-btn delete-btn" (click)="withdrawLeave(r.leaveRequestId)" title="Withdraw Leave"
                     [disabled]="deletingId() === r.leaveRequestId">
                     @if (deletingId() === r.leaveRequestId) {
@@ -170,7 +170,7 @@
                     <i class="fas fa-trash"></i>
                     }
                   </button>
-                  </div>
+                </div>
                 }
               </td>
             </tr>
@@ -187,7 +187,7 @@
       @if (totalPages() >= 1) {
       <div class="pagination">
         <span class="page-info">
-          Page {{ currentPage()}} of {{ totalPages() }} 
+          Page {{ currentPage()}} of {{ totalPages() }}
         </span>
         <div class="page-controls">
           <button class="page-btn nav-btn" (click)="prevPage()" [disabled]="currentPage() === 1" title="Previous">

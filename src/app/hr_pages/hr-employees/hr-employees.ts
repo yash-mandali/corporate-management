@@ -137,7 +137,7 @@ export class HrEmployeesPage implements OnInit {
     const late = att.filter(r => r.status === 'Late').length;
     return Math.round(((present + late) / att.length) * 100);
   });
-  detailPresentDays = computed(() => this.detailMonthAtt().filter(r => r.status === 'Present').length);
+  detailPresentDays = computed(() => this.detailMonthAtt().filter(r => r.status === 'Present' || r.status === 'Late').length);
   detailLateDays = computed(() => this.detailMonthAtt().filter(r => r.status === 'Late').length);
   detailAbsentDays = computed(() => this.detailMonthAtt().filter(r => r.status === 'Absent').length);
 

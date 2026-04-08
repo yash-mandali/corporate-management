@@ -108,7 +108,7 @@ export class HrAttendancePage implements OnInit {
 
   // ── Stats ──
   totalEmployees = computed(() => this.allUsers().length);
-  presentCount = computed(() => this.dayRecords().filter(r => r.status === 'Present').length);
+  presentCount = computed(() => this.dayRecords().filter(r => r.status === 'Present' || r.status === 'Late').length);
   absentCount = computed(() => this.dayRecords().filter(r => r.status === 'Absent').length);
   lateCount = computed(() => this.dayRecords().filter(r => r.status === 'Late').length);
 

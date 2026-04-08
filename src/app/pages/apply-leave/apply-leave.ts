@@ -5,7 +5,7 @@ import { Authservice } from '../../services/Auth-service/authservice';
 import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { ToastService } from '../../services/toast-service/toast';
-import { SlicePipe } from '@angular/common';
+import { SlicePipe, NgForOf } from '@angular/common';
 
 // Six statuses from backend
 // pending | approved | managerapproved | rejected | managerrejected | withdrawn
@@ -16,7 +16,7 @@ const REJECTED_SET = new Set(['rejected', 'managerrejected']);
 
 @Component({
   selector: 'app-apply-leave',
-  imports: [RouterLink, ReactiveFormsModule, SlicePipe],
+  imports: [RouterLink, ReactiveFormsModule, SlicePipe, NgForOf],
   templateUrl: './apply-leave.html',
   styleUrl: './apply-leave.css',
 })
@@ -26,6 +26,7 @@ export class ApplyLeave {
   myLeaves = signal<any[]>([]);
   deletingId = signal<number | null>(null);
   isLoading = false;
+  leaveBalances = signal<any[]>([]);
 
   // ── Edit Modal ──
   editModalOpen = signal(false);
@@ -101,8 +102,19 @@ export class ApplyLeave {
       reason: ['', Validators.required],
       handoverTo: [''],
     });
+    this.loadLeaveBalance();
   }
 
+  loadLeaveBalance() {
+    this.leaveService.getUserLeaveBalance(this.Id()).subscribe({
+      next: (res) => {
+        this.leaveBalances.set(Array.isArray(res) ? res : res ? [res] : []);
+      },
+      error: (err) => {
+        console.error(err);
+      }
+    });
+  }
   loadMyLeaves() {
     this.isLoading = true;
     this.leaveService.getMyleaveList(this.Id()).subscribe({
@@ -169,6 +181,20 @@ export class ApplyLeave {
 
   formatDate(d: string): string {
     return d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+  }
+
+  getLeaveTypeName(typeId: number): string {
+    switch (typeId) {
+      case 1: return 'Annual Leave';
+      case 2: return 'Sick Leave';
+      case 3: return 'Comp Off';
+      case 4: return 'Emergency';
+      default: return 'Leave';
+    }
+  }
+
+  getPercentage(used: number, total: number): number {
+    return (used / total) * 100;
   }
 
   typeClass(type: string): string {

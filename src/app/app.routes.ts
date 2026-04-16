@@ -23,6 +23,7 @@ import { HrEmployeesPage } from './hr_pages/hr-employees/hr-employees';
 import { HrLeavePage } from './hr_pages/hr-leave/hr-leave';
 import { HrAttendancePage } from './hr_pages/hr-attendance/hr-attendance';
 import { HrPayroll } from './hr_pages/hr-payroll/hr-payroll';
+import { HrRecruitment } from './hr_pages/hr_recruitment/hr-recruitment/hr-recruitment';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -142,6 +143,12 @@ export const routes: Routes = [
             {
                 path: 'hrpayroll',
                 component: HrPayroll,
+                canActivate: [authGuard, roleGuard],
+                data: { roles: ['HR'] }
+            },
+            {
+                path: 'hrRecruitment',
+                component: HrRecruitment,
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['HR'] }
             },

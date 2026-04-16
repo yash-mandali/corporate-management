@@ -3,7 +3,6 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { UserService } from '../../services/user-service/user-service';
 import { AttendanceService } from '../../services/attendance-service';
 import { LeaveService } from '../../services/leave-service/leave-service';
-import { ToastrService } from 'ngx-toastr';
 import { ToastService } from '../../services/toast-service/toast';
 
 const APPROVED_SET = new Set(['approved', 'managerapproved']);
@@ -12,7 +11,7 @@ const REJECTED_SET = new Set(['rejected', 'managerrejected']);
 const DEPARTMENTS = [
   'Human Resources (HR)', 'IT / Engineering', 'Software Development',
   'Quality Assurance (QA)', 'DevOps', 'UI/UX Design', 'Sales',
-  'Marketing', 'Customer Support', 'Finance & Accounts', 'Administration',
+  'Marketing', 'Customer Support', 'Finance & Accounts', 'Administrator',
 ];
 
 @Component({

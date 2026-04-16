@@ -88,5 +88,18 @@ export class UserService {
     return this.http.post(`${this.AssignManagerApi}?userId=${employeeId}&managerId=${managerId}`, {});
   }
 
+  // ---------------notifications relaated service----------
+
+  // getNotifications(userId: number) {
+  //   return this.http.get<any[]>(`/api/notifications/${userId}`);
+  // }
+
+  // markAsRead(notificationId: number, userId: number) {
+  //   return this.http.post(`/api/notification/read`, {
+  //     notificationId,
+  //     userId
+  //   });
+  // }
+
   // ?userId = 12 & managerId=20
 }

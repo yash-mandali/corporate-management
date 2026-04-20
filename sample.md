@@ -13,17 +13,19 @@ solve this issues:
 -in salary setup section casually value changing keep disabled, user can see only, on click of update make it writable/editable
 -Build a working implementation using my backend APIs in such a way that the code looks professional and optimized.
 
-
 ========================
+
 me aa table me leave type ni limit api che 
 ex, annaul leave ni limit 112 days che have mare evu banavu che ke jo user leave request karsee etle eni entry leave request table ma padse have check karvanu ke user e jo annaul leave ni request kare to check karvanu ke jo user annual leave ni request kare to e pela balance jove jo balance hase to j leave lai sakse, have suppose leave 2 days mi che to total balance 12 mathi 2 minus thia jase to have remianig leave 10 che to aa concept use karvanu che ane aa functionality badha user mate apply karvani che kem ke badha user requset karta hoy, badha user ni leave limits to same j hase je leave type table ma me apeliche pan badha nu leave balance alag has to apde user ne user an table ni id thi access kari skiye to avu banavu che to na mate ek leave balance karine table banaavu che
 
 ========================
+
 -now i want to make valiaton like hr can generate payroll only after finish month so month have full data,
 ex, if now current april started so hr can only generate march payroll only and between first 10 days like 1 to 10 data,
 can't generate more previous month payroll like january,february only see as a history
 
 =========================
+
 Q: When April starts, which months should HR be able to generate payroll for?
 A: Only March (the just-finished month)
 
@@ -101,6 +103,7 @@ in approved leaves sum of all type of usedleavebalance,
 in leave balance change to remaining leave balance and in this sum of all type of remainingleavebalance
 
 use less code prefere apis
+
 ==========================
 
 In payroll detail model, in deductin section add leave deductions(value get from getAllPayrollByMonth api response)
@@ -136,25 +139,64 @@ HR should see/download resumes in UI
 you given everywhere moce stages of applicant status, this is not looking good.
 you get resumeurl in my getcandidatebyjobid api response
 
-
 =======================================
+
 i am working on creating a hrms portal in .net core and angular,  four roles employee,hr,manager,admin in portal,facilities like checkin,checkout, take leave, submit daily timesheet, payroll, recruitment .
 i have this all facilities, now in this i face an issue like if employee can take an leave or checkin/checkout, approve timesheet or many
 other facilities, if employeee do then if hr open portal then hr can see these updateds, therwise not, so it is not a good thing and production ready, 
 so i think we cam add email service for all functionalities so hr,manager,admin can get updates quickly, 
-here also one issue for all facilities many email service i need to create so what the way to fix it
+here also one issue for all facilities many email service i need to create so what the way to fix it.
+
 =======================================
+
 i want to make notification system like if users checkin then manager,hr and admin recives notification,
 if employee apply leave then manager,hr,admin ercives notification, whn timeshhet submit then receive notification, if hr approve leave then employee recives notification, if hr post job then manager,employee receives notification, and many thingd that need updates to all roles, so how to achive it.    
 
 =====================================
 chatgpt context prompt for notification related 
 
-"“I’m building HRMS with .NET Core + Dapper + Stored Procedures.
-I’ve implemented recruitment, leave, file upload, and notifications.”"
-===========
+“I’m building HRMS with .NET Core + Dapper + Stored Procedures.
+I’ve implemented recruitment, leave, file upload, and notifications.”
 
-notification functionality added in:
-checkin, checkout, take leave, submit/approve,reject timesheet, PublishJobAsync, closejobasync(notification not store in datasbe )
+=====================================================================================
 
+notification functionality added in:(tested)
+checkin, checkout, take leave, managerapprove/managerReject/hrReject/hrApprove leaves, submit/approve/reject timesheet, publish/open/onhold/closed job, generatePayroll, MarkAspaid,
 
+(without tested)
+generatepayroll, markAsPaid
+
+changes needed in codes::
+take leave -- only assigned manager can notified  -- done
+ManagerRejectLeave -- only perticular employee can get notified  --done
+
+===================
+
+========================
+open job claud prompt::notused
+in this when i put job onhold then i saw publish job button , but according to hrms afte onhold saw resume job status,open or publish bith status are same but publish job first time, and open job called after onhold job,
+so add resume button when job on hold,when hr click on resume job then after show all actoins button like after publishing a job.
+
+===============
+✔️ Recommended Flow
+Employee applies for leave
+🔔 Notify Manager
+Manager approves/rejects
+🔔 If approved → Notify HR
+🔔 If rejected → Notify Employee
+HR reviews (final approval step)
+🔔 Notify Employee (final status)
+🔔 Optionally notify Manager (for visibility)
+
+==========================================
+-show only top latest  10 notifications only and show only unread notification, if user mark as read then it not shows,so basically show latest ten notification those IsRead=0
+- on click of markallread  i have api ->   markAllAsRead(userId: number) {
+    return this.http.put(`${this.markAllAsReadApi}?UserId=${userId}`, {});
+  }
+-so use this and enable markall read functionality.
+
+ok, i need some change
+notification unread hse to notiiation tab ma batavse bhale game e date ni hoy pan after markasread or markallasread karya pachi aajno divas notification tab ma batava joi  like ex. 16april nu=i notification marka s read kari to e notificatoin tab ma batavse only on 16 april, on 17 april it not visible in notification tab,
+
+here i got css issue read notification shows dot and side vertical line ,according to design after  markasread remove dot and side linne
+================================

@@ -23,6 +23,10 @@ export class UserService {
   getAllEmployeeManagerApi = `${this.apiurl}/User/getAllEmployeeManager`;
   getAllManagerApi = `${this.apiurl}/User/getAllManagers`;
   AssignManagerApi = `${this.apiurl}/User/assign-manager`;
+  getemoployeeByDepartmentApi = `${this.apiurl}/User/getEmployeeByDepartment`;
+  getnotificationsApi = `${this.apiurl}/user/getUsersNotifications`;
+  markAsReadApi = `${this.apiurl}/user/MarkAsReadNotifications`;
+  markAllAsReadApi = `${this.apiurl}/user/MarkAllasRead`;
 
 
   login(data: any) {
@@ -76,12 +80,9 @@ export class UserService {
   getManagerTeam(userId: number) {
     return this.http.get<any[]>(`${this.getManagerTeamApi}?managerId=${userId}`, {});
   }
-  // /User/getManagerTeam ? managerId = 20
 
   getEmployeeByDepartment(data: any) {
-    return this.http.get<any[]>(`${this.apiurl}/User/getEmployeeByDepartment`, {
-      params: data
-    });
+    return this.http.get<any[]>(this.getemoployeeByDepartmentApi, {params: data} );
   }
 
   assignManager(employeeId: any, managerId:any) {
@@ -90,16 +91,15 @@ export class UserService {
 
   // ---------------notifications relaated service----------
 
-  // getNotifications(userId: number) {
-  //   return this.http.get<any[]>(`/api/notifications/${userId}`);
-  // }
+  getNotifications(userId: number) {
+    return this.http.get<any[]>(`${this.getnotificationsApi}?userId=${userId}`);
+   }
 
-  // markAsRead(notificationId: number, userId: number) {
-  //   return this.http.post(`/api/notification/read`, {
-  //     notificationId,
-  //     userId
-  //   });
-  // }
-
-  // ?userId = 12 & managerId=20
+   markAsRead(notificationId: number, userId: number) {
+     return this.http.post(`${this.markAsReadApi}?notificationId=${notificationId}&UserId=${userId}`, {});
+  }
+  
+  markAllAsRead(userId: number) {
+    return this.http.put(`${this.markAllAsReadApi}?UserId=${userId}`, {});
+  }
 }

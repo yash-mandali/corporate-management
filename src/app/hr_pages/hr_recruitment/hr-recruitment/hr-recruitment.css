@@ -2522,3 +2522,31 @@ tbody td {
 }
 
 /* hidden — stage moved from here to journey section only */
+
+/* ── RESUME JOB button (OnHold → Open) ── */
+.ja-btn.resume-j:hover {
+  background: #27ae60;
+  border-color: #27ae60;
+  color: #fff;
+}
+
+.btn-resume {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: 9px;
+  border: none;
+  background: linear-gradient(135deg, #1e8449, #27ae60);
+  color: #fff;
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(39, 174, 96, 0.25);
+  transition: all 0.2s;
+}
+
+.btn-resume:hover {
+  transform: translateY(-1px);
+}

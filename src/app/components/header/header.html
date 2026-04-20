@@ -1,33 +1,126 @@
 <header class="topbar">
-    <button class="menu-btn" (click)="emp.toggleSidebar()" aria-label="Toggle menu">
-        ☰
-    </button>
-    <span class="welcome">Welcome, {{userName()}}</span>
+    <button class="menu-btn" (click)="emp.toggleSidebar()" aria-label="Toggle menu">☰</button>
+    <span class="welcome">Welcome, {{ userName() }}</span>
     <span class="top-date">{{ currentDate }}</span>
-    <!-- <span class="notify-btn"><span class="notif-dot "></span><i class="fas fa-bell"></i></span> -->
 
-    <!-- Profile Avatar with Dropdown -->
+    <!-- ── NOTIFICATION BELL ── -->
+    <div class="notif-wrap" (click)="toggleNotif($event)">
+        <button class="notif-btn" [class.notif-active]="notifOpen()" aria-label="Notifications">
+            <i class="fas fa-bell"></i>
+            @if (unreadCount() > 0) {
+            <span class="notif-badge">{{ unreadCount() > 99 ? '99+' : unreadCount() }}</span>
+            }
+        </button>
+
+        @if (notifOpen()) {
+        <div class="notif-panel" (click)="$event.stopPropagation()">
+
+            <!-- Header -->
+            <div class="np-header">
+                <div class="np-title-row">
+                    <span class="np-title">Notifications</span>
+                    @if (unreadCount() > 0) {
+                    <span class="np-unread-badge">{{ unreadCount() }} unread</span>
+                    }
+                </div>
+                @if (unreadCount() > 0) {
+                <button class="np-mark-all" [class.np-marking-all]="markingAll()" (click)="markAllRead()">
+                    @if (markingAll()) {
+                    <span class="np-mini-spin"></span> Marking...
+                    } @else {
+                    <i class="fas fa-check-double"></i> Mark all read
+                    }
+                </button>
+                }
+            </div>
+
+            <!-- List: only unread, latest 10 -->
+            <div class="np-list">
+                @if (notifLoading()) {
+                <div class="np-loading">
+                    <div class="np-spinner"></div>
+                    <span>Loading...</span>
+                </div>
+                } @else if (visibleNotifs().length === 0) {
+                <div class="np-empty">
+                    <div class="np-empty-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="np-empty-text">All caught up!</div>
+                    <div class="np-empty-sub">No unread notifications</div>
+                </div>
+                } @else {
+                @for (n of visibleNotifs(); track (n.NotificationId ?? n.notificationId)) {
+                @let nId = n.NotificationId ?? n.notificationId;
+                @let type = n.Type ?? n.type ?? 'System';
+                @let isRead = n.IsRead ?? n.isRead ?? false;
+
+                <div class="np-item" [class.np-unread]="!isRead" [class.np-marking]="markingId() === nId"
+                    (click)="markAsRead(n, $event)">
+
+                    <!-- Type icon -->
+                    <div class="np-icon" [style.background]="notifIconColor(type)+'18'"
+                        [style.color]="notifIconColor(type)">
+                        <i class="fas fa-{{ notifIcon(type) }}"></i>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="np-content">
+                        <div class="np-item-title">{{ n.Title ?? n.title }}</div>
+                        <div class="np-item-msg">{{ n.Message ?? n.message }}</div>
+                        <div class="np-item-meta">
+                            <span class="np-type-tag" [style.color]="notifIconColor(type)">{{ type }}</span>
+                            <span class="np-time">{{ timeAgo(n.CreatedAt ?? n.createdAt) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Status: spinner while marking, pulse dot if unread, check if read -->
+                    <div class="np-status">
+                        @if (markingId() === nId) {
+                        <span class="np-mini-spin"></span>
+                        } @else if (!isRead) {
+                        <span class="np-dot" title="Click to mark as read"></span>
+                        } @else {
+                        <i class="fas fa-check np-check"></i>
+                        }
+                    </div>
+
+                </div>
+                }
+                }
+            </div>
+
+            <!-- Footer -->
+            <div class="np-footer">
+                <span class="np-footer-info">
+                    {{ unreadCount() }} unread · showing {{ visibleNotifs().length }}
+                    @if (visibleNotifs().length === 10) { · top 10 }
+                </span>
+            </div>
+
+        </div>
+        }
+    </div>
+
+    <!-- ── PROFILE AVATAR ── -->
     <div class="profile-wrap" (click)="profileOpen = !profileOpen">
         <div class="profile-avatar">
-            <span>{{getInitials()}}</span>
+            <span>{{ getInitials() }}</span>
         </div>
+
         @if (profileOpen) {
         <div class="profile-dropdown" (click)="$event.stopPropagation()">
             <div class="profile-dropdown-header">
-                <div class="profile-avatar-lg"><span>{{getInitials()}}</span></div>
+                <div class="profile-avatar-lg"><span>{{ getInitials() }}</span></div>
                 <div>
-                    <div class="profile-name">{{userName()}}</div>
-                    <div class="profile-email">{{userEmail()}}</div>
+                    <div class="profile-name">{{ userName() }}</div>
+                    <div class="profile-email">{{ userEmail() }}</div>
                 </div>
             </div>
             <div class="profile-dropdown-divider"></div>
             <a class="profile-dropdown-item" routerLink="/dashboard/myprofile" (click)="profileOpen = false">
-                <i class="fas fa-user"></i>
-                My Profile
+                <i class="fas fa-user"></i> My Profile
             </a>
             <button class="profile-dropdown-item danger" (click)="logout()">
-                <i class="fas fa-sign-out-alt"></i>
-                Logout
+                <i class="fas fa-sign-out-alt"></i> Logout
             </button>
         </div>
         }
@@ -36,7 +129,7 @@
 
 <div class="page-loader" *ngIf="isLoggingOut">
     <div class="loader-content">
-        <div class="fas fa-spinner fa-spin"></div>
+        <div class="spinner"></div>
         <p>Logging out...</p>
     </div>
 </div>

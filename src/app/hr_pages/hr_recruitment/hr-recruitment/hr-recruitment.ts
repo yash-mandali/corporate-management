@@ -37,46 +37,47 @@ export class HrRecruitment implements OnInit {
   stageOverrides = signal<Record<number, CandStage>>({});
 
   // ── Loading ──
-  isLoading = signal(false);
-  actionLoading = signal<any>(null);
+  isLoading        = signal(false);
+  actionLoading    = signal<any>(null);
   formSaving       = signal(false);
   formError        = signal<string | null>(null);
-  resumeFile       = signal<File | null>(null);       // selected file
-  resumeUploading  = signal(false);                   // upload in progress
-  resumeUploadedUrl = signal<string>('');             // final URL after upload
+  resumeFile       = signal<File | null>(null);
+  resumeUploading  = signal(false);
+  resumeUploadedUrl = signal<string>('');
 
   // ── Tabs ──
   activeTab = signal<'jobs' | 'pipeline' | 'candidates'>('jobs');
 
   // ── Job filters ──
-  jobSearch = signal('');
+  jobSearch       = signal('');
   jobStatusFilter = signal('all');
-  jobDeptFilter = signal('all');
+  jobDeptFilter   = signal('all');
 
   // ── Candidate filters ──
-  candSearch = signal('');
-  candJobFilter = signal<number | 'all'>('all');
+  candSearch      = signal('');
+  candJobFilter   = signal<number | 'all'>('all');
   candStageFilter = signal<CandStage | 'all'>('all');
 
   // ── Pipeline filters ──
   pipelineJobFilter = signal<number | 'all'>('all');
-  pipelineSearch = signal('');
+  pipelineSearch    = signal('');
 
   // ── Modals ──
-  jobFormModal = signal(false);
-  editingJob = signal<any | null>(null);
-  jobDetailModal = signal<any | null>(null);         // job detail side panel
-  jobDetailCands = signal<any[]>([]);
+  jobFormModal     = signal(false);
+  editingJob       = signal<any | null>(null);
+  jobDetailModal   = signal<any | null>(null);
+  jobDetailCands   = signal<any[]>([]);
   jobDetailLoading = signal(false);
-  candFormModal = signal(false);
-  candDetailModal = signal<any | null>(null);        // candidate detail modal
-  deleteModal = signal<{ id: number; name: string } | null>(null);
-  statusModal = signal<{ job: any; action: 'publish' | 'onhold' | 'close' } | null>(null);
-  stageModal = signal<{ cand: any; currentStage: CandStage } | null>(null); // professional stage changer
+  candFormModal    = signal(false);
+  candDetailModal  = signal<any | null>(null);
+  deleteModal      = signal<{ id: number; name: string } | null>(null);
+  // ── 'resume' added to union — calls publishJob API (SP allows Draft|OnHold → Published)
+  statusModal      = signal<{ job: any; action: 'publish' | 'onhold' | 'close' | 'resume' } | null>(null);
+  stageModal       = signal<{ cand: any; currentStage: CandStage } | null>(null);
 
   // ── Drag ──
   draggingId = signal<number | null>(null);
-  dragOver = signal<CandStage | null>(null);
+  dragOver   = signal<CandStage | null>(null);
 
   jobForm: FormGroup;
   candForm: FormGroup;
@@ -89,10 +90,10 @@ export class HrRecruitment implements OnInit {
 
   // ── Stats ──
   activeCount = computed(() => this.allJobs().filter(j => j.status === 'Published' || j.status === 'Open').length);
-  draftCount = computed(() => this.allJobs().filter(j => j.status === 'Draft').length);
+  draftCount  = computed(() => this.allJobs().filter(j => j.status === 'Draft').length);
   onHoldCount = computed(() => this.allJobs().filter(j => j.status === 'OnHold').length);
-  totalCands = computed(() => Object.values(this.candidatesMap()).flat().length);
-  hiredCount = computed(() => this.allCandidatesFlat().filter(c => c.stage === 'Hired').length);
+  totalCands  = computed(() => Object.values(this.candidatesMap()).flat().length);
+  hiredCount  = computed(() => this.allCandidatesFlat().filter(c => c.stage === 'Hired').length);
 
   allCandidatesFlat = computed(() =>
     Object.values(this.candidatesMap()).flat().map(c => ({
@@ -102,21 +103,22 @@ export class HrRecruitment implements OnInit {
   );
 
   filteredJobs = computed(() => {
-    const q = this.jobSearch().toLowerCase().trim();
+    const q  = this.jobSearch().toLowerCase().trim();
     const sf = this.jobStatusFilter();
     const df = this.jobDeptFilter();
     return this.allJobs().filter(j => {
-      const st = (j.status || '').toLowerCase();
+      const st     = (j.status || '').toLowerCase();
       const matchQ = !q || j.title?.toLowerCase().includes(q) || j.department?.toLowerCase().includes(q);
-      const matchS = sf === 'all' || (sf === 'published' && (st === 'published' || st === 'open')) || sf === st;
+      const matchS = sf === 'all'
+        || (sf === 'published' && (st === 'published' || st === 'open'))
+        || sf === st;
       const matchD = df === 'all' || j.department === df;
       return matchQ && matchS && matchD;
     });
   });
 
-  // ── Pipeline: all candidates grouped by stage, with job filter ──
   candidatesByStage = computed(() => {
-    const q = this.pipelineSearch().toLowerCase().trim();
+    const q  = this.pipelineSearch().toLowerCase().trim();
     const jf = this.pipelineJobFilter();
     const filtered = this.allCandidatesFlat().filter(c =>
       (!q || c.fullName?.toLowerCase().includes(q) || c.email?.toLowerCase().includes(q)) &&
@@ -128,9 +130,8 @@ export class HrRecruitment implements OnInit {
     return map;
   });
 
-  // ── Candidates table ──
   filteredCandidates = computed(() => {
-    const q = this.candSearch().toLowerCase().trim();
+    const q  = this.candSearch().toLowerCase().trim();
     const jf = this.candJobFilter();
     const sf = this.candStageFilter();
     return this.allCandidatesFlat().filter(c =>
@@ -147,26 +148,26 @@ export class HrRecruitment implements OnInit {
     private toast: ToastService
   ) {
     this.jobForm = this.fb.group({
-      title: ['', Validators.required],
-      description: ['', Validators.required],
-      department: ['', Validators.required],
-      location: ['', Validators.required],
-      employment_type: ['Full-Time', Validators.required],
+      title:               ['', Validators.required],
+      description:         ['', Validators.required],
+      department:          ['', Validators.required],
+      location:            ['', Validators.required],
+      employment_type:     ['Full-Time', Validators.required],
       experience_required: ['', Validators.required],
-      vacancies: [1, [Validators.required, Validators.min(1)]],
-      required_skills: [''],
-      qualifications: [''],
-      responsibilities: [''],
-      salary_min: [0, [Validators.required, Validators.min(0)]],
-      salary_max: [0, [Validators.required, Validators.min(0)]],
-      currency: ['INR'],
-      publish_date: [''],
-      application_deadline: [''],
+      vacancies:           [1, [Validators.required, Validators.min(1)]],
+      required_skills:     [''],
+      qualifications:      [''],
+      responsibilities:    [''],
+      salary_min:          [0, [Validators.required, Validators.min(0)]],
+      salary_max:          [0, [Validators.required, Validators.min(0)]],
+      currency:            ['INR'],
+      publish_date:        [''],
+      application_deadline:[''],
     });
     this.candForm = this.fb.group({
       jobId:     ['', Validators.required],
       userId:    ['', Validators.required],
-      resumeUrl: [''],   // typed URL or auto-filled from uploaded file
+      resumeUrl: [''],
     });
   }
 
@@ -176,6 +177,7 @@ export class HrRecruitment implements OnInit {
     this.loadAllEmployees();
   }
 
+  // ── Load ──
   loadJobs() {
     this.isLoading.set(true);
     this.recruitService.getAllJobs().subscribe({
@@ -263,7 +265,7 @@ export class HrRecruitment implements OnInit {
   }
 
   // ── Status actions ──
-  openStatusModal(job: any, action: 'publish' | 'onhold' | 'close') {
+  openStatusModal(job: any, action: 'publish' | 'onhold' | 'close' | 'resume') {
     this.statusModal.set({ job, action }); document.body.style.overflow = 'hidden';
   }
   closeStatusModal() { this.statusModal.set(null); document.body.style.overflow = ''; }
@@ -273,11 +275,16 @@ export class HrRecruitment implements OnInit {
     const jobId = m.job.jobId;
     this.closeStatusModal();
     this.actionLoading.set(jobId);
+
+    // 'resume' uses same publishJob API — SP allows Draft|OnHold → Published/Open
     const call$ = m.action === 'publish' ? this.recruitService.publishJob(jobId)
-      : m.action === 'onhold' ? this.recruitService.onHoldJob(jobId)
-        : this.recruitService.closeJob(jobId);
+      : m.action === 'resume'  ? this.recruitService.publishJob(jobId)
+      : m.action === 'onhold'  ? this.recruitService.onHoldJob(jobId)
+      : this.recruitService.closeJob(jobId);
+
+    const msg = { publish: 'published', resume: 'resumed — now Open', onhold: 'put on hold', close: 'closed' };
     call$.subscribe({
-      next: () => { this.loadJobs(); this.actionLoading.set(null); this.toast.success(`Job ${m.action === 'publish' ? 'published' : m.action === 'onhold' ? 'put on hold' : 'closed'}.`); },
+      next: () => { this.loadJobs(); this.actionLoading.set(null); this.toast.success(`Job ${msg[m.action]}.`); },
       error: err => { this.toast.error(err?.error?.message || 'Action failed.'); this.actionLoading.set(null); }
     });
   }
@@ -302,7 +309,7 @@ export class HrRecruitment implements OnInit {
     });
   }
 
-  // ── Job detail panel ──
+  // ── Job detail ──
   openJobDetail(job: any) {
     this.jobDetailModal.set(job);
     this.jobDetailCands.set(this.jobCandidates(job.jobId));
@@ -345,22 +352,18 @@ export class HrRecruitment implements OnInit {
     const input = event.target as HTMLInputElement;
     const file  = input.files?.[0];
     if (!file) return;
-    // Validate: PDF, DOC, DOCX — max 5 MB
     const allowed = ['application/pdf', 'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     if (!allowed.includes(file.type)) {
       this.formError.set('Only PDF, DOC, DOCX files are allowed.');
-      input.value = '';
-      return;
+      input.value = ''; return;
     }
     if (file.size > 5 * 1024 * 1024) {
       this.formError.set('File size must be under 5 MB.');
-      input.value = '';
-      return;
+      input.value = ''; return;
     }
     this.resumeFile.set(file);
     this.formError.set(null);
-    // Auto-fill URL field with file name so user knows it's selected
     this.candForm.patchValue({ resumeUrl: file.name });
   }
 
@@ -382,7 +385,6 @@ export class HrRecruitment implements OnInit {
     const formData = new FormData();
     formData.append('jobId', jobId);
     formData.append('userId', userId);
-
     if (this.resumeFile()) {
       formData.append('resume', this.resumeFile()!);
     }
@@ -402,9 +404,9 @@ export class HrRecruitment implements OnInit {
 
   // ── Candidate detail ──
   openCandDetail(c: any) { this.candDetailModal.set(c); document.body.style.overflow = 'hidden'; }
-  closeCandDetail() { this.candDetailModal.set(null); document.body.style.overflow = ''; }
+  closeCandDetail()       { this.candDetailModal.set(null); document.body.style.overflow = ''; }
 
-  // ── Professional stage changer modal ──
+  // ── Stage modal ──
   openStageModal(cand: any, event?: Event) {
     event?.stopPropagation();
     this.stageModal.set({ cand, currentStage: cand.stage });
@@ -415,12 +417,10 @@ export class HrRecruitment implements OnInit {
   moveStage(applicationId: number, stage: CandStage) {
     this.stageOverrides.update(m => ({ ...m, [applicationId]: stage }));
     this.saveStageOverrides();
-    if (this.candDetailModal()?.applicationId === applicationId) {
+    if (this.candDetailModal()?.applicationId === applicationId)
       this.candDetailModal.update(c => c ? { ...c, stage } : c);
-    }
-    if (this.stageModal()?.cand?.applicationId === applicationId) {
+    if (this.stageModal()?.cand?.applicationId === applicationId)
       this.stageModal.update(m => m ? { ...m, cand: { ...m.cand, stage }, currentStage: stage } : m);
-    }
   }
 
   confirmStageMove(stage: CandStage) {
@@ -450,12 +450,10 @@ export class HrRecruitment implements OnInit {
 
   // ── Resume download ──
   downloadResume(cand: any) {
-    const url = `https:localhost:44346/${cand.resumeUrl}`;
-    if (!url) return;
-    // If it's a real URL, trigger browser download
+    if (!cand.resumeUrl) return;
+    const url = `https://localhost:44346${cand.resumeUrl}`;
     const a = document.createElement('a');
     a.href = url;
-    // Try to derive a filename from URL or candidate name
     const ext = url.includes('.pdf') ? '.pdf' : url.includes('.doc') ? '.doc' : '';
     a.download = `resume_${(cand.fullName || 'candidate').replace(/ /g, '_')}${ext}`;
     a.target = '_blank';
@@ -473,24 +471,42 @@ export class HrRecruitment implements OnInit {
 
   // ── Helpers ──
   statusColor(status: string): string {
-    const m: Record<string, string> = { published: '#27ae60', open: '#27ae60', draft: '#2980b9', onhold: '#d68910', closed: '#c0392b', deleted: '#5a8a94' };
+    const m: Record<string, string> = {
+      published: '#27ae60', open: '#27ae60', draft: '#2980b9',
+      onhold: '#d68910', closed: '#c0392b', deleted: '#5a8a94'
+    };
     return m[(status || '').toLowerCase()] ?? '#5a8a94';
   }
   statusLabel(s: string): string { return s === 'Published' ? 'Published' : s; }
 
   stageColor(stage: string): string {
-    const m: Record<string, string> = { Applied: '#2980b9', Screening: '#d68910', Interview: '#8e44ad', Offer: '#09637e', Hired: '#27ae60', Rejected: '#c0392b' };
+    const m: Record<string, string> = {
+      Applied: '#2980b9', Screening: '#d68910', Interview: '#8e44ad',
+      Offer: '#09637e', Hired: '#27ae60', Rejected: '#c0392b'
+    };
     return m[stage] ?? '#5a8a94';
   }
   stageIcon(stage: string): string {
-    const m: Record<string, string> = { Applied: 'inbox', Screening: 'search', Interview: 'comments', Offer: 'file-contract', Hired: 'check-circle', Rejected: 'times-circle' };
+    const m: Record<string, string> = {
+      Applied: 'inbox', Screening: 'search', Interview: 'comments',
+      Offer: 'file-contract', Hired: 'check-circle', Rejected: 'times-circle'
+    };
     return m[stage] ?? 'circle';
   }
 
-  canPublish(s: string) { return s === 'Draft' || s === 'OnHold'; }
-  canOnHold(s: string) { return s === 'Published' || s === 'Open'; }
-  canClose(s: string) { return s === 'Published' || s === 'Open' || s === 'OnHold'; }
-  canEdit(s: string) { return s === 'Draft'; }
+  // ── Status flow guards ──
+  // Draft → Publish (first time only)
+  canPublish(s: string)  { return s === 'Draft'; }
+  // OnHold → Resume/Open (calls same publishJob API — SP allows Draft|OnHold)
+  canResume(s: string)   { return s === 'OnHold'; }
+  // Published/Open → OnHold
+  canOnHold(s: string)   { return s === 'Published' || s === 'Open'; }
+  // Published/Open/OnHold → Closed
+  canClose(s: string)    { return s === 'Published' || s === 'Open' || s === 'OnHold'; }
+  // Only Draft jobs can be edited (SP enforced)
+  canEdit(s: string)     { return s === 'Draft'; }
+  // Published or Open = both treated as active (add applicant, etc.)
+  isActiveJob(s: string) { return s === 'Published' || s === 'Open'; }
 
   getInitials(name: string): string {
     if (!name) return '?';

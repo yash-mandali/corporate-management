@@ -33,7 +33,6 @@ export class HrLeavePage implements OnInit {
   balanceSearch = signal('');
   readonly pageSize = 10;
 
-  // ── Leave types config ──
   leaveTypes = [
     { key: 'annual', label: 'Annual', max: 15 },
     { key: 'sick', label: 'Sick', max: 6 },

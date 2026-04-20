@@ -24,7 +24,6 @@ export class RecruitmentService {
     return this.http.post<any>(`${this.base}/createJob`, data);
   }
 
-
   updateJob(data: any) {
     return this.http.put<any>(`${this.base}/updateJob`, data);
   }
@@ -40,21 +39,15 @@ export class RecruitmentService {
   onHoldJob(jobId: any) {
     return this.http.post<any>(`${this.base}/OnHold?jobId=${jobId}`, { jobId });
   }
-
-  closeJob(jobId: any) {
-    return this.http.post<any>(`${this.base}/closed?jobId=${jobId}`, { jobId });
+  
+ //not used
+  openJob(jobId: any) {
+    return this.http.post<any>(`${this.base}/openJob?jobId=${jobId}`, { jobId });
   }
 
-  // applyJob(JobId:any, UserId: any) {
-  //   return this.http.post<any>(`${this.base}/applyJob?jobId=${JobId}&userId=${UserId}`, { jobId: JobId, userId: UserId });
-  // }
-
-  // applyJob(JobId: any, UserId: any, ResumeUrl: any = '') {
-  //   return this.http.post<any>(
-  //     `${this.base}/applyJob`,
-  //     { jobId: JobId, userId: UserId, resumeUrl: ResumeUrl }
-  //   );
-  // }
+  closeJob(jobId: any) {
+    return this.http.post<any>(`${this.base}/closeJob?jobId=${jobId}`, { jobId });
+  }
 
   applyJob(formData: FormData) {
     return this.http.post<any>(`${this.base}/applyJob`,formData);

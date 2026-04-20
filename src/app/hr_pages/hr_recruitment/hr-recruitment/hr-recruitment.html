@@ -1,883 +1,842 @@
 <main class="main">
-    <div class="content">
+  <div class="content">
 
-        <!-- PAGE HEADER -->
-        <div class="page-header">
-            <div class="ph-left">
-                <div class="ph-icon"><i class="fas fa-user-tie"></i></div>
-                <div>
-                    <div class="ph-title">Recruitment</div>
-                    <div class="ph-sub">{{ activeCount() }} published · {{ draftCount() }} draft · {{ onHoldCount() }}
-                        on hold</div>
-                </div>
-            </div>
-            <div class="ph-right">
-                <div class="tab-switcher">
-                    <button class="tab-btn" [class.active]="activeTab()==='jobs'" (click)="activeTab.set('jobs')">
-                        <i class="fas fa-briefcase"></i> Jobs
-                    </button>
-                    <button class="tab-btn" [class.active]="activeTab()==='pipeline'"
-                        (click)="activeTab.set('pipeline')">
-                        <i class="fas fa-stream"></i> Pipeline
-                    </button>
-                    <button class="tab-btn" [class.active]="activeTab()==='candidates'"
-                        (click)="activeTab.set('candidates')">
-                        <i class="fas fa-users"></i> Candidates
-                    </button>
-                </div>
-                @if (activeTab() === 'jobs') {
-                <button class="btn-primary" (click)="openAddJob()"><i class="fas fa-plus"></i> Post Job</button>
-                } @else {
-                <button class="btn-primary" (click)="openAddCandidate()"><i class="fas fa-user-plus"></i> Add
-                    Applicant</button>
-                }
-            </div>
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="ph-left">
+        <div class="ph-icon"><i class="fas fa-user-tie"></i></div>
+        <div>
+          <div class="ph-title">Recruitment</div>
+          <div class="ph-sub">{{ activeCount() }} published · {{ draftCount() }} draft · {{ onHoldCount() }} on hold</div>
         </div>
-
-        <!-- STAT CARDS -->
-        <div class="stat-row">
-            <div class="stat-card sc-published">
-                <div class="sc-icon"><i class="fas fa-rocket"></i></div>
-                <div class="sc-body">
-                    <div class="sc-val">{{ activeCount() }}</div>
-                    <div class="sc-lbl">Published</div>
-                </div>
-            </div>
-            <div class="stat-card sc-draft">
-                <div class="sc-icon"><i class="fas fa-pencil-alt"></i></div>
-                <div class="sc-body">
-                    <div class="sc-val">{{ draftCount() }}</div>
-                    <div class="sc-lbl">Drafts</div>
-                </div>
-            </div>
-            <div class="stat-card sc-cands">
-                <div class="sc-icon"><i class="fas fa-users"></i></div>
-                <div class="sc-body">
-                    <div class="sc-val">{{ totalCands() }}</div>
-                    <div class="sc-lbl">Applicants</div>
-                </div>
-            </div>
-            <div class="stat-card sc-hired">
-                <div class="sc-icon"><i class="fas fa-user-check"></i></div>
-                <div class="sc-body">
-                    <div class="sc-val">{{ hiredCount() }}</div>
-                    <div class="sc-lbl">Hired</div>
-                </div>
-            </div>
+      </div>
+      <div class="ph-right">
+        <div class="tab-switcher">
+          <button class="tab-btn" [class.active]="activeTab()==='jobs'" (click)="activeTab.set('jobs')">
+            <i class="fas fa-briefcase"></i> Jobs
+          </button>
+          <button class="tab-btn" [class.active]="activeTab()==='pipeline'" (click)="activeTab.set('pipeline')">
+            <i class="fas fa-stream"></i> Pipeline
+          </button>
+          <button class="tab-btn" [class.active]="activeTab()==='candidates'" (click)="activeTab.set('candidates')">
+            <i class="fas fa-users"></i> Candidates
+          </button>
         </div>
-
-        <!-- ══ JOBS TAB ══ -->
         @if (activeTab() === 'jobs') {
-        <div class="tab-content">
-            <div class="toolbar">
-                <div class="tb-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search title or department..." [value]="jobSearch()"
-                        (input)="jobSearch.set($any($event.target).value)">
-                </div>
-                <select class="tb-select" [value]="jobDeptFilter()"
-                    (change)="jobDeptFilter.set($any($event.target).value)">
-                    <option value="all">All Departments</option>
-                    @for (d of departments; track d) { <option [value]="d">{{ d }}</option> }
-                </select>
-                <div class="tb-filters">
-                    <button class="tf-btn" [class.active]="jobStatusFilter()==='all'"
-                        (click)="jobStatusFilter.set('all')">All</button>
-                    <button class="tf-btn pub-f" [class.active]="jobStatusFilter()==='published'"
-                        (click)="jobStatusFilter.set('published')">Published</button>
-                    <button class="tf-btn dft-f" [class.active]="jobStatusFilter()==='draft'"
-                        (click)="jobStatusFilter.set('draft')">Draft</button>
-                    <button class="tf-btn hld-f" [class.active]="jobStatusFilter()==='onhold'"
-                        (click)="jobStatusFilter.set('onhold')">On Hold</button>
-                    <button class="tf-btn clo-f" [class.active]="jobStatusFilter()==='closed'"
-                        (click)="jobStatusFilter.set('closed')">Closed</button>
-                </div>
-            </div>
-
-            @if (isLoading()) {
-            <div class="state-box"><i class="fas fa-spinner fa-spin"></i> Loading jobs...</div>
-            } @else if (filteredJobs().length === 0) {
-            <div class="empty-state">
-                <div class="es-icon"><i class="fas fa-briefcase"></i></div>
-                <div class="es-title">No job postings found</div>
-                <div class="es-sub">Create your first job posting</div>
-                <button class="btn-primary mt" (click)="openAddJob()"><i class="fas fa-plus"></i> Post Job</button>
-            </div>
-            } @else {
-            <div class="jobs-grid">
-                @for (job of filteredJobs(); track job.jobId) {
-                <div class="job-card" (click)="openJobDetail(job)">
-                    <div class="jc-top">
-                        <div class="jc-dept-icon" [style.background]="getColor(job.jobId)">{{
-                            getInitials(job.department) }}</div>
-                        <div class="jc-info">
-                            <div class="jc-title">{{ job.title }}</div>
-                            <div class="jc-dept">{{ job.department }}</div>
-                        </div>
-                        <span class="job-badge" [style.background]="statusColor(job.status)+'18'"
-                            [style.color]="statusColor(job.status)">
-                            <span class="jb-dot" [style.background]="statusColor(job.status)"></span>{{
-                            statusLabel(job.status) }}
-                        </span>
-                    </div>
-                    <div class="jc-meta">
-                        <span><i class="fas fa-map-marker-alt"></i> {{ job.location }}</span>
-                        <span><i class="fas fa-clock"></i> {{ job.employment_type }}</span>
-                        <span><i class="fas fa-layer-group"></i> {{ job.experience_required }}</span>
-                        <span><i class="fas fa-users"></i> {{ job.vacancies }} slot(s)</span>
-                    </div>
-                    <div class="jc-salary">
-                        <i class="fas fa-rupee-sign"></i> {{ formatSalary(job.salary_min, job.salary_max, job.currency)
-                        }}
-                    </div>
-                    <div class="jc-applicants">
-                        <div class="jc-av-row">
-                            @for (c of jobCandidates(job.jobId).slice(0,4); track c.applicationId) {
-                            <div class="jc-av" [style.background]="getColor(c.userId)" [title]="c.fullName">{{
-                                getInitials(c.fullName) }}</div>
-                            }
-                            @if (jobCandidates(job.jobId).length > 4) {
-                            <div class="jc-av-more">+{{ jobCandidates(job.jobId).length - 4 }}</div>
-                            }
-                        </div>
-                        <span class="jc-count">{{ jobCandidates(job.jobId).length }} applicant(s)</span>
-                    </div>
-                    <div class="jc-footer">
-                        <span class="jc-date"><i class="fas fa-calendar-alt"></i> {{ formatDate(job.created_at ??
-                            job.createdAt) }}</span>
-                        @if (job.application_deadline) {
-                        <span class="jc-deadline" [class.past]="isDeadlinePast(job.application_deadline)">
-                            <i class="fas fa-calendar-times"></i> {{ formatDate(job.application_deadline) }}
-                        </span>
-                        }
-                    </div>
-                    <div class="jc-actions" (click)="$event.stopPropagation()">
-                        @if (actionLoading() === job.jobId) {
-                        <span class="mini-spin teal-spin"></span>
-                        } @else {
-                        @if (canPublish(job.status)) {
-                        <button class="ja-btn pub" (click)="openStatusModal(job,'publish')" title="Publish"><i
-                                class="fas fa-rocket"></i></button>
-                        }
-                        @if (canOnHold(job.status)) {
-                        <button class="ja-btn hold" (click)="openStatusModal(job,'onhold')" title="On Hold"><i
-                                class="fas fa-pause"></i></button>
-                        }
-                        @if (canClose(job.status)) {
-                        <button class="ja-btn close-j" (click)="openStatusModal(job,'close')" title="Close"><i
-                                class="fas fa-times-circle"></i></button>
-                        }
-                        @if (job.status === 'Published' || job.status === 'Open') {
-                        <button class="ja-btn add-c" (click)="openAddCandidate(job.jobId)" title="Add Applicant"><i
-                                class="fas fa-user-plus"></i></button>
-                        }
-                        @if (canEdit(job.status)) {
-                        <button class="ja-btn edit" (click)="openEditJob(job)" title="Edit"><i
-                                class="fas fa-pen"></i></button>
-                        }
-                        @if (job.status !== 'Closed') {
-                        <button class="ja-btn del" (click)="confirmDeleteJob(job)" title="Delete"><i
-                                class="fas fa-trash"></i></button>
-                        }
-                        }
-                    </div>
-                </div>
-                }
-            </div>
-            }
-        </div>
+          <button class="btn-primary" (click)="openAddJob()"><i class="fas fa-plus"></i> Post Job</button>
+        } @else {
+          <button class="btn-primary" (click)="openAddCandidate()"><i class="fas fa-user-plus"></i> Add Applicant</button>
         }
-
-        <!-- ══ PIPELINE TAB — Swimlane style ══ -->
-        @if (activeTab() === 'pipeline') {
-        <div class="tab-content">
-            <div class="toolbar">
-                <div class="tb-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search candidate..." [value]="pipelineSearch()"
-                        (input)="pipelineSearch.set($any($event.target).value)">
-                </div>
-                <select class="tb-select" [value]="pipelineJobFilter()"
-                    (change)="pipelineJobFilter.set($any($event.target).value)">
-                    <option value="all">All Jobs</option>
-                    @for (j of allJobs(); track j.jobId) { <option [value]="j.jobId">{{ j.title }}</option> }
-                </select>
-                <div class="pipeline-legend">
-                    @for (s of stages; track s) {
-                    <span class="pl-item">
-                        <span class="pl-dot" [style.background]="stageColor(s)"></span>{{ s }}
-                        <span class="pl-cnt" [style.background]="stageColor(s)+'22'" [style.color]="stageColor(s)">
-                            {{ candidatesByStage()[s]?.length || 0 }}
-                        </span>
-                    </span>
-                    }
-                </div>
-            </div>
-
-            <div class="pipeline-wrap">
-                @for (stage of stages; track stage) {
-                <div class="pipeline-lane" [class.drag-over]="dragOver() === stage"
-                    (dragover)="onDragOver(stage, $event)" (dragleave)="onDragLeave()" (drop)="onDrop(stage)">
-
-                    <!-- Lane header -->
-                    <div class="lane-head" [style.border-left-color]="stageColor(stage)">
-                        <div class="lane-icon" [style.background]="stageColor(stage)+'18'"
-                            [style.color]="stageColor(stage)">
-                            <i class="fas fa-{{ stageIcon(stage) }}"></i>
-                        </div>
-                        <span class="lane-title" [style.color]="stageColor(stage)">{{ stage }}</span>
-                        <span class="lane-badge" [style.background]="stageColor(stage)">
-                            {{ candidatesByStage()[stage]?.length || 0 }}
-                        </span>
-                    </div>
-
-                    <!-- Candidates in lane -->
-                    <div class="lane-cards">
-                        @for (c of candidatesByStage()[stage]; track c.applicationId) {
-                        <div class="lane-card" draggable="true" (dragstart)="onDragStart(c.applicationId)"
-                            (click)="openCandDetail(c)">
-                            <div class="lc-top">
-                                <div class="lc-av" [style.background]="getColor(c.userId)">{{ getInitials(c.fullName) }}
-                                </div>
-                                <div class="lc-info">
-                                    <div class="lc-name">{{ c.fullName }}</div>
-                                    <div class="lc-email">{{ c.email }}</div>
-                                </div>
-                            </div>
-                            @if (c.department) {
-                            <div class="lc-dept"><i class="fas fa-building"></i> {{ c.department }}</div>
-                            }
-                            <div class="lc-job">
-                                <i class="fas fa-briefcase"></i>
-                                {{ allJobs().find(j => j.jobId === c.jobId)?.title ?? 'Job #'+c.jobId }}
-                            </div>
-                            <div class="lc-footer">
-                                <span class="lc-date">{{ daysAgo(c.appliedDate) }}</span>
-                            </div>
-                        </div>
-                        }
-                        @if (!candidatesByStage()[stage]?.length) {
-                        <div class="lane-empty">
-                            <i class="fas fa-inbox"></i>
-                            <span>No candidates</span>
-                        </div>
-                        }
-                    </div>
-                </div>
-                }
-            </div>
-        </div>
-        }
-
-        <!-- ══ CANDIDATES TAB ══ -->
-        @if (activeTab() === 'candidates') {
-        <div class="tab-content">
-            <div class="toolbar">
-                <div class="tb-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search name or email..." [value]="candSearch()"
-                        (input)="candSearch.set($any($event.target).value)">
-                </div>
-                <select class="tb-select" [value]="candJobFilter()"
-                    (change)="candJobFilter.set($any($event.target).value)">
-                    <option value="all">All Jobs</option>
-                    @for (j of allJobs(); track j.jobId) { <option [value]="j.jobId">{{ j.title }}</option> }
-                </select>
-                <div class="tb-filters">
-                    <button class="tf-btn" [class.active]="candStageFilter()==='all'"
-                        (click)="candStageFilter.set('all')">All</button>
-                    @for (s of stages; track s) {
-                    <button class="tf-btn stage-f" [class.active]="candStageFilter()===s"
-                        (click)="candStageFilter.set(s)" [style.background]="candStageFilter()===s ? stageColor(s) : ''"
-                        [style.color]="candStageFilter()===s ? '#fff' : ''">
-                        {{ s }}
-                    </button>
-                    }
-                </div>
-            </div>
-
-            <!-- Stage summary strip -->
-            <div class="stage-summary">
-                @for (s of stages; track s) {
-                <div class="ss-item" (click)="candStageFilter.set(s)" [class.active]="candStageFilter()===s">
-                    <div class="ss-top" [style.background]="stageColor(s)+'14'">
-                        <i class="fas fa-{{ stageIcon(s) }}" [style.color]="stageColor(s)"></i>
-                        <span class="ss-count" [style.color]="stageColor(s)">{{ allCandidatesFlat().filter(c =>
-                            c.stage===s).length }}</span>
-                    </div>
-                    <div class="ss-label">{{ s }}</div>
-                </div>
-                }
-            </div>
-
-            <div class="table-card">
-                <div class="tbl-scroll">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Candidate</th>
-                                <th>Department</th>
-                                <th>Applied For</th>
-                                <th>Applied On</th>
-                                <th>Stage</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for (c of filteredCandidates(); track c.applicationId; let i = $index) {
-                            <tr (click)="openCandDetail(c)">
-                                <td class="td-idx">{{ i + 1 }}</td>
-                                <td class="td-emp">
-                                    <div class="emp-cell">
-                                        <div class="emp-av" [style.background]="getColor(c.userId)">{{
-                                            getInitials(c.fullName) }}</div>
-                                        <div>
-                                            <div class="emp-name">{{ c.fullName }}</div>
-                                            <div class="emp-email">{{ c.email }}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="td-dept">{{ c.department || '—' }}</td>
-                                <td class="td-job">{{ allJobs().find(j => j.jobId === c.jobId)?.title ?? 'Job #'+c.jobId
-                                    }}</td>
-                                <td class="td-date">{{ formatDate(c.appliedDate) }}</td>
-                                <td>
-                                    <span class="stage-pill" [style.background]="stageColor(c.stage)+'18'"
-                                        [style.color]="stageColor(c.stage)">
-                                        <i class="fas fa-{{ stageIcon(c.stage) }}"></i>{{ c.stage }}
-                                    </span>
-                                </td>
-                                <td class="td-act" (click)="$event.stopPropagation()">
-                                    @if (c.resumeUrl) {
-                                    <a class="act-btn resume" [href]=`https:localhost:44346${c.resumeUrl}`
-                                        target="_blank" title="View Resume">
-                                        <i class="fas fa-file-alt"></i>
-                                    </a>
-                                    }
-                                    <button class="act-btn view" (click)="openCandDetail(c)" title="View Details"><i
-                                            class="fas fa-eye"></i></button>
-                                </td>
-                            </tr>
-                            } @empty {
-                            <tr>
-                                <td colspan="7" class="td-empty">
-                                    <i class="fas fa-users-slash"></i><span>No candidates found</span>
-                                </td>
-                            </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        }
+      </div>
     </div>
+
+    <!-- STAT CARDS -->
+    <div class="stat-row">
+      <div class="stat-card sc-published">
+        <div class="sc-icon"><i class="fas fa-rocket"></i></div>
+        <div class="sc-body"><div class="sc-val">{{ activeCount() }}</div><div class="sc-lbl">Published</div></div>
+      </div>
+      <div class="stat-card sc-draft">
+        <div class="sc-icon"><i class="fas fa-pencil-alt"></i></div>
+        <div class="sc-body"><div class="sc-val">{{ draftCount() }}</div><div class="sc-lbl">Drafts</div></div>
+      </div>
+      <div class="stat-card sc-cands">
+        <div class="sc-icon"><i class="fas fa-users"></i></div>
+        <div class="sc-body"><div class="sc-val">{{ totalCands() }}</div><div class="sc-lbl">Applicants</div></div>
+      </div>
+      <div class="stat-card sc-hired">
+        <div class="sc-icon"><i class="fas fa-user-check"></i></div>
+        <div class="sc-body"><div class="sc-val">{{ hiredCount() }}</div><div class="sc-lbl">Hired</div></div>
+      </div>
+    </div>
+
+    <!-- ══ JOBS TAB ══ -->
+    @if (activeTab() === 'jobs') {
+      <div class="tab-content">
+        <div class="toolbar">
+          <div class="tb-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search title or department..."
+              [value]="jobSearch()" (input)="jobSearch.set($any($event.target).value)">
+          </div>
+          <select class="tb-select" [value]="jobDeptFilter()" (change)="jobDeptFilter.set($any($event.target).value)">
+            <option value="all">All Departments</option>
+            @for (d of departments; track d) { <option [value]="d">{{ d }}</option> }
+          </select>
+          <div class="tb-filters">
+            <button class="tf-btn"       [class.active]="jobStatusFilter()==='all'"       (click)="jobStatusFilter.set('all')">All</button>
+            <button class="tf-btn pub-f" [class.active]="jobStatusFilter()==='published'" (click)="jobStatusFilter.set('published')">Published</button>
+            <button class="tf-btn dft-f" [class.active]="jobStatusFilter()==='draft'"     (click)="jobStatusFilter.set('draft')">Draft</button>
+            <button class="tf-btn hld-f" [class.active]="jobStatusFilter()==='onhold'"    (click)="jobStatusFilter.set('onhold')">On Hold</button>
+            <button class="tf-btn clo-f" [class.active]="jobStatusFilter()==='closed'"    (click)="jobStatusFilter.set('closed')">Closed</button>
+          </div>
+        </div>
+
+        @if (isLoading()) {
+          <div class="state-box"><i class="fas fa-spinner fa-spin"></i> Loading jobs...</div>
+        } @else if (filteredJobs().length === 0) {
+          <div class="empty-state">
+            <div class="es-icon"><i class="fas fa-briefcase"></i></div>
+            <div class="es-title">No job postings found</div>
+            <div class="es-sub">Create your first job posting</div>
+            <button class="btn-primary mt" (click)="openAddJob()"><i class="fas fa-plus"></i> Post Job</button>
+          </div>
+        } @else {
+          <div class="jobs-grid">
+            @for (job of filteredJobs(); track job.jobId) {
+              <div class="job-card" (click)="openJobDetail(job)">
+
+                <div class="jc-top">
+                  <div class="jc-dept-icon" [style.background]="getColor(job.jobId)">{{ getInitials(job.department) }}</div>
+                  <div class="jc-info">
+                    <div class="jc-title">{{ job.title }}</div>
+                    <div class="jc-dept">{{ job.department }}</div>
+                  </div>
+                  <span class="job-badge" [style.background]="statusColor(job.status)+'18'" [style.color]="statusColor(job.status)">
+                    <span class="jb-dot" [style.background]="statusColor(job.status)"></span>{{ statusLabel(job.status) }}
+                  </span>
+                </div>
+
+                <div class="jc-meta">
+                  <span><i class="fas fa-map-marker-alt"></i> {{ job.location }}</span>
+                  <span><i class="fas fa-clock"></i> {{ job.employment_type }}</span>
+                  <span><i class="fas fa-layer-group"></i> {{ job.experience_required }}</span>
+                  <span><i class="fas fa-users"></i> {{ job.vacancies }} slot(s)</span>
+                </div>
+
+                <div class="jc-salary">
+                  <i class="fas fa-rupee-sign"></i> {{ formatSalary(job.salary_min, job.salary_max, job.currency) }}
+                </div>
+
+                <div class="jc-applicants">
+                  <div class="jc-av-row">
+                    @for (c of jobCandidates(job.jobId).slice(0,4); track c.applicationId) {
+                      <div class="jc-av" [style.background]="getColor(c.userId)" [title]="c.fullName">{{ getInitials(c.fullName) }}</div>
+                    }
+                    @if (jobCandidates(job.jobId).length > 4) {
+                      <div class="jc-av-more">+{{ jobCandidates(job.jobId).length - 4 }}</div>
+                    }
+                  </div>
+                  <span class="jc-count">{{ jobCandidates(job.jobId).length }} applicant(s)</span>
+                </div>
+
+                <div class="jc-footer">
+                  <span class="jc-date"><i class="fas fa-calendar-alt"></i> {{ formatDate(job.created_at ?? job.createdAt) }}</span>
+                  @if (job.application_deadline) {
+                    <span class="jc-deadline" [class.past]="isDeadlinePast(job.application_deadline)">
+                      <i class="fas fa-calendar-times"></i> {{ formatDate(job.application_deadline) }}
+                    </span>
+                  }
+                </div>
+
+                <div class="jc-actions" (click)="$event.stopPropagation()">
+                  @if (actionLoading() === job.jobId) {
+                    <span class="mini-spin teal-spin"></span>
+                  } @else {
+                    <!-- Draft → Publish (first time) -->
+                    @if (canPublish(job.status)) {
+                      <button class="ja-btn pub" (click)="openStatusModal(job,'publish')" title="Publish Job">
+                        <i class="fas fa-rocket"></i>
+                      </button>
+                    }
+                    <!-- OnHold → Resume (back to Open) -->
+                    @if (canResume(job.status)) {
+                      <button class="ja-btn resume-j" (click)="openStatusModal(job,'resume')" title="Resume Job">
+                        <i class="fas fa-play"></i>
+                      </button>
+                    }
+                    <!-- Published/Open → On Hold -->
+                    @if (canOnHold(job.status)) {
+                      <button class="ja-btn hold" (click)="openStatusModal(job,'onhold')" title="Put On Hold">
+                        <i class="fas fa-pause"></i>
+                      </button>
+                    }
+                    <!-- Published/Open/OnHold → Close -->
+                    @if (canClose(job.status)) {
+                      <button class="ja-btn close-j" (click)="openStatusModal(job,'close')" title="Close Job">
+                        <i class="fas fa-times-circle"></i>
+                      </button>
+                    }
+                    <!-- Add applicant when Published OR Open -->
+                    @if (isActiveJob(job.status)) {
+                      <button class="ja-btn add-c" (click)="openAddCandidate(job.jobId)" title="Add Applicant">
+                        <i class="fas fa-user-plus"></i>
+                      </button>
+                    }
+                    <!-- Edit — Draft only -->
+                    @if (canEdit(job.status)) {
+                      <button class="ja-btn edit" (click)="openEditJob(job)" title="Edit (Draft only)">
+                        <i class="fas fa-pen"></i>
+                      </button>
+                    }
+                    @if (job.status !== 'Closed') {
+                      <button class="ja-btn del" (click)="confirmDeleteJob(job)" title="Delete">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    }
+                  }
+                </div>
+
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ══ PIPELINE TAB — Swimlane ══ -->
+    @if (activeTab() === 'pipeline') {
+      <div class="tab-content">
+        <div class="toolbar">
+          <div class="tb-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search candidate..."
+              [value]="pipelineSearch()" (input)="pipelineSearch.set($any($event.target).value)">
+          </div>
+          <select class="tb-select" [value]="pipelineJobFilter()" (change)="pipelineJobFilter.set($any($event.target).value)">
+            <option value="all">All Jobs</option>
+            @for (j of allJobs(); track j.jobId) { <option [value]="j.jobId">{{ j.title }}</option> }
+          </select>
+          <div class="pipeline-legend">
+            @for (s of stages; track s) {
+              <span class="pl-item">
+                <span class="pl-dot" [style.background]="stageColor(s)"></span>{{ s }}
+                <span class="pl-cnt" [style.background]="stageColor(s)+'22'" [style.color]="stageColor(s)">
+                  {{ candidatesByStage()[s]?.length || 0 }}
+                </span>
+              </span>
+            }
+          </div>
+        </div>
+
+        <div class="pipeline-wrap">
+          @for (stage of stages; track stage) {
+            <div class="pipeline-lane" [class.drag-over]="dragOver() === stage"
+              (dragover)="onDragOver(stage, $event)" (dragleave)="onDragLeave()" (drop)="onDrop(stage)">
+
+              <div class="lane-head" [style.border-left-color]="stageColor(stage)">
+                <div class="lane-icon" [style.background]="stageColor(stage)+'18'" [style.color]="stageColor(stage)">
+                  <i class="fas fa-{{ stageIcon(stage) }}"></i>
+                </div>
+                <span class="lane-title" [style.color]="stageColor(stage)">{{ stage }}</span>
+                <span class="lane-badge" [style.background]="stageColor(stage)">
+                  {{ candidatesByStage()[stage]?.length || 0 }}
+                </span>
+              </div>
+
+              <div class="lane-cards">
+                @for (c of candidatesByStage()[stage]; track c.applicationId) {
+                  <div class="lane-card" draggable="true"
+                    (dragstart)="onDragStart(c.applicationId)" (click)="openCandDetail(c)">
+                    <div class="lc-top">
+                      <div class="lc-av" [style.background]="getColor(c.userId)">{{ getInitials(c.fullName) }}</div>
+                      <div class="lc-info">
+                        <div class="lc-name">{{ c.fullName }}</div>
+                        <div class="lc-email">{{ c.email }}</div>
+                      </div>
+                    </div>
+                    @if (c.department) {
+                      <div class="lc-dept"><i class="fas fa-building"></i> {{ c.department }}</div>
+                    }
+                    <div class="lc-job">
+                      <i class="fas fa-briefcase"></i>
+                      {{ allJobs().find(j => j.jobId === c.jobId)?.title ?? 'Job #'+c.jobId }}
+                    </div>
+                    <div class="lc-footer">
+                      <span class="lc-date">{{ daysAgo(c.appliedDate) }}</span>
+                      @if (c.resumeUrl) {
+                        <a class="lc-resume-btn" [href]="'https://localhost:44346' + c.resumeUrl"
+                          target="_blank" (click)="$event.stopPropagation()" title="View Resume">
+                          <i class="fas fa-file-alt"></i>
+                        </a>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (!candidatesByStage()[stage]?.length) {
+                  <div class="lane-empty"><i class="fas fa-inbox"></i><span>No candidates</span></div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ══ CANDIDATES TAB ══ -->
+    @if (activeTab() === 'candidates') {
+      <div class="tab-content">
+        <div class="toolbar">
+          <div class="tb-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search name or email..."
+              [value]="candSearch()" (input)="candSearch.set($any($event.target).value)">
+          </div>
+          <select class="tb-select" [value]="candJobFilter()" (change)="candJobFilter.set($any($event.target).value)">
+            <option value="all">All Jobs</option>
+            @for (j of allJobs(); track j.jobId) { <option [value]="j.jobId">{{ j.title }}</option> }
+          </select>
+          <div class="tb-filters">
+            <button class="tf-btn" [class.active]="candStageFilter()==='all'" (click)="candStageFilter.set('all')">All</button>
+            @for (s of stages; track s) {
+              <button class="tf-btn stage-f" [class.active]="candStageFilter()===s"
+                (click)="candStageFilter.set(s)"
+                [style.background]="candStageFilter()===s ? stageColor(s) : ''"
+                [style.color]="candStageFilter()===s ? '#fff' : ''">{{ s }}</button>
+            }
+          </div>
+        </div>
+
+        <!-- Stage summary strip -->
+        <div class="stage-summary">
+          @for (s of stages; track s) {
+            <div class="ss-item" (click)="candStageFilter.set(s)" [class.active]="candStageFilter()===s">
+              <div class="ss-top" [style.background]="stageColor(s)+'14'">
+                <i class="fas fa-{{ stageIcon(s) }}" [style.color]="stageColor(s)"></i>
+                <span class="ss-count" [style.color]="stageColor(s)">{{ allCandidatesFlat().filter(c => c.stage===s).length }}</span>
+              </div>
+              <div class="ss-label">{{ s }}</div>
+            </div>
+          }
+        </div>
+
+        <div class="table-card">
+          <div class="tbl-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th><th>Candidate</th><th>Department</th>
+                  <th>Applied For</th><th>Applied On</th><th>Stage</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of filteredCandidates(); track c.applicationId; let i = $index) {
+                  <tr (click)="openCandDetail(c)">
+                    <td class="td-idx">{{ i + 1 }}</td>
+                    <td class="td-emp">
+                      <div class="emp-cell">
+                        <div class="emp-av" [style.background]="getColor(c.userId)">{{ getInitials(c.fullName) }}</div>
+                        <div>
+                          <div class="emp-name">{{ c.fullName }}</div>
+                          <div class="emp-email">{{ c.email }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="td-dept">{{ c.department || '—' }}</td>
+                    <td class="td-job">{{ allJobs().find(j => j.jobId === c.jobId)?.title ?? 'Job #'+c.jobId }}</td>
+                    <td class="td-date">{{ formatDate(c.appliedDate) }}</td>
+                    <td>
+                      <span class="stage-pill" [style.background]="stageColor(c.stage)+'18'" [style.color]="stageColor(c.stage)">
+                        <i class="fas fa-{{ stageIcon(c.stage) }}"></i>{{ c.stage }}
+                      </span>
+                    </td>
+                    <td class="td-act" (click)="$event.stopPropagation()">
+                      @if (c.resumeUrl) {
+                        <a class="act-btn resume" [href]="'https://localhost:44346' + c.resumeUrl"
+                          target="_blank" title="View Resume">
+                          <i class="fas fa-file-alt"></i>
+                        </a>
+                        <button class="act-btn download" (click)="downloadResume(c)" title="Download Resume">
+                          <i class="fas fa-download"></i>
+                        </button>
+                      }
+                      <button class="act-btn view" (click)="openCandDetail(c)" title="View Details">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="7" class="td-empty">
+                    <i class="fas fa-users-slash"></i><span>No candidates found</span>
+                  </td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+
+  </div>
 </main>
 
 <!-- ══ JOB FORM MODAL ══ -->
 @if (jobFormModal()) {
-<div class="modal-overlay" (click)="closeJobForm()">
+  <div class="modal-overlay" (click)="closeJobForm()">
     <div class="form-modal wide-modal" (click)="$event.stopPropagation()">
-        <div class="fm-header" [class.edit-hdr]="!!editingJob()">
-            <div class="fm-icon"><i class="fas fa-{{ editingJob() ? 'pen' : 'briefcase' }}"></i></div>
-            <div>
-                <div class="fm-title">{{ editingJob() ? 'Edit Job (Draft only)' : 'Post New Job' }}</div>
-                <div class="fm-sub">{{ editingJob() ? 'Update job details' : 'Saved as Draft — publish when ready' }}
-                </div>
-            </div>
-            <button class="fm-close" (click)="closeJobForm()"><i class="fas fa-times"></i></button>
+      <div class="fm-header" [class.edit-hdr]="!!editingJob()">
+        <div class="fm-icon"><i class="fas fa-{{ editingJob() ? 'pen' : 'briefcase' }}"></i></div>
+        <div>
+          <div class="fm-title">{{ editingJob() ? 'Edit Job (Draft only)' : 'Post New Job' }}</div>
+          <div class="fm-sub">{{ editingJob() ? 'Update job details' : 'Saved as Draft — publish when ready' }}</div>
         </div>
-        <div class="fm-body" [formGroup]="jobForm">
-            <div class="fm-grid">
-                <div class="ff full"><label>Job Title <span class="req">*</span></label>
-                    <input type="text" formControlName="title" placeholder="e.g. Senior Angular Developer">
-                </div>
-                <div class="ff full"><label>Description <span class="req">*</span></label>
-                    <textarea formControlName="description" rows="3" placeholder="Describe the role..."></textarea>
-                </div>
-                <div class="ff"><label>Department <span class="req">*</span></label>
-                    <select formControlName="department">
-                        <option value="">Select department</option>
-                        @for (d of departments; track d) { <option [value]="d">{{ d }}</option> }
-                    </select>
-                </div>
-                <div class="ff"><label>Location <span class="req">*</span></label>
-                    <input type="text" formControlName="location" placeholder="e.g. Ahmedabad / Remote">
-                </div>
-                <div class="ff"><label>Employment Type <span class="req">*</span></label>
-                    <select formControlName="employment_type">
-                        @for (t of empTypes; track t) { <option [value]="t">{{ t }}</option> }
-                    </select>
-                </div>
-                <div class="ff"><label>Experience Required <span class="req">*</span></label>
-                    <input type="text" formControlName="experience_required" placeholder="e.g. 2-4 years">
-                </div>
-                <div class="ff"><label>Vacancies <span class="req">*</span></label>
-                    <input type="number" min="1" formControlName="vacancies">
-                </div>
-                <div class="ff"><label>Currency</label>
-                    <select formControlName="currency">
-                        @for (c of currencies; track c) { <option [value]="c">{{ c }}</option> }
-                    </select>
-                </div>
-                <div class="ff"><label>Min Salary <span class="req">*</span></label>
-                    <input type="number" min="0" formControlName="salary_min">
-                </div>
-                <div class="ff"><label>Max Salary <span class="req">*</span></label>
-                    <input type="number" min="0" formControlName="salary_max">
-                </div>
-                <div class="ff full"><label>Required Skills</label>
-                    <textarea formControlName="required_skills" rows="2"
-                        placeholder="e.g. Angular, TypeScript, SQL..."></textarea>
-                </div>
-                <div class="ff full"><label>Qualifications</label>
-                    <textarea formControlName="qualifications" rows="2" placeholder="e.g. B.Tech CS"></textarea>
-                </div>
-                <div class="ff full"><label>Responsibilities</label>
-                    <textarea formControlName="responsibilities" rows="2"
-                        placeholder="Key responsibilities..."></textarea>
-                </div>
-                @if (!editingJob()) {
-                <div class="ff"><label>Publish Date</label>
-                    <input type="date" formControlName="publish_date">
-                </div>
-                }
-                <div class="ff"><label>Application Deadline</label>
-                    <input type="date" formControlName="application_deadline">
-                </div>
-            </div>
-            @if (formError()) {
-            <div class="fm-error"><i class="fas fa-exclamation-triangle"></i> {{ formError() }}</div>
-            }
+        <button class="fm-close" (click)="closeJobForm()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="fm-body" [formGroup]="jobForm">
+        <div class="fm-grid">
+          <div class="ff full"><label>Job Title <span class="req">*</span></label>
+            <input type="text" formControlName="title" placeholder="e.g. Senior Angular Developer"></div>
+          <div class="ff full"><label>Description <span class="req">*</span></label>
+            <textarea formControlName="description" rows="3" placeholder="Describe the role..."></textarea></div>
+          <div class="ff"><label>Department <span class="req">*</span></label>
+            <select formControlName="department">
+              <option value="">Select department</option>
+              @for (d of departments; track d) { <option [value]="d">{{ d }}</option> }
+            </select></div>
+          <div class="ff"><label>Location <span class="req">*</span></label>
+            <input type="text" formControlName="location" placeholder="e.g. Ahmedabad / Remote"></div>
+          <div class="ff"><label>Employment Type <span class="req">*</span></label>
+            <select formControlName="employment_type">
+              @for (t of empTypes; track t) { <option [value]="t">{{ t }}</option> }
+            </select></div>
+          <div class="ff"><label>Experience Required <span class="req">*</span></label>
+            <input type="text" formControlName="experience_required" placeholder="e.g. 2-4 years"></div>
+          <div class="ff"><label>Vacancies <span class="req">*</span></label>
+            <input type="number" min="1" formControlName="vacancies"></div>
+          <div class="ff"><label>Currency</label>
+            <select formControlName="currency">
+              @for (c of currencies; track c) { <option [value]="c">{{ c }}</option> }
+            </select></div>
+          <div class="ff"><label>Min Salary <span class="req">*</span></label>
+            <input type="number" min="0" formControlName="salary_min"></div>
+          <div class="ff"><label>Max Salary <span class="req">*</span></label>
+            <input type="number" min="0" formControlName="salary_max"></div>
+          <div class="ff full"><label>Required Skills</label>
+            <textarea formControlName="required_skills" rows="2" placeholder="e.g. Angular, TypeScript, SQL..."></textarea></div>
+          <div class="ff full"><label>Qualifications</label>
+            <textarea formControlName="qualifications" rows="2" placeholder="e.g. B.Tech CS"></textarea></div>
+          <div class="ff full"><label>Responsibilities</label>
+            <textarea formControlName="responsibilities" rows="2" placeholder="Key responsibilities..."></textarea></div>
+          @if (!editingJob()) {
+            <div class="ff"><label>Publish Date</label>
+              <input type="date" formControlName="publish_date"></div>
+          }
+          <div class="ff"><label>Application Deadline</label>
+            <input type="date" formControlName="application_deadline"></div>
         </div>
-        <div class="fm-footer">
-            <button class="fm-cancel" (click)="closeJobForm()">Cancel</button>
-            <button class="fm-save" (click)="saveJob()" [disabled]="formSaving()">
-                @if (formSaving()) { <span class="mini-spin white-spin"></span> Saving... }
-                @else { <i class="fas fa-{{ editingJob() ? 'save' : 'plus' }}"></i> {{ editingJob() ? 'Update Job' :
-                'Save as Draft' }} }
-            </button>
-        </div>
+        @if (formError()) {
+          <div class="fm-error"><i class="fas fa-exclamation-triangle"></i> {{ formError() }}</div>
+        }
+      </div>
+      <div class="fm-footer">
+        <button class="fm-cancel" (click)="closeJobForm()">Cancel</button>
+        <button class="fm-save" (click)="saveJob()" [disabled]="formSaving()">
+          @if (formSaving()) { <span class="mini-spin white-spin"></span> Saving... }
+          @else { <i class="fas fa-{{ editingJob() ? 'save' : 'plus' }}"></i> {{ editingJob() ? 'Update Job' : 'Save as Draft' }} }
+        </button>
+      </div>
     </div>
-</div>
+  </div>
 }
 
 <!-- ══ APPLY JOB MODAL ══ -->
 @if (candFormModal()) {
-<div class="modal-overlay" (click)="closeCandForm()">
+  <div class="modal-overlay" (click)="closeCandForm()">
     <div class="form-modal" (click)="$event.stopPropagation()">
-        <div class="fm-header cand-hdr">
-            <div class="fm-icon"><i class="fas fa-user-plus"></i></div>
-            <div>
-                <div class="fm-title">Submit Application</div>
-                <div class="fm-sub">Published jobs only · Includes resume upload</div>
-            </div>
-            <button class="fm-close" (click)="closeCandForm()"><i class="fas fa-times"></i></button>
+      <div class="fm-header cand-hdr">
+        <div class="fm-icon"><i class="fas fa-user-plus"></i></div>
+        <div>
+          <div class="fm-title">Submit Application</div>
+          <div class="fm-sub">Published jobs only · Includes resume upload</div>
         </div>
-
-        <div class="fm-body" [formGroup]="candForm">
-            <div class="fm-grid one-col">
-
-                <div class="ff full">
-                    <label>Job (Published only) <span class="req">*</span></label>
-                    <select formControlName="jobId">
-                        <option value="">Select a job</option>
-                        @for (j of allJobs(); track j.jobId) {
-                        @if (j.status === 'Published' || j.status === 'Open') {
-                        <option [value]="j.jobId">{{ j.title }} — {{ j.department }}</option>
-                        }
-                        }
-                    </select>
+        <button class="fm-close" (click)="closeCandForm()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="fm-body" [formGroup]="candForm">
+        <div class="fm-grid one-col">
+          <div class="ff full">
+            <label>Job (Published only) <span class="req">*</span></label>
+            <select formControlName="jobId">
+              <option value="">Select a job</option>
+              @for (j of allJobs(); track j.jobId) {
+                @if (j.status === 'Published' || j.status === 'Open') {
+                  <option [value]="j.jobId">{{ j.title }} — {{ j.department }}</option>
+                }
+              }
+            </select>
+          </div>
+          <div class="ff full">
+            <label>Employee / Applicant <span class="req">*</span></label>
+            <select formControlName="userId">
+              <option value="">Select employee</option>
+              @for (e of allEmployees(); track e.id) {
+                <option [value]="e.id">{{ e.userName }} — {{ e.email }}</option>
+              }
+            </select>
+          </div>
+          <!-- Resume Upload -->
+          <div class="ff full">
+            <label>Resume <span class="req-note">(PDF, DOC, DOCX · max 5 MB)</span></label>
+            @if (!resumeFile()) {
+              <label class="resume-dropzone" for="resume-upload">
+                <div class="rdz-icon"><i class="fas fa-file-upload"></i></div>
+                <div class="rdz-text">
+                  <span class="rdz-main">Click to upload resume</span>
+                  <span class="rdz-sub">or drag and drop — PDF, DOC, DOCX</span>
                 </div>
-
-                <div class="ff full">
-                    <label>Employee / Applicant <span class="req">*</span></label>
-                    <select formControlName="userId">
-                        <option value="">Select employee</option>
-                        @for (e of allEmployees(); track e.id) {
-                        <option [value]="e.id">{{ e.userName }} — {{ e.email }}</option>
-                        }
-                    </select>
+                <input id="resume-upload" type="file" accept=".pdf,.doc,.docx"
+                  class="rdz-input" (change)="onResumeFileSelected($event)">
+              </label>
+            } @else {
+              <div class="resume-preview">
+                <div class="rp-icon">
+                  <i class="fas fa-{{ resumeFile()!.name.endsWith('.pdf') ? 'file-pdf' : 'file-word' }}"></i>
                 </div>
-
-                <!-- Resume Upload -->
-                <div class="ff full">
-                    <label>Resume <span class="req-note">(PDF, DOC, DOCX · max 5 MB)</span></label>
-
-                    @if (!resumeFile()) {
-                    <!-- Drop zone -->
-                    <label class="resume-dropzone" for="resume-upload">
-                        <div class="rdz-icon"><i class="fas fa-file-upload"></i></div>
-                        <div class="rdz-text">
-                            <span class="rdz-main">Click to upload resume</span>
-                            <span class="rdz-sub">or drag and drop — PDF, DOC, DOCX</span>
-                        </div>
-                        <input id="resume-upload" type="file" accept=".pdf,.doc,.docx" class="rdz-input"
-                            (change)="onResumeFileSelected($event)">
-                    </label>
-                    } @else {
-                    <!-- File selected preview -->
-                    <div class="resume-preview">
-                        <div class="rp-icon">
-                            <i class="fas fa-{{ resumeFile()!.name.endsWith('.pdf') ? 'file-pdf' : 'file-word' }}"></i>
-                        </div>
-                        <div class="rp-info">
-                            <div class="rp-name">{{ resumeFile()!.name }}</div>
-                            <div class="rp-size">{{ (resumeFile()!.size / 1024).toFixed(0) }} KB</div>
-                        </div>
-                        @if (resumeUploading()) {
-                        <div class="rp-uploading"><span class="mini-spin teal-spin"></span> Uploading...</div>
-                        } @else {
-                        <button class="rp-remove" (click)="clearResumeFile()" type="button" title="Remove">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        }
-                    </div>
-                    }
-
+                <div class="rp-info">
+                  <div class="rp-name">{{ resumeFile()!.name }}</div>
+                  <div class="rp-size">{{ (resumeFile()!.size / 1024).toFixed(0) }} KB</div>
                 </div>
-
-            </div>
-
-            <div class="apply-note">
-                <i class="fas fa-info-circle"></i>
-                Only Published jobs within deadline are eligible. Duplicate applications are rejected by the API.
-            </div>
-
-            @if (formError()) {
-            <div class="fm-error"><i class="fas fa-exclamation-triangle"></i> {{ formError() }}</div>
+                @if (resumeUploading()) {
+                  <div class="rp-uploading"><span class="mini-spin teal-spin"></span> Uploading...</div>
+                } @else {
+                  <button class="rp-remove" (click)="clearResumeFile()" type="button" title="Remove">
+                    <i class="fas fa-times"></i>
+                  </button>
+                }
+              </div>
             }
+          </div>
         </div>
-
-        <div class="fm-footer">
-            <button class="fm-cancel" (click)="closeCandForm()">Cancel</button>
-            <button class="fm-save cand-save" (click)="saveCandidate()" [disabled]="formSaving() || resumeUploading()">
-                @if (resumeUploading()) { <span class="mini-spin white-spin"></span> Uploading resume... }
-                @else if (formSaving()) { <span class="mini-spin white-spin"></span> Submitting... }
-                @else { <i class="fas fa-paper-plane"></i> Submit Application }
-            </button>
+        <div class="apply-note">
+          <i class="fas fa-info-circle"></i>
+          Only Published jobs within deadline are eligible. Duplicate applications are rejected.
         </div>
+        @if (formError()) {
+          <div class="fm-error"><i class="fas fa-exclamation-triangle"></i> {{ formError() }}</div>
+        }
+      </div>
+      <div class="fm-footer">
+        <button class="fm-cancel" (click)="closeCandForm()">Cancel</button>
+        <button class="fm-save cand-save" (click)="saveCandidate()" [disabled]="formSaving() || resumeUploading()">
+          @if (resumeUploading()) { <span class="mini-spin white-spin"></span> Uploading resume... }
+          @else if (formSaving()) { <span class="mini-spin white-spin"></span> Submitting... }
+          @else { <i class="fas fa-paper-plane"></i> Submit Application }
+        </button>
+      </div>
     </div>
-</div>
+  </div>
 }
 
 <!-- ══ JOB DETAIL MODAL (scrollable) ══ -->
 @if (jobDetailModal()) {
-<div class="modal-overlay" (click)="closeJobDetail()">
+  <div class="modal-overlay" (click)="closeJobDetail()">
     <div class="detail-modal" (click)="$event.stopPropagation()">
-        <div class="dm-header">
-            <div class="dm-hero">
-                <div class="dm-icon" [style.background]="getColor(jobDetailModal()!.jobId)">{{
-                    getInitials(jobDetailModal()!.department) }}</div>
-                <div>
-                    <div class="dm-title">{{ jobDetailModal()!.title }}</div>
-                    <div class="dm-sub">{{ jobDetailModal()!.department }} · {{ jobDetailModal()!.employment_type }} ·
-                        {{ jobDetailModal()!.location }}</div>
-                </div>
-                <span class="job-badge ml" [style.background]="statusColor(jobDetailModal()!.status)+'22'"
-                    [style.color]="statusColor(jobDetailModal()!.status)">
-                    <span class="jb-dot" [style.background]="statusColor(jobDetailModal()!.status)"></span>
-                    {{ statusLabel(jobDetailModal()!.status) }}
-                </span>
-            </div>
-            <button class="fm-close" (click)="closeJobDetail()"><i class="fas fa-times"></i></button>
+      <div class="dm-header">
+        <div class="dm-hero">
+          <div class="dm-icon" [style.background]="getColor(jobDetailModal()!.jobId)">
+            {{ getInitials(jobDetailModal()!.department) }}
+          </div>
+          <div>
+            <div class="dm-title">{{ jobDetailModal()!.title }}</div>
+            <div class="dm-sub">{{ jobDetailModal()!.department }} · {{ jobDetailModal()!.employment_type }} · {{ jobDetailModal()!.location }}</div>
+          </div>
+          <span class="job-badge ml" [style.background]="statusColor(jobDetailModal()!.status)+'22'" [style.color]="statusColor(jobDetailModal()!.status)">
+            <span class="jb-dot" [style.background]="statusColor(jobDetailModal()!.status)"></span>
+            {{ statusLabel(jobDetailModal()!.status) }}
+          </span>
+        </div>
+        <button class="fm-close" (click)="closeJobDetail()"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="dm-body">
+        <div class="dm-info-grid">
+          <div class="dig"><span>Vacancies</span><strong>{{ jobDetailModal()!.vacancies }}</strong></div>
+          <div class="dig"><span>Experience</span><strong>{{ jobDetailModal()!.experience_required }}</strong></div>
+          <div class="dig"><span>Salary</span><strong>{{ formatSalary(jobDetailModal()!.salary_min, jobDetailModal()!.salary_max, jobDetailModal()!.currency) }}</strong></div>
+          <div class="dig"><span>Deadline</span>
+            <strong [class.red-text]="isDeadlinePast(jobDetailModal()!.application_deadline)">
+              {{ formatDate(jobDetailModal()!.application_deadline) }}
+            </strong>
+          </div>
+          <div class="dig"><span>Applicants</span><strong>{{ jobDetailCands().length }}</strong></div>
+          <div class="dig"><span>Published</span><strong>{{ formatDate(jobDetailModal()!.publish_date) }}</strong></div>
         </div>
 
-        <div class="dm-body">
-            <div class="dm-info-grid">
-                <div class="dig"><span>Vacancies</span><strong>{{ jobDetailModal()!.vacancies }}</strong></div>
-                <div class="dig"><span>Experience</span><strong>{{ jobDetailModal()!.experience_required }}</strong>
-                </div>
-                <div class="dig"><span>Salary</span><strong>{{ formatSalary(jobDetailModal()!.salary_min,
-                        jobDetailModal()!.salary_max, jobDetailModal()!.currency) }}</strong></div>
-                <div class="dig"><span>Deadline</span>
-                    <strong [class.red-text]="isDeadlinePast(jobDetailModal()!.application_deadline)">{{
-                        formatDate(jobDetailModal()!.application_deadline) }}</strong>
-                </div>
-                <div class="dig"><span>Applicants</span><strong>{{ jobDetailCands().length }}</strong></div>
-                <div class="dig"><span>Published</span><strong>{{ formatDate(jobDetailModal()!.publish_date) }}</strong>
-                </div>
+        @if (jobDetailModal()!.description) {
+          <div class="dm-section">
+            <div class="dm-sec-title"><i class="fas fa-align-left"></i> Description</div>
+            <p class="dm-text">{{ jobDetailModal()!.description }}</p>
+          </div>
+        }
+        @if (jobDetailModal()!.responsibilities) {
+          <div class="dm-section">
+            <div class="dm-sec-title"><i class="fas fa-tasks"></i> Responsibilities</div>
+            <p class="dm-text">{{ jobDetailModal()!.responsibilities }}</p>
+          </div>
+        }
+        @if (jobDetailModal()!.required_skills) {
+          <div class="dm-section">
+            <div class="dm-sec-title"><i class="fas fa-code"></i> Required Skills</div>
+            <div class="dm-skills">
+              @for (sk of (jobDetailModal()!.required_skills || '').split(','); track sk) {
+                @if (sk.trim()) { <span class="skill-chip">{{ sk.trim() }}</span> }
+              }
             </div>
+          </div>
+        }
+        @if (jobDetailModal()!.qualifications) {
+          <div class="dm-section">
+            <div class="dm-sec-title"><i class="fas fa-graduation-cap"></i> Qualifications</div>
+            <p class="dm-text">{{ jobDetailModal()!.qualifications }}</p>
+          </div>
+        }
 
-            @if (jobDetailModal()!.description) {
-            <div class="dm-section">
-                <div class="dm-sec-title"><i class="fas fa-align-left"></i> Description</div>
-                <p class="dm-text">{{ jobDetailModal()!.description }}</p>
-            </div>
-            }
-            @if (jobDetailModal()!.responsibilities) {
-            <div class="dm-section">
-                <div class="dm-sec-title"><i class="fas fa-tasks"></i> Responsibilities</div>
-                <p class="dm-text">{{ jobDetailModal()!.responsibilities }}</p>
-            </div>
-            }
-            @if (jobDetailModal()!.required_skills) {
-            <div class="dm-section">
-                <div class="dm-sec-title"><i class="fas fa-code"></i> Required Skills</div>
-                <div class="dm-skills">
-                    @for (sk of (jobDetailModal()!.required_skills || '').split(','); track sk) {
-                    @if (sk.trim()) { <span class="skill-chip">{{ sk.trim() }}</span> }
-                    }
+        <!-- Applicants per job -->
+        <div class="dm-section">
+          <div class="dm-sec-title">
+            <i class="fas fa-users"></i> Applicants
+            @if (jobDetailLoading()) { <span class="dm-loading-inline"><i class="fas fa-spinner fa-spin"></i></span> }
+            @else { <span class="dm-count-badge">{{ jobDetailCands().length }}</span> }
+          </div>
+          @if (jobDetailCands().length === 0 && !jobDetailLoading()) {
+            <div class="dm-empty">No applicants yet</div>
+          } @else {
+            <div class="dm-cand-list">
+              @for (c of jobDetailCands(); track c.applicationId) {
+                <div class="dcl-row" (click)="openCandDetail(c); closeJobDetail()">
+                  <div class="emp-av sm" [style.background]="getColor(c.userId)">{{ getInitials(c.fullName) }}</div>
+                  <div class="dcl-info">
+                    <div class="dcl-name">{{ c.fullName }}</div>
+                    <div class="dcl-sub">{{ c.email }}@if(c.department){ · {{ c.department }}}</div>
+                  </div>
+                  <span class="stage-pill sm" [style.background]="stageColor(c.stage)+'18'" [style.color]="stageColor(c.stage)">
+                    <i class="fas fa-{{ stageIcon(c.stage) }}"></i>{{ c.stage }}
+                  </span>
+                  @if (c.resumeUrl) {
+                    <a class="dcl-resume-btn" [href]="'https://localhost:44346' + c.resumeUrl"
+                      target="_blank" (click)="$event.stopPropagation()" title="View Resume">
+                      <i class="fas fa-file-alt"></i> Resume
+                    </a>
+                  }
+                  <span class="dcl-date">{{ formatDate(c.appliedDate) }}</span>
                 </div>
+              }
             </div>
-            }
-            @if (jobDetailModal()!.qualifications) {
-            <div class="dm-section">
-                <div class="dm-sec-title"><i class="fas fa-graduation-cap"></i> Qualifications</div>
-                <p class="dm-text">{{ jobDetailModal()!.qualifications }}</p>
-            </div>
-            }
-
-            <!-- Applicants per job -->
-            <div class="dm-section">
-                <div class="dm-sec-title">
-                    <i class="fas fa-users"></i> Applicants
-                    @if (jobDetailLoading()) { <span class="dm-loading-inline"><i
-                            class="fas fa-spinner fa-spin"></i></span> }
-                    @else { <span class="dm-count-badge">{{ jobDetailCands().length }}</span> }
-                </div>
-                @if (jobDetailCands().length === 0 && !jobDetailLoading()) {
-                <div class="dm-empty">No applicants yet</div>
-                } @else {
-                <div class="dm-cand-list">
-                    @for (c of jobDetailCands(); track c.applicationId) {
-                    <div class="dcl-row" (click)="openCandDetail(c); closeJobDetail()">
-                        <div class="emp-av sm" [style.background]="getColor(c.userId)">{{ getInitials(c.fullName) }}
-                        </div>
-                        <div class="dcl-info">
-                            <div class="dcl-name">{{ c.fullName }}</div>
-                            <div class="dcl-sub">{{ c.email }}@if(c.department){ · {{ c.department }}}</div>
-                        </div>
-                        <span class="stage-pill sm" [style.background]="stageColor(c.stage)+'18'"
-                            [style.color]="stageColor(c.stage)">
-                            <i class="fas fa-{{ stageIcon(c.stage) }}"></i>{{ c.stage }}
-                        </span>
-                        @if (c.resumeUrl) {
-                        <a class="dcl-resume-btn" [href]=`https:localhost:44346${c.resumeUrl}` target="_blank"
-                            (click)="$event.stopPropagation()" title="View Resume">
-                            <i class="fas fa-file-alt"></i> Resume
-                        </a>
-                        }
-                        <span class="dcl-date">{{ formatDate(c.appliedDate) }}</span>
-                    </div>
-                    }
-                </div>
-                }
-            </div>
+          }
         </div>
+      </div>
 
-        <div class="dm-footer">
-            @if (canPublish(jobDetailModal()!.status)) {
-            <button class="btn-pub" (click)="openStatusModal(jobDetailModal()!,'publish'); closeJobDetail()">
-                <i class="fas fa-rocket"></i> Publish
-            </button>
-            }
-            @if (jobDetailModal()!.status === 'Published' || jobDetailModal()!.status === 'Open') {
-            <button class="btn-secondary" (click)="openAddCandidate(jobDetailModal()!.jobId); closeJobDetail()">
-                <i class="fas fa-user-plus"></i> Add Applicant
-            </button>
-            }
-            @if (canEdit(jobDetailModal()!.status)) {
-            <button class="btn-secondary" (click)="openEditJob(jobDetailModal()!); closeJobDetail()">
-                <i class="fas fa-pen"></i> Edit
-            </button>
-            }
-            <button class="fm-cancel ml-auto" (click)="closeJobDetail()">Close</button>
-        </div>
+      <div class="dm-footer">
+        <!-- Draft → Publish (first time) -->
+        @if (canPublish(jobDetailModal()!.status)) {
+          <button class="btn-pub" (click)="openStatusModal(jobDetailModal()!,'publish'); closeJobDetail()">
+            <i class="fas fa-rocket"></i> Publish
+          </button>
+        }
+        <!-- OnHold → Resume -->
+        @if (canResume(jobDetailModal()!.status)) {
+          <button class="btn-resume" (click)="openStatusModal(jobDetailModal()!,'resume'); closeJobDetail()">
+            <i class="fas fa-play"></i> Resume Job
+          </button>
+        }
+        <!-- Add applicant when Published OR Open -->
+        @if (isActiveJob(jobDetailModal()!.status)) {
+          <button class="btn-secondary" (click)="openAddCandidate(jobDetailModal()!.jobId); closeJobDetail()">
+            <i class="fas fa-user-plus"></i> Add Applicant
+          </button>
+        }
+        @if (canEdit(jobDetailModal()!.status)) {
+          <button class="btn-secondary" (click)="openEditJob(jobDetailModal()!); closeJobDetail()">
+            <i class="fas fa-pen"></i> Edit
+          </button>
+        }
+        <button class="fm-cancel ml-auto" (click)="closeJobDetail()">Close</button>
+      </div>
     </div>
-</div>
+  </div>
 }
 
 <!-- ══ CANDIDATE DETAIL MODAL ══ -->
 @if (candDetailModal()) {
-<div class="modal-overlay" (click)="closeCandDetail()">
+  <div class="modal-overlay" (click)="closeCandDetail()">
     <div class="detail-modal cand-detail" (click)="$event.stopPropagation()">
-        <div class="dm-header">
-            <div class="dm-hero">
-                <div class="emp-av lg" [style.background]="getColor(candDetailModal()!.userId)">{{
-                    getInitials(candDetailModal()!.fullName) }}</div>
-                <div>
-                    <div class="dm-title">{{ candDetailModal()!.fullName }}</div>
-                    <div class="dm-sub">{{ candDetailModal()!.email }}@if(candDetailModal()!.phoneNumber){ · {{
-                        candDetailModal()!.phoneNumber }}}</div>
-                </div>
-                <span class="stage-pill ml" [style.background]="stageColor(candDetailModal()!.stage)+'22'"
-                    [style.color]="stageColor(candDetailModal()!.stage)">
-                    <i class="fas fa-{{ stageIcon(candDetailModal()!.stage) }}"></i>{{ candDetailModal()!.stage }}
-                </span>
-            </div>
-            <button class="fm-close" (click)="closeCandDetail()"><i class="fas fa-times"></i></button>
+      <div class="dm-header">
+        <div class="dm-hero">
+          <div class="emp-av lg" [style.background]="getColor(candDetailModal()!.userId)">{{ getInitials(candDetailModal()!.fullName) }}</div>
+          <div>
+            <div class="dm-title">{{ candDetailModal()!.fullName }}</div>
+            <div class="dm-sub">{{ candDetailModal()!.email }}@if(candDetailModal()!.phoneNumber){ · {{ candDetailModal()!.phoneNumber }}}</div>
+          </div>
+          <span class="stage-pill ml" [style.background]="stageColor(candDetailModal()!.stage)+'22'" [style.color]="stageColor(candDetailModal()!.stage)">
+            <i class="fas fa-{{ stageIcon(candDetailModal()!.stage) }}"></i>{{ candDetailModal()!.stage }}
+          </span>
         </div>
-        <div class="dm-body">
-            <div class="dm-info-grid-2">
-                <div class="dig"><span>App ID</span><strong>#{{ candDetailModal()!.applicationId }}</strong></div>
-                <div class="dig"><span>Employee ID</span><strong>EMP-{{ candDetailModal()!.userId }}</strong></div>
-                <div class="dig"><span>Department</span><strong>{{ candDetailModal()!.department || '—' }}</strong>
-                </div>
-                <div class="dig"><span>Gender</span><strong>{{ candDetailModal()!.gender || '—' }}</strong></div>
-                <div class="dig"><span>Applied On</span><strong>{{ formatDate(candDetailModal()!.appliedDate)
-                        }}</strong></div>
-                <div class="dig"><span>Current Stage</span>
-                    <strong [style.color]="stageColor(candDetailModal()!.stage)">{{ candDetailModal()!.stage }}</strong>
-                </div>
+        <button class="fm-close" (click)="closeCandDetail()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="dm-body">
+        <div class="dm-info-grid-2">
+          <div class="dig"><span>App ID</span><strong>#{{ candDetailModal()!.applicationId }}</strong></div>
+          <div class="dig"><span>Employee ID</span><strong>EMP-{{ candDetailModal()!.userId }}</strong></div>
+          <div class="dig"><span>Department</span><strong>{{ candDetailModal()!.department || '—' }}</strong></div>
+          <div class="dig"><span>Gender</span><strong>{{ candDetailModal()!.gender || '—' }}</strong></div>
+          <div class="dig"><span>Applied On</span><strong>{{ formatDate(candDetailModal()!.appliedDate) }}</strong></div>
+          <div class="dig"><span>Current Stage</span>
+            <strong [style.color]="stageColor(candDetailModal()!.stage)">{{ candDetailModal()!.stage }}</strong>
+          </div>
+        </div>
+        @if (candDetailModal()!.address) {
+          <div class="dm-section">
+            <div class="dm-sec-title"><i class="fas fa-map-marker-alt"></i> Address</div>
+            <p class="dm-text">{{ candDetailModal()!.address }}</p>
+          </div>
+        }
+        <!-- Resume -->
+        <div class="dm-section">
+          <div class="dm-sec-title"><i class="fas fa-file-alt"></i> Resume</div>
+          @if (candDetailModal()!.resumeUrl) {
+            <div class="resume-card">
+              <div class="rc-icon">
+                <i class="fas fa-{{ candDetailModal()!.resumeUrl.includes('.pdf') ? 'file-pdf' : candDetailModal()!.resumeUrl.startsWith('http') ? 'link' : 'file-word' }}"></i>
+              </div>
+              <div class="rc-info">
+                <div class="rc-label">Resume attached</div>
+              </div>
+              <div class="rc-actions">
+                <a class="rc-btn view" [href]="'https://localhost:44346' + candDetailModal()!.resumeUrl"
+                  target="_blank" title="Open in browser">
+                  <i class="fas fa-external-link-alt"></i> View
+                </a>
+                <button class="rc-btn download" (click)="downloadResume(candDetailModal()!)" title="Download">
+                  <i class="fas fa-download"></i> Download
+                </button>
+              </div>
             </div>
-            @if (candDetailModal()!.address) {
-            <div class="dm-section">
-                <div class="dm-sec-title"><i class="fas fa-map-marker-alt"></i> Address</div>
-                <p class="dm-text">{{ candDetailModal()!.address }}</p>
+          } @else {
+            <div class="dm-empty">
+              <i class="fas fa-exclamation-circle" style="color:#d68910;margin-right:6px;"></i>
+              No resume uploaded for this applicant.
             </div>
+          }
+        </div>
+        <!-- Journey timeline -->
+        <div class="dm-section">
+          <div class="dm-sec-title"><i class="fas fa-route"></i> Recruitment Journey</div>
+          <div class="stage-journey">
+            @for (s of stages; track s; let i = $index) {
+              @let isPast = stages.indexOf(candDetailModal()!.stage) > i;
+              @let isCurrent = candDetailModal()!.stage === s;
+              @let isRejected = candDetailModal()!.stage === 'Rejected';
+              <div class="sj-step"
+                [class.sj-done]="isPast && !isRejected"
+                [class.sj-current]="isCurrent"
+                [class.sj-rejected]="isCurrent && s==='Rejected'">
+                <div class="sj-icon"
+                  [style.background]="isCurrent ? stageColor(s) : isPast && !isRejected ? '#27ae60' : '#e8f4f6'"
+                  [style.color]="isCurrent || (isPast && !isRejected) ? '#fff' : '#5a8a94'">
+                  <i class="fas fa-{{ isCurrent ? stageIcon(s) : isPast && !isRejected ? 'check' : stageIcon(s) }}"></i>
+                </div>
+                <div class="sj-label">{{ s }}</div>
+                @if (i < stages.length - 1) {
+                  <div class="sj-line" [class.sj-line-done]="isPast && !isRejected"></div>
+                }
+              </div>
             }
-
-            <!-- Resume -->
-            <div class="dm-section">
-                <div class="dm-sec-title"><i class="fas fa-file-alt"></i> Resume</div>
-                @if (candDetailModal()!.resumeUrl) {
-                <div class="resume-card">
-                    <div class="rc-icon">
-                        <i
-                            class="fas fa-{{ candDetailModal()!.resumeUrl.endsWith('.pdf') || candDetailModal()!.resumeUrl.includes('.pdf') ? 'file-pdf' : candDetailModal()!.resumeUrl.startsWith('http') ? 'link' : 'file-word' }}"></i>
-                    </div>
-                    <div class="rc-info">
-                        <div class="rc-label">Resume attached</div>
-                        <!-- <div class="rc-url">{{ candDetailModal()!.resumeUrl.length > 56?
-                            candDetailModal()!.resumeUrl.substring(16,57) +'...' : candDetailModal()!.resumeUrl.substring(16,60) }}
-                        </div> -->
-                    </div>
-                    <div class="rc-actions">
-                        <a class="rc-btn view" [href]=`https:localhost:44346${candDetailModal()!.resumeUrl}`
-                            target="_blank" title="Open in browser">
-                            <i class="fas fa-external-link-alt"></i> View
-                        </a>
-                    </div>
-                </div>
-                } @else {
-                <div class="dm-empty"><i class="fas fa-exclamation-circle"
-                        style="color:#d68910;margin-right:6px;"></i>No resume uploaded for this applicant.</div>
-                }
-            </div>
-
-            <!-- Journey timeline -->
-            <div class="dm-section">
-                <div class="dm-sec-title"><i class="fas fa-route"></i> Recruitment Journey</div>
-                <div class="stage-journey">
-                    @for (s of stages; track s; let i = $index) {
-                    @let isPast = stages.indexOf(candDetailModal()!.stage) > i;
-                    @let isCurrent = candDetailModal()!.stage === s;
-                    @let isRejected = candDetailModal()!.stage === 'Rejected';
-                    <div class="sj-step" [class.sj-done]="isPast && !isRejected" [class.sj-current]="isCurrent"
-                        [class.sj-rejected]="isCurrent && s==='Rejected'">
-                        <div class="sj-icon"
-                            [style.background]="isCurrent ? stageColor(s) : isPast && !isRejected ? '#27ae60' : '#e8f4f6'"
-                            [style.color]="isCurrent || (isPast && !isRejected) ? '#fff' : '#5a8a94'">
-                            <i
-                                class="fas fa-{{ isCurrent ? stageIcon(s) : isPast && !isRejected ? 'check' : stageIcon(s) }}"></i>
-                        </div>
-                        <div class="sj-label">{{ s }}</div>
-                        @if (i < stages.length - 1) { <div class="sj-line" [class.sj-line-done]="isPast && !isRejected">
-                    </div> }
-                </div>
-                }
-            </div>
+          </div>
         </div>
-    </div>
-    <div class="dm-footer">
+      </div>
+      <div class="dm-footer">
         @if (candDetailModal()!.resumeUrl) {
-        <a class="btn-pub" [href]=`https:localhost:44346${candDetailModal()!.resumeUrl}` target="_blank">
+          <a class="btn-pub" [href]="'https://localhost:44346' + candDetailModal()!.resumeUrl" target="_blank">
             <i class="fas fa-eye"></i> View Resume
-        </a>
+          </a>
+          <button class="btn-secondary" (click)="downloadResume(candDetailModal()!)">
+            <i class="fas fa-download"></i> Download
+          </button>
         } @else {
-        <span class="no-resume-note"><i class="fas fa-exclamation-circle"></i> No resume uploaded</span>
+          <span class="no-resume-note"><i class="fas fa-exclamation-circle"></i> No resume uploaded</span>
         }
         <button class="fm-cancel ml-auto" (click)="closeCandDetail()">Close</button>
+      </div>
     </div>
-</div>
-</div>
+  </div>
 }
 
-<!-- ══ PROFESSIONAL STAGE MODAL ══ -->
+<!-- ══ STAGE MODAL ══ -->
 @if (stageModal()) {
-<div class="modal-overlay stage-overlay" (click)="closeStageModal()">
+  <div class="modal-overlay stage-overlay" (click)="closeStageModal()">
     <div class="stage-modal" (click)="$event.stopPropagation()">
-        <div class="stm-header">
-            <div class="stm-emp">
-                <div class="emp-av md" [style.background]="getColor(stageModal()!.cand.userId)">
-                    {{ getInitials(stageModal()!.cand.fullName) }}
-                </div>
-                <div>
-                    <div class="stm-name">{{ stageModal()!.cand.fullName }}</div>
-                    <div class="stm-sub">{{ stageModal()!.cand.email }}</div>
-                </div>
-            </div>
-            <button class="fm-close" (click)="closeStageModal()"><i class="fas fa-times"></i></button>
+      <div class="stm-header">
+        <div class="stm-emp">
+          <div class="emp-av md" [style.background]="getColor(stageModal()!.cand.userId)">
+            {{ getInitials(stageModal()!.cand.fullName) }}
+          </div>
+          <div>
+            <div class="stm-name">{{ stageModal()!.cand.fullName }}</div>
+            <div class="stm-sub">{{ stageModal()!.cand.email }}</div>
+          </div>
         </div>
-
-        <div class="stm-body">
-            <div class="stm-label">Move to stage</div>
-            <div class="stm-stages">
-                @for (s of stages; track s) {
-                <button class="stm-stage-btn" [class.stm-current]="stageModal()!.cand.stage === s"
-                    [style.border-color]="stageColor(s)" (click)="confirmStageMove(s)">
-                    <div class="stm-stage-icon" [style.background]="stageColor(s)+'18'" [style.color]="stageColor(s)">
-                        <i class="fas fa-{{ stageIcon(s) }}"></i>
-                    </div>
-                    <span [style.color]="stageColor(s)">{{ s }}</span>
-                    @if (stageModal()!.cand.stage === s) {
-                    <span class="stm-current-badge">Current</span>
-                    }
-                </button>
-                }
-            </div>
+        <button class="fm-close" (click)="closeStageModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="stm-body">
+        <div class="stm-label">Move to stage</div>
+        <div class="stm-stages">
+          @for (s of stages; track s) {
+            <button class="stm-stage-btn" [class.stm-current]="stageModal()!.cand.stage === s"
+              [style.border-color]="stageColor(s)" (click)="confirmStageMove(s)">
+              <div class="stm-stage-icon" [style.background]="stageColor(s)+'18'" [style.color]="stageColor(s)">
+                <i class="fas fa-{{ stageIcon(s) }}"></i>
+              </div>
+              <span [style.color]="stageColor(s)">{{ s }}</span>
+              @if (stageModal()!.cand.stage === s) {
+                <span class="stm-current-badge">Current</span>
+              }
+            </button>
+          }
         </div>
+      </div>
     </div>
-</div>
+  </div>
 }
 
 <!-- ══ STATUS CONFIRM ══ -->
 @if (statusModal()) {
-<div class="modal-overlay" (click)="closeStatusModal()">
+  <div class="modal-overlay" (click)="closeStatusModal()">
     <div class="confirm-modal" (click)="$event.stopPropagation()">
-        <div class="cm-icon-wrap"
-            [style.background]="statusModal()!.action==='publish'?'rgba(39,174,96,0.1)':statusModal()!.action==='onhold'?'rgba(214,137,16,0.1)':'rgba(192,57,43,0.1)'"
-            [style.color]="statusModal()!.action==='publish'?'#27ae60':statusModal()!.action==='onhold'?'#d68910':'#c0392b'">
-            <i
-                class="fas fa-{{ statusModal()!.action==='publish'?'rocket':statusModal()!.action==='onhold'?'pause':'times-circle' }}"></i>
-        </div>
-        <div class="cm-title">{{ statusModal()!.action==='publish'?'Publish Job':statusModal()!.action==='onhold'?'Put
-            On Hold':'Close Job' }}</div>
-        <div class="cm-msg">
-            @if (statusModal()!.action==='publish') { Publish <strong>{{ statusModal()!.job.title }}</strong>? It goes
-            live immediately. }
-            @else if (statusModal()!.action==='onhold') { Put <strong>{{ statusModal()!.job.title }}</strong> on hold? }
-            @else { Close <strong>{{ statusModal()!.job.title }}</strong>? Stops all applications. }
-        </div>
-        <div class="cm-actions">
-            <button class="fm-cancel" (click)="closeStatusModal()">Cancel</button>
-            <button class="cm-action-btn"
-                [style.background]="statusModal()!.action==='publish'?'linear-gradient(135deg,#1e8449,#27ae60)':statusModal()!.action==='onhold'?'linear-gradient(135deg,#b7770d,#d68910)':'linear-gradient(135deg,#c0392b,#e74c3c)'"
-                (click)="confirmStatusChange()">
-                <i
-                    class="fas fa-{{ statusModal()!.action==='publish'?'rocket':statusModal()!.action==='onhold'?'pause':'times-circle' }}"></i>
-                {{ statusModal()!.action==='publish'?'Yes, Publish':statusModal()!.action==='onhold'?'Put On
-                Hold':'Close Job' }}
-            </button>
-        </div>
+      <div class="cm-icon-wrap"
+        [style.background]="statusModal()!.action==='publish'||statusModal()!.action==='resume'?'rgba(39,174,96,0.1)':statusModal()!.action==='onhold'?'rgba(214,137,16,0.1)':'rgba(192,57,43,0.1)'"
+        [style.color]="statusModal()!.action==='publish'||statusModal()!.action==='resume'?'#27ae60':statusModal()!.action==='onhold'?'#d68910':'#c0392b'">
+        <i class="fas fa-{{ statusModal()!.action==='publish'?'rocket':statusModal()!.action==='resume'?'play':statusModal()!.action==='onhold'?'pause':'times-circle' }}"></i>
+      </div>
+      <div class="cm-title">
+        {{ statusModal()!.action==='publish'?'Publish Job':statusModal()!.action==='resume'?'Resume Job':statusModal()!.action==='onhold'?'Put On Hold':'Close Job' }}
+      </div>
+      <div class="cm-msg">
+        @if (statusModal()!.action==='publish') {
+          Publish <strong>{{ statusModal()!.job.title }}</strong>? It will go live immediately.
+        } @else if (statusModal()!.action==='resume') {
+          Resume <strong>{{ statusModal()!.job.title }}</strong>? It will become <strong>Open</strong> and accept applications again.
+        } @else if (statusModal()!.action==='onhold') {
+          Put <strong>{{ statusModal()!.job.title }}</strong> on hold? New applications will be paused.
+        } @else {
+          Close <strong>{{ statusModal()!.job.title }}</strong>? This stops all new applications.
+        }
+      </div>
+      <div class="cm-actions">
+        <button class="fm-cancel" (click)="closeStatusModal()">Cancel</button>
+        <button class="cm-action-btn"
+          [style.background]="statusModal()!.action==='publish'||statusModal()!.action==='resume'?'linear-gradient(135deg,#1e8449,#27ae60)':statusModal()!.action==='onhold'?'linear-gradient(135deg,#b7770d,#d68910)':'linear-gradient(135deg,#c0392b,#e74c3c)'"
+          (click)="confirmStatusChange()">
+          <i class="fas fa-{{ statusModal()!.action==='publish'?'rocket':statusModal()!.action==='resume'?'play':statusModal()!.action==='onhold'?'pause':'times-circle' }}"></i>
+          {{ statusModal()!.action==='publish'?'Yes, Publish':statusModal()!.action==='resume'?'Yes, Resume':statusModal()!.action==='onhold'?'Put On Hold':'Close Job' }}
+        </button>
+      </div>
     </div>
-</div>
+  </div>
 }
 
 <!-- ══ DELETE CONFIRM ══ -->
 @if (deleteModal()) {
-<div class="modal-overlay" (click)="closeDeleteModal()">
+  <div class="modal-overlay" (click)="closeDeleteModal()">
     <div class="confirm-modal" (click)="$event.stopPropagation()">
-        <div class="cm-icon-wrap del-icon"><i class="fas fa-exclamation-triangle"></i></div>
-        <div class="cm-title">Delete Job?</div>
-        <div class="cm-msg">Delete <strong>{{ deleteModal()!.name }}</strong>?<br><span class="cm-warn">Soft delete —
-                cannot be undone.</span></div>
-        <div class="cm-actions">
-            <button class="fm-cancel" (click)="closeDeleteModal()">Cancel</button>
-            <button class="cm-del-btn" (click)="executeDelete()"><i class="fas fa-trash"></i> Yes, Delete</button>
-        </div>
+      <div class="cm-icon-wrap del-icon"><i class="fas fa-exclamation-triangle"></i></div>
+      <div class="cm-title">Delete Job?</div>
+      <div class="cm-msg">
+        Delete <strong>{{ deleteModal()!.name }}</strong>?
+        <br><span class="cm-warn">Soft delete — cannot be undone.</span>
+      </div>
+      <div class="cm-actions">
+        <button class="fm-cancel" (click)="closeDeleteModal()">Cancel</button>
+        <button class="cm-del-btn" (click)="executeDelete()"><i class="fas fa-trash"></i> Yes, Delete</button>
+      </div>
     </div>
-</div>
+  </div>
 }

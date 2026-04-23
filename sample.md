@@ -198,5 +198,47 @@ HR reviews (final approval step)
 ok, i need some change
 notification unread hse to notiiation tab ma batavse bhale game e date ni hoy pan after markasread or markallasread karya pachi aajno divas notification tab ma batava joi  like ex. 16april nu=i notification marka s read kari to e notificatoin tab ma batavse only on 16 april, on 17 april it not visible in notification tab,
 
-here i got css issue read notification shows dot and side vertical line ,according to design after  markasread remove dot and side linne
+here i got css issue read notification shows dot and side vertical line ,according to design after  markasread remove dot and side line.
+
 ================================
+
+remaining features:
+manager portal performance page 
+assign manager functionality.
+
+==============================
+
+need to change admin dashboard page
+
+==============================
+
+done:
+i want to implement change-password functionality with email otp verification i want to make flow like 
+user clicks on forgotpassword link -> model open (user enter email and click on submit)(SendForgotPasswordOtp api called) -> user enter otp and press submit(VerifyForgotPasswordOtp otp api called) -> after verifying otp user can cange password with field new password and conform password -> after this full process navigate to login page.
+use otp enter fields like six boxes that real projects use
+
+add loading animations where operation takes time to perform 
+
+I have this apis in userservice:
+POST
+/api/User/SendForgotPasswordOtp
+
+POST
+/api/User/VerifyForgotPasswordOtp
+
+POST
+/api/User/changePassword
+
+sendEmailOtp(email:string): Observable<any> {
+  return this.http.post(`${this.apiurl}/User/SendForgotPasswordOtp?email=${email}`, {});
+}
+
+verifyEmailOtp(email: string, otp: string): Observable<any> {
+  return this.http.post(`${this.apiurl}/User/VerifyForgotPasswordOtp?email=${email}&otp=${otp}`, {});
+}
+
+changePassword(email: string, newPassword: string): Observable<any> {
+  return this.http.post(`${this.apiurl}/User/changePassword`, {email, newPassword});
+}
+===================================
+

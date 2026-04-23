@@ -1,24 +1,21 @@
 <div class="login-root">
 
-    <!-- LEFT BRAND PANEL -->
+    <!-- LEFT BRAND PANEL (unchanged) -->
     <div class="brand-panel">
         <div class="brand-bg"></div>
         <div class="brand-orb orb1"></div>
         <div class="brand-orb orb2"></div>
         <div class="brand-orb orb3"></div>
-
         <div class="brand-content">
             <div class="brand-logo">
                 <div class="logo-icon"><i class="fas fa-business-time"></i></div>
                 <span class="logo-text">HRMS</span>
             </div>
-
             <div class="brand-headline">
                 <h1>Manage your<br /><span class="headline-accent">time, effortlessly.</span></h1>
                 <p class="brand-sub">Track attendance, apply for leaves, and stay on top of your schedule — all in one
                     place.</p>
             </div>
-
             <div class="brand-stats">
                 <div class="bstat">
                     <div class="bstat-val">98%</div>
@@ -41,14 +38,12 @@
     <!-- RIGHT FORM PANEL -->
     <div class="form-panel">
         <div class="form-card">
-
             <div class="form-header">
                 <div class="form-title">Welcome back</div>
                 <div class="form-sub">Sign in to your account to continue</div>
             </div>
 
             <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="login-form">
-
                 <!-- Email -->
                 <div class="field-group"
                     [class.has-error]="loginForm.get('email')?.touched && loginForm.get('email')?.invalid">
@@ -81,6 +76,9 @@
                         *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
                         <i class="fas fa-exclamation-circle"></i> Password is required
                     </span>
+                    <span>
+                        <a (click)="openForgotModal()" class="forgot-link" style="cursor:pointer;">Forgot Password?</a>
+                    </span>
                 </div>
 
                 <!-- Submit -->
@@ -93,7 +91,6 @@
                     }
                 </button>
 
-                <!-- Feedback message -->
                 @if (errorMessage()) {
                 <div class="msg-box" [class.success]="errorMessage().includes('successful')"
                     [class.error]="!errorMessage().includes('successful')">
@@ -102,17 +99,182 @@
                     {{ errorMessage() }}
                 </div>
                 }
-
             </form>
 
             <div class="form-footer">
                 Don't have an account?
-                <a routerLink="/signup" class="signup-link">
-                    Create one <i class="fas fa-arrow-right"></i>
-                </a>
+                <a routerLink="/signup" class="signup-link">Create one <i class="fas fa-arrow-right"></i></a>
             </div>
-
         </div>
     </div>
-
 </div>
+
+<!-- ══════════════════════════
+     FORGOT PASSWORD MODAL
+══════════════════════════ -->
+@if (showForgotModal) {
+<div class="fp-overlay">
+    <div class="fp-modal" (click)="$event.stopPropagation()">
+
+        <!-- Close -->
+        <button class="fp-close" type="button" (click)="closeForgotModal()">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <!-- Step indicator -->
+        <div class="fp-steps">
+            <div class="fp-step" [class.active]="fpStep() === 'email'"
+                [class.done]="fpStep() === 'otp' || fpStep() === 'password'">
+                <div class="fp-step-dot">
+                    @if (fpStep() === 'otp' || fpStep() === 'password') { <i class="fas fa-check"></i> } @else { 1 }
+                </div>
+                <span>Email</span>
+            </div>
+            <div class="fp-step-line" [class.done]="fpStep() === 'otp' || fpStep() === 'password'"></div>
+            <div class="fp-step" [class.active]="fpStep() === 'otp'" [class.done]="fpStep() === 'password'">
+                <div class="fp-step-dot">
+                    @if (fpStep() === 'password') { <i class="fas fa-check"></i> } @else { 2 }
+                </div>
+                <span>Verify OTP</span>
+            </div>
+            <div class="fp-step-line" [class.done]="fpStep() === 'password'"></div>
+            <div class="fp-step" [class.active]="fpStep() === 'password'">
+                <div class="fp-step-dot">3</div>
+                <span>New Password</span>
+            </div>
+        </div>
+
+        <!-- ── STEP 1: Email ── -->
+        @if (fpStep() === 'email') {
+        <div class="fp-body">
+            <h2 class="fp-title">Forgot Password</h2>
+            <p class="fp-sub">Enter your registered email to receive an OTP.</p>
+
+            <div class="field-group" style="margin-top: 20px;">
+                <label class="field-label">Email Address</label>
+                <div class="field-wrap">
+                    <span class="field-icon"><i class="fas fa-envelope"></i></span>
+                    <input class="field-input" type="email" placeholder="you@company.com" [(ngModel)]="fpEmail"
+                        autocomplete="email" />
+                </div>
+            </div>
+
+            @if (fpError()) {
+            <div class="msg-box error" style="margin-top:12px;">
+                <i class="fas fa-times-circle"></i> {{ fpError() }}
+            </div>
+            }
+
+            <button class="submit-btn" type="button" style="margin-top:20px;" (click)="onSendOtp()"
+                [disabled]="fpLoading">
+                @if (fpLoading) { <i class="fas fa-spinner fa-spin"></i> Sending OTP… }
+                @else { <span>Send OTP</span> <i class="fas fa-arrow-right"></i> }
+            </button>
+        </div>
+        }
+
+        <!-- ── STEP 2: OTP ── -->
+        @if (fpStep() === 'otp') {
+        <div class="fp-body">
+            <h2 class="fp-title">Enter OTP</h2>
+            <p class="fp-sub">A 6-digit code was sent to <strong>{{ fpEmail }}</strong></p>
+
+            <div class="otp-row" style="margin-top: 24px;" (paste)="onOtpPaste($event)">
+                @for (digit of otpDigits; track $index) {
+                <input #otpInput class="otp-box" type="text" inputmode="numeric" maxlength="1" [value]="digit"
+                    (input)="onOtpInput($index, $event)" (keydown)="onOtpKeydown($index, $event)" />
+                }
+            </div>
+
+            @if (fpSuccess()) {
+            <div class="msg-box success" style="margin-top:12px;">
+                <i class="fas fa-check-circle"></i> {{ fpSuccess() }}
+            </div>
+            }
+            @if (fpError()) {
+            <div class="msg-box error" style="margin-top:12px;">
+                <i class="fas fa-times-circle"></i> {{ fpError() }}
+            </div>
+            }
+
+            <button class="submit-btn" type="button" style="margin-top:20px;" (click)="onVerifyOtp()"
+                [disabled]="fpLoading || !otpComplete">
+                @if (fpLoading) { <i class="fas fa-spinner fa-spin"></i> Verifying… }
+                @else { <span>Verify OTP</span> <i class="fas fa-arrow-right"></i> }
+            </button>
+
+            <div style="text-align:center; margin-top:14px;">
+                <span class="fp-resend-text">Didn't receive it?</span>
+                <button type="button" class="fp-resend-btn" (click)="resendOtp()" [disabled]="fpLoading">
+                    Resend OTP
+                </button>
+            </div>
+        </div>
+        }
+
+        <!-- ── STEP 3: New Password ── -->
+        @if (fpStep() === 'password') {
+        <div class="fp-body">
+            <h2 class="fp-title">Set New Password</h2>
+            <p class="fp-sub">Choose a strong password for your account.</p>
+
+            <form [formGroup]="newPasswordForm" (ngSubmit)="onChangePassword()" style="margin-top:20px;">
+                <!-- New Password -->
+                <div class="field-group"
+                    [class.has-error]="newPasswordForm.get('newPassword')?.touched && newPasswordForm.get('newPassword')?.invalid">
+                    <label class="field-label">New Password</label>
+                    <div class="field-wrap"> 
+                        <span class="field-icon"><i class="fas fa-lock"></i></span>
+                        <input class="field-input" [type]="showNewPw ? 'text' : 'password'"
+                            placeholder="Min. 6 characters" formControlName="newPassword" />
+                        <button type="button" class="toggle-pw" (click)="showNewPw = !showNewPw" tabindex="-1">
+                            <i class="fas" [class.fa-eye]="!showNewPw" [class.fa-eye-slash]="showNewPw"></i>
+                        </button>
+                    </div>
+                    <span class="field-error"
+                        *ngIf="newPasswordForm.get('newPassword')?.touched && newPasswordForm.get('newPassword')?.invalid">
+                        <i class="fas fa-exclamation-circle"></i> Minimum 6 characters required
+                    </span>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="field-group" style="margin-top:14px;"
+                    [class.has-error]="(newPasswordForm.get('confirmPassword')?.touched && newPasswordForm.get('confirmPassword')?.invalid) || (newPasswordForm.touched && newPasswordForm.errors?.['mismatch'])">
+                    <label class="field-label">Confirm Password</label>
+                    <div class="field-wrap">
+                        <span class="field-icon"><i class="fas fa-lock"></i></span>
+                        <input class="field-input" [type]="showConfirmPw ? 'text' : 'password'"
+                            placeholder="Repeat your password" formControlName="confirmPassword" />
+                        <button type="button" class="toggle-pw" (click)="showConfirmPw = !showConfirmPw" tabindex="-1">
+                            <i class="fas" [class.fa-eye]="!showConfirmPw" [class.fa-eye-slash]="showConfirmPw"></i>
+                        </button>
+                    </div>
+                    <span class="field-error"
+                        *ngIf="newPasswordForm.get('confirmPassword')?.touched && newPasswordForm.errors?.['mismatch']">
+                        <i class="fas fa-exclamation-circle"></i> Passwords do not match
+                    </span>
+                </div>
+
+                @if (fpSuccess()) {
+                <div class="msg-box success" style="margin-top:12px;">
+                    <i class="fas fa-check-circle"></i> {{ fpSuccess() }}
+                </div>
+                }
+                @if (fpError()) {
+                <div class="msg-box error" style="margin-top:12px;">
+                    <i class="fas fa-times-circle"></i> {{ fpError() }}
+                </div>
+                }
+
+                <button type="submit" class="submit-btn" style="margin-top:20px;"
+                    [disabled]="newPasswordForm.invalid || fpLoading">
+                    @if (fpLoading) { <i class="fas fa-spinner fa-spin"></i> Saving… }
+                    @else { <span>Change Password</span> <i class="fas fa-check"></i> }
+                </button>
+            </form>
+        </div>
+        }
+
+    </div>
+</div>
+}

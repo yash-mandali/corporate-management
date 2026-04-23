@@ -497,6 +497,19 @@ body {
     font-size: 11px;
 }
 
+.forgot-link {
+    color: #09637e;
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    transition: gap 0.18s;
+}
+
+
 /* ── RESPONSIVE ── */
 @media (max-width: 960px) {
     .login-root {
@@ -525,5 +538,237 @@ body {
 
     .form-title {
         font-size: 26px;
+    }
+}
+
+/* ══════════════════════════════
+   FORGOT PASSWORD MODAL
+══════════════════════════════ */
+.fp-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 40, 55, 0.55);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    animation: overlayIn 0.2s ease;
+}
+
+@keyframes overlayIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.fp-modal {
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid #d6eaee;
+    padding: 36px 38px 38px;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(9, 99, 126, 0.18), 0 4px 16px rgba(9, 99, 126, 0.1);
+    animation: cardIn 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fp-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: #f0f8fa;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    color: #5a8a94;
+    font-size: 13px;
+    transition: background 0.18s, color 0.18s;
+}
+
+.fp-close:hover {
+    background: #ddedf1;
+    color: #09637e;
+}
+
+/* Step indicator */
+.fp-steps {
+    display: flex;
+    align-items: center;
+    margin-bottom: 28px;
+}
+
+.fp-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.fp-step-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #e8f4f7;
+    color: #9ec4cc;
+    display: grid;
+    place-items: center;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1.5px solid #c5e0e7;
+    transition: all 0.25s;
+}
+
+.fp-step.active .fp-step-dot {
+    background: #09637e;
+    color: #fff;
+    border-color: #09637e;
+    box-shadow: 0 0 0 4px rgba(9, 99, 126, 0.12);
+}
+
+.fp-step.done .fp-step-dot {
+    background: #0bbdcc;
+    color: #fff;
+    border-color: #0bbdcc;
+}
+
+.fp-step span {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: #9ec4cc;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.fp-step.active span,
+.fp-step.done span {
+    color: #09637e;
+}
+
+.fp-step-line {
+    flex: 1;
+    height: 1.5px;
+    background: #d6eaee;
+    margin: 0 6px;
+    margin-bottom: 14px;
+    transition: background 0.3s;
+}
+
+.fp-step-line.done {
+    background: #0bbdcc;
+}
+
+/* Body */
+.fp-body {}
+
+.fp-title {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: #0d2d36;
+    line-height: 1.2;
+}
+
+.fp-sub {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #5a8a94;
+    margin-top: 5px;
+    line-height: 1.5;
+}
+
+.fp-sub strong {
+    color: #09637e;
+    font-weight: 700;
+}
+
+/* OTP boxes */
+.otp-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.otp-box {
+    width: 46px;
+    height: 54px;
+    border-radius: 10px;
+    border: 1.5px solid #ddedf1;
+    background: #f8fcfd;
+    text-align: center;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #09637e;
+    outline: none;
+    transition: all 0.18s;
+    caret-color: #09637e;
+}
+
+.otp-box:focus {
+    border-color: #09637e;
+    background: #fff;
+    box-shadow: 0 0 0 3.5px rgba(9, 99, 126, 0.1);
+}
+
+/* Resend */
+.fp-resend-text {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #5a8a94;
+}
+
+.fp-resend-btn {
+    background: none;
+    border: none;
+    color: #09637e;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-left: 4px;
+    padding: 0;
+    transition: color 0.18s;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.fp-resend-btn:hover:not(:disabled) {
+    color: #07536e;
+}
+
+.fp-resend-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+    .fp-modal {
+        padding: 28px 20px 30px;
+    }
+
+    .otp-box {
+        width: 40px;
+        height: 48px;
+        font-size: 18px;
+    }
+
+    .otp-row {
+        gap: 7px;
     }
 }

@@ -20,6 +20,7 @@ export class UserService {
   getManagerTeamApi = `${this.apiurl}/User/getManagerTeam`;
   getAlluserApi = `${this.apiurl}/User/getAllUsers`;
   getAllEmployeeApi = `${this.apiurl}/User/getAllEmployee`;
+  getAllEmployeeManagerHRApi = `${this.apiurl}/User/getAllEmployeeManagerHr`;
   getAllEmployeeManagerApi = `${this.apiurl}/User/getAllEmployeeManager`;
   getAllManagerApi = `${this.apiurl}/User/getAllManagers`;
   AssignManagerApi = `${this.apiurl}/User/assign-manager`;
@@ -57,7 +58,11 @@ export class UserService {
   getAllUser() {
     return this.http.get<any[]>(this.getAlluserApi)
   }
-  
+
+  getAllEmployeeManagerHr() {
+    return this.http.get<any[]>(this.getAllEmployeeManagerHRApi)
+  }
+
   getAllEmployeeManager() {
     return this.http.get<any[]>(this.getAllEmployeeManagerApi)
   }
@@ -82,10 +87,10 @@ export class UserService {
   }
 
   getEmployeeByDepartment(data: any) {
-    return this.http.get<any[]>(this.getemoployeeByDepartmentApi, {params: data} );
+    return this.http.get<any[]>(this.getemoployeeByDepartmentApi, { params: data });
   }
 
-  assignManager(employeeId: any, managerId:any) {
+  assignManager(employeeId: any, managerId: any) {
     return this.http.post(`${this.AssignManagerApi}?userId=${employeeId}&managerId=${managerId}`, {});
   }
 
@@ -93,13 +98,28 @@ export class UserService {
 
   getNotifications(userId: number) {
     return this.http.get<any[]>(`${this.getnotificationsApi}?userId=${userId}`);
-   }
-
-   markAsRead(notificationId: number, userId: number) {
-     return this.http.post(`${this.markAsReadApi}?notificationId=${notificationId}&UserId=${userId}`, {});
   }
-  
+
+  markAsRead(notificationId: number, userId: number) {
+    return this.http.post(`${this.markAsReadApi}?notificationId=${notificationId}&UserId=${userId}`, {});
+  }
+
   markAllAsRead(userId: number) {
     return this.http.put(`${this.markAllAsReadApi}?UserId=${userId}`, {});
   }
+
+  // ------------------------forgot password section-----------------------
+
+  sendEmailOtp(email: string): Observable<any> {
+    return this.http.post(`${this.apiurl}/User/SendForgotPasswordOtp?email=${email}`, {});
+  }
+
+  verifyEmailOtp(email: string, otp: string): Observable<any> {
+    return this.http.post(`${this.apiurl}/User/VerifyForgotPasswordOtp?email=${email}&otp=${otp}`, {});
+  }
+
+  changePassword(email: string, newPassword: string, confirmPassword:string): Observable<boolean> {
+    return this.http.post<boolean>(`${this.apiurl}/User/changePassword`, { email: email, newPassword: newPassword, confirmPassword: confirmPassword });
+  }
+
 }

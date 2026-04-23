@@ -10,11 +10,11 @@
             <span class="nav-icon"></span>
             <span class="nav-label">Dashboard</span>
         </a>
-        <a class="nav-item" routerLink="/dashboard/Leavepage" routerLinkActive="active" (click)="emp.closeSidebar()">
+        <a class="nav-item" routerLink="/dashboard/leavepage" routerLinkActive="active" (click)="emp.closeSidebar()">
             <span class="nav-icon"></span>
             <span class="nav-label">My Requests</span>
         </a>
-        <a class="nav-item" routerLink="/dashboard/Attendance" routerLinkActive="active" (click)="emp.closeSidebar()">
+        <a class="nav-item" routerLink="/dashboard/attendance" routerLinkActive="active" (click)="emp.closeSidebar()">
             <span class="nav-icon"></span>
             <span class="nav-label">Attendance</span>
         </a>
@@ -29,75 +29,75 @@
         }
 
         @else if(role() === 'Manager'){
-            <a class="nav-item" routerLink="/dashboard/managerdashboard" routerLinkActive="active" (click)="emp.closeSidebar()">
-                <span class="nav-icon"></span>
-                <span class="nav-label">Dashboard</span>
-            </a>
-            <a class="nav-item" routerLink="/dashboard/managerattendance" routerLinkActive="active" (click)="emp.closeSidebar()">
-                <span class="nav-icon"></span>
-                <span class="nav-label">Attendance</span>
-            </a>
-            <a class="nav-item" routerLink="/dashboard/managerleave" routerLinkActive="active" (click)="emp.closeSidebar()">
-                <span class="nav-icon"></span>
-                <span class="nav-label">Leave</span>
-            </a>
-            <a class="nav-item" routerLink="/dashboard/managertimesheet" routerLinkActive="active" (click)="emp.closeSidebar()">
-                <span class="nav-icon"></span>
-                <span class="nav-label">Timesheet</span>
-            </a>
-            <a class="nav-item" routerLink="/dashboard/managerteams" routerLinkActive="active" (click)="emp.closeSidebar()">
-                <span class="nav-icon"></span>
-                <span class="nav-label">Team</span>
-            </a>
-            <a class="nav-item" routerLink="/dashboard/teamperformance" routerLinkActive="active" (click)="emp.closeSidebar()">
-                <span class="nav-icon"></span>
-                <span class="nav-label">Performance</span>
-            </a>
+        <a class="nav-item" routerLink="/dashboard/managerdashboard" routerLinkActive="active"
+            (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Dashboard</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/managerattendance" routerLinkActive="active"
+            (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Attendance</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/managerleave" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Leave</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/managertimesheet" routerLinkActive="active"
+            (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Timesheet</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/managerteams" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Team</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/teamperformance" routerLinkActive="active"
+            (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Performance</span>
+        </a>
 
         }
         @else if(role() === 'HR'){
-            <a class="nav-item" routerLink="/dashboard/hrdashboard" routerLinkActive="active" (click)="emp.closeSidebar()">
-                <span class="nav-icon"></span>
-                <span class="nav-label">Dashboard</span>
-            </a>
-            <a class="nav-item" routerLink="/dashboard/hremployees" routerLinkActive="active" (click)="emp.closeSidebar()">
-                <span class="nav-icon"></span>
-                <span class="nav-label">Employees</span>
-            </a>
-            <a class="nav-item" routerLink="/dashboard/hrleave" routerLinkActive="active" (click)="emp.closeSidebar()">
-                <span class="nav-icon"></span>
-                <span class="nav-label">Leaves</span>
-            </a>
-            <a class="nav-item" routerLink="/dashboard/hrattendance" routerLinkActive="active" (click)="emp.closeSidebar()">
-                <span class="nav-icon"></span>
-                <span class="nav-label">Attendance</span>
-            </a>
-            <a class="nav-item" routerLink="/dashboard/hrpayroll" routerLinkActive="active" (click)="emp.closeSidebar()">
-                <span class="nav-icon"></span>
-                <span class="nav-label">Payroll</span>
-            </a>
-            <a class="nav-item" routerLink="/dashboard/hrRecruitment" routerLinkActive="active" (click)="emp.closeSidebar()">
-                <span class="nav-icon"></span>
-                <span class="nav-label">Recruitment</span>
-            </a>
+        <a class="nav-item" routerLink="/dashboard/hrdashboard" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Dashboard</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/hremployees" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Employees</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/hrleave" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Leaves</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/hrattendance" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Attendance</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/hrpayroll" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Payroll</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/hrRecruitment" routerLinkActive="active"
+            (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Recruitment</span>
+        </a>
 
+        }
+        @else if(role() === 'Admin')
+        {
+        <a class="nav-item" routerLink="/dashboard/admindashboard" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Dashboard</span>
+        </a>
         }
         @else {
         <a class="nav-item" routerLink="/dashboard" routerLinkActive="active" (click)="emp.closeSidebar()">
             <span class="nav-icon"></span>
             <span class="nav-label">Dashboard</span>
-        </a>
-        <a class="nav-item" routerLink="/manager/users" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Manage Users</span>
-        </a>
-        <a class="nav-item" routerLink="/manager/reports" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Reports</span>
-        </a>
-        <a class="nav-item" routerLink="profile" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Profile</span>
         </a>
         }
 

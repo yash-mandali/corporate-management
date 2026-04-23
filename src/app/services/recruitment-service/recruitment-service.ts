@@ -7,53 +7,53 @@ import { environment } from '../../environments/environment';
 })
 export class RecruitmentService {
 
-  private base = `${environment.ApiUrl}/Recruitment`;
+  private apiurl = `${environment.ApiUrl}/Recruitment`;
 
   constructor(private http: HttpClient) { }
 
 
   getAllJobs() {
-    return this.http.get<any>(`${this.base}/getAllJobs`);
+    return this.http.get<any>(`${this.apiurl}/getAllJobs`);
   }
 
   getJobById(jobId: any) {
-    return this.http.get<any>(`${this.base}/getJobById?jobId=${jobId}`);
+    return this.http.get<any>(`${this.apiurl}/getJobById?jobId=${jobId}`);
   }
 
   createJob(data: any) {
-    return this.http.post<any>(`${this.base}/createJob`, data);
+    return this.http.post<any>(`${this.apiurl}/createJob`, data);
   }
 
   updateJob(data: any) {
-    return this.http.put<any>(`${this.base}/updateJob`, data);
+    return this.http.put<any>(`${this.apiurl}/updateJob`, data);
   }
 
   deleteJob(jobId: any) {
-    return this.http.delete<any>(`${this.base}/deleteJob?jobId=${jobId}`);
+    return this.http.delete<any>(`${this.apiurl}/deleteJob?jobId=${jobId}`);
   }
 
   publishJob(jobId: any) {
-    return this.http.post<any>(`${this.base}/publishJob?jobId=${jobId}`, { jobId });
+    return this.http.post<any>(`${this.apiurl}/publishJob?jobId=${jobId}`, { jobId });
   }
 
   onHoldJob(jobId: any) {
-    return this.http.post<any>(`${this.base}/OnHold?jobId=${jobId}`, { jobId });
+    return this.http.post<any>(`${this.apiurl}/OnHold?jobId=${jobId}`, { jobId });
   }
   
  //not used
   openJob(jobId: any) {
-    return this.http.post<any>(`${this.base}/openJob?jobId=${jobId}`, { jobId });
+    return this.http.post<any>(`${this.apiurl}/openJob?jobId=${jobId}`, { jobId });
   }
 
   closeJob(jobId: any) {
-    return this.http.post<any>(`${this.base}/closeJob?jobId=${jobId}`, { jobId });
+    return this.http.post<any>(`${this.apiurl}/closeJob?jobId=${jobId}`, { jobId });
   }
 
   applyJob(formData: FormData) {
-    return this.http.post<any>(`${this.base}/applyJob`,formData);
+    return this.http.post<any>(`${this.apiurl}/applyJob`,formData);
   }
 
   getCandidatesByJobId(jobId: number) {
-    return this.http.get<any>(`${this.base}/getCandidatesByJobId?jobId=${jobId}`);
+    return this.http.get<any>(`${this.apiurl}/getCandidatesByJobId?jobId=${jobId}`);
   }
 }

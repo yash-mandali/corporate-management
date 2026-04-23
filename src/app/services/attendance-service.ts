@@ -17,6 +17,7 @@ export class AttendanceService {
   getByUserId = `${this.apiurl}/Attendance/getByUserId`;
   getByAttendanceId = `${this.apiurl}/Attendance/getByAttendanceId`;
   generateReportApi = `${this.apiurl}/Attendance/GetAttendanceReport`;
+  exportAttendanceReportApi = `${this.apiurl}/Attendance/ExportAttendanceReport`;
 
   checkIn(Id: number) {
     return this.http.post<any>(`${this.checkInApi}?Id=${Id}`, {});
@@ -50,12 +51,6 @@ export class AttendanceService {
     return this.http.get<any[]>(`${this.getTeamAllAttendanceApi}?managerId=${managerId}`, {});
   }
 
-  // generateReport(data: any) {
-  //   return this.http.get(`${this.getTeamAllAttendanceApi}`, {
-  //     params: data,
-  //     responseType: 'blob'
-  //   });
-  // }
   exportAttendanceReport(fromDate: string, toDate: string, userId?: number, department?: string) {
 
     let params: any = {
@@ -67,19 +62,12 @@ export class AttendanceService {
     if (department) params.Department = department;
 
     return this.http.get(
-      `https://localhost:44346/api/Attendance/ExportAttendanceReport`,
+      `${this.exportAttendanceReportApi}`,
       {
         params: params,
         responseType: 'blob'
       }
     );
   }
-
-
-  // getMyleaveList(Id: number) {
-  //   return this.http.get<any[]>(this.getmyleavesApi, {
-  //     params: { Id: Id.toString() }
-  //   });
-  // }
 
 }

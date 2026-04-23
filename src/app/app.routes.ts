@@ -8,7 +8,7 @@ import { Newleavepage } from './pages/newleavepage/newleavepage';
 import { MyProfile } from './pages/myprofile/myprofile';
 import { AttendancePage } from './pages/attendance-page/attendance-page';
 import { Dashboardpage } from './pages/dashboard/dashboard';
-import {Timesheetpage } from './pages/timesheetpage/timesheetpage';
+import { Timesheetpage } from './pages/timesheetpage/timesheetpage';
 import { ManagerDashboard } from './manager_pages/managerdashboard/managerdashboard';
 import { roleGuard } from './guards/role-guard/roleguard-guard';
 import { guestGuard } from './guards/guest-guard/guest-guard';
@@ -24,17 +24,20 @@ import { HrLeavePage } from './hr_pages/hr-leave/hr-leave';
 import { HrAttendancePage } from './hr_pages/hr-attendance/hr-attendance';
 import { HrPayroll } from './hr_pages/hr-payroll/hr-payroll';
 import { HrRecruitment } from './hr_pages/hr_recruitment/hr-recruitment/hr-recruitment';
+import { AdminDashboard } from './Admin_Pages/admin-dashboard/admin-dashboard';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
     {
         path: 'login',
-        component: Login,
+        loadComponent: () =>
+            import('./components/login/login').then(m => m.Login),
         canActivate: [guestGuard]
     },
     {
         path: 'signup',
-        component: Signup,
+        loadComponent: () =>
+            import('./components/signup/signup').then(m => m.Signup),
         canActivate: [guestGuard]
     },
     { path: 'dashboard', redirectTo: 'dashboard/dashboardpage', pathMatch: 'full' },
@@ -42,119 +45,142 @@ export const routes: Routes = [
         path: 'dashboard',
         component: DashboardLayout,
         canActivate: [authGuard],
-
         children: [
             {
                 path: 'dashboardpage',
-                component: Dashboardpage,
+                loadComponent: () =>
+                    import('./pages/dashboard/dashboard').then(m => m.Dashboardpage),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Employee'] }
             },
             {
-                path: 'Leavepage',
-                component: ApplyLeave,
+                path: 'leavepage',
+                loadComponent: () =>
+                    import('./pages/apply-leave/apply-leave').then(m => m.ApplyLeave),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Employee'] }
             },
             {
                 path: 'newleave',
-                component: Newleavepage,
+                loadComponent: () =>
+                    import('./pages/newleavepage/newleavepage').then(m => m.Newleavepage),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Employee'] }
             },
             {
                 path: 'myprofile',
-                component:MyProfile,
+                loadComponent: () =>
+                    import('./pages/myprofile/myprofile').then(m => m.MyProfile),
                 canActivate: [authGuard, roleGuard],
-                data: { roles: ['Employee','Manager','HR','Admin'] }
+                data: { roles: ['Employee', 'Manager', 'HR', 'Admin'] }
             },
             {
-                path: 'Attendance',
-                component: AttendancePage,
+                path: 'attendance',
+                loadComponent: () =>
+                    import('./pages/attendance-page/attendance-page').then(m => m.AttendancePage),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Employee'] }
             },
             {
                 path: 'timesheet',
-                component: Timesheetpage,
+                loadComponent: () =>
+                    import('./pages/timesheetpage/timesheetpage').then(m => m.Timesheetpage),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Employee'] }
             },
             {
                 path: 'managerdashboard',
-                component: ManagerDashboard,
+                loadComponent: () =>
+                    import('./manager_pages/managerdashboard/managerdashboard').then(m => m.ManagerDashboard),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Manager'] }
             },
             {
                 path: 'managerattendance',
-                component: ManagerAttendancePage,
+                loadComponent: () =>
+                    import('./manager_pages/managerattendance/managerattendance').then(m => m.ManagerAttendancePage),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Manager'] }
             },
             {
                 path: 'managerleave',
-                component:ManagerLeavepage ,
+                loadComponent: () =>
+                    import('./manager_pages/managerleavepage/managerleavepage').then(m => m.ManagerLeavepage),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Manager'] }
             },
             {
                 path: 'managertimesheet',
-                component: ManagerTimesheetpage,
+                loadComponent: () =>
+                    import('./manager_pages/managertimesheet/managertimesheet').then(m => m.ManagerTimesheetpage),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Manager'] }
             },
             {
                 path: 'managerteams',
-                component: Managerteampage,
+                loadComponent: () =>
+                    import('./manager_pages/managerteamspage/managerteamspage').then(m => m.Managerteampage),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Manager'] }
             },
             {
                 path: 'teamperformance',
-                component: Teamperformance,
+                loadComponent: () =>
+                    import('./manager_pages/teamperformance/teamperformance').then(m => m.Teamperformance),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Manager'] }
             },
             {
                 path: 'hrdashboard',
-                component: HrDashboard,
+                loadComponent: () =>
+                    import('./hr_pages/hr-dashboard/hr-dashboard').then(m => m.HrDashboard),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['HR'] }
             },
             {
                 path: 'hremployees',
-                component: HrEmployeesPage,
+                loadComponent: () =>
+                    import('./hr_pages/hr-employees/hr-employees').then(m => m.HrEmployeesPage),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['HR'] }
             },
             {
                 path: 'hrleave',
-                component: HrLeavePage,
+                loadComponent: () =>
+                    import('./hr_pages/hr-leave/hr-leave').then(m => m.HrLeavePage),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['HR'] }
             },
             {
                 path: 'hrattendance',
-                component: HrAttendancePage,
+                loadComponent: () =>
+                    import('./hr_pages/hr-attendance/hr-attendance').then(m => m.HrAttendancePage),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['HR'] }
             },
             {
                 path: 'hrpayroll',
-                component: HrPayroll,
+                loadComponent: () =>
+                    import('./hr_pages/hr-payroll/hr-payroll').then(m => m.HrPayroll),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['HR'] }
             },
             {
                 path: 'hrRecruitment',
-                component: HrRecruitment,
+                loadComponent: () =>
+                    import('./hr_pages/hr_recruitment/hr-recruitment/hr-recruitment').then(m => m.HrRecruitment),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['HR'] }
             },
+            {
+                path: 'admindashboard',
+                loadComponent: () =>
+                    import('./Admin_Pages/admin-dashboard/admin-dashboard').then(m => m.AdminDashboard),
+                canActivate: [authGuard, roleGuard],
+                data: { roles: ['Admin'] }
+            },
         ]
     },
-
     {
         path: '**',
         component: Notfound

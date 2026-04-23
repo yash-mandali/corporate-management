@@ -247,7 +247,7 @@ export class Newleavepage {
   }
 
   goBack() {
-    this.router.navigate(['/dashboard/Leavepage']);
+    this.router.navigate(['/dashboard/leavepage']);
   }
 
   reset() {

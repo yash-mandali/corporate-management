@@ -1,0 +1,403 @@
+<main class="main">
+    <div class="content">
+
+        <!-- ══ HERO BANNER ══ -->
+        <div class="hero-banner">
+            <div class="hero-bg">
+                <div class="hero-orb hero-orb-1"></div>
+                <div class="hero-orb hero-orb-2"></div>
+                <div class="hero-orb hero-orb-3"></div>
+                <div class="hero-grid"></div>
+            </div>
+            <div class="hero-body">
+                <div class="hero-left">
+                    <div class="hero-eyebrow"><i class="fas fa-shield-alt"></i> Admin Control Panel</div>
+                    <div class="hero-greeting">{{ greeting }},</div>
+                    <div class="hero-name">{{ adminName() }}</div>
+                    <div class="hero-date-row">
+                        <span class="hero-date"><i class="far fa-calendar"></i> {{ todayDate }}</span>
+                        <span class="hero-dot"></span>
+                        <span class="hero-day">{{ todayDay }}</span>
+                    </div>
+                </div>
+                <!-- Hero metrics strip -->
+                <div class="hero-metrics">
+                    <div class="hm-item">
+                        <div class="hm-val">{{ totalUsers() }}</div>
+                        <div class="hm-lbl">Total Users</div>
+                    </div>
+                    <div class="hm-sep"></div>
+                    <div class="hm-item">
+                        <div class="hm-val">{{ presentToday() }}</div>
+                        <div class="hm-lbl">Present Today</div>
+                    </div>
+                    <div class="hm-sep"></div>
+                    <div class="hm-item">
+                        <div class="hm-val">{{ pendingLeaves().length }}</div>
+                        <div class="hm-lbl">Pending Leaves</div>
+                    </div>
+                    <div class="hm-sep"></div>
+                    <div class="hm-item">
+                        <div class="hm-val">{{ activeJobs() }}</div>
+                        <div class="hm-lbl">Open Jobs</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ STAT CARDS ROW 1 — People ══ -->
+        <div class="section-label"><i class="fas fa-users"></i> Workforce Overview</div>
+        <div class="stat-row">
+            <div class="stat-card sc-total">
+                <div class="sc-icon"><i class="fas fa-users"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ totalUsers() }}</div>
+                    <div class="sc-lbl">Total Users</div>
+                    <div class="sc-sub">{{ activeUsers() }} active</div>
+                </div>
+                <a routerLink="/dashboard/admin/employees" class="sc-link"><i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="stat-card sc-emp">
+                <div class="sc-icon"><i class="fas fa-user"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ totalEmployees() }}</div>
+                    <div class="sc-lbl">Employees</div>
+                    <div class="sc-sub">{{ newThisMonth() }} new this month</div>
+                </div>
+            </div>
+            <div class="stat-card sc-mgr">
+                <div class="sc-icon"><i class="fas fa-user-tie"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ totalManagers() }}</div>
+                    <div class="sc-lbl">Managers</div>
+                </div>
+            </div>
+            <div class="stat-card sc-hr">
+                <div class="sc-icon"><i class="fas fa-id-badge"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ totalHR() }}</div>
+                    <div class="sc-lbl">HR Staff</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ STAT CARDS ROW 2 — Operations ══ -->
+        <div class="section-label"><i class="fas fa-chart-bar"></i> Today's Operations</div>
+        <div class="stat-row ops-row">
+            <div class="stat-card sc-present">
+                <div class="sc-icon"><i class="fas fa-calendar-check"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ presentToday() }}</div>
+                    <div class="sc-lbl">Present Today</div>
+                    <div class="sc-rate-bar">
+                        <div class="sc-rate-fill" [style.width]="attendanceRate() + '%'"></div>
+                    </div>
+                    <div class="sc-sub">{{ attendanceRate() }}% attendance rate</div>
+                </div>
+            </div>
+            <div class="stat-card sc-absent">
+                <div class="sc-icon"><i class="fas fa-user-times"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ absentToday() }}</div>
+                    <div class="sc-lbl">Absent Today</div>
+                    <div class="sc-sub">{{ lateToday() }} late check-ins</div>
+                </div>
+            </div>
+            <div class="stat-card sc-leave">
+                <div class="sc-icon"><i class="fas fa-calendar-minus"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ pendingLeaves().length }}</div>
+                    <div class="sc-lbl">Pending Leaves</div>
+                    <div class="sc-sub">{{ todayLeaveCount() }} on leave today</div>
+                </div>
+                <a routerLink="/dashboard/admin/leave" class="sc-link"><i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="stat-card sc-payroll">
+                <div class="sc-icon"><i class="fas fa-money-bill-wave"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ formatCurrency(totalNetPayroll()) }}</div>
+                    <div class="sc-lbl">Net Payroll</div>
+                    <div class="sc-sub">{{ payrollGenerated() }} generated · {{ payrollPaid() }} paid</div>
+                </div>
+                <a routerLink="/dashboard/admin/payroll" class="sc-link"><i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="stat-card sc-jobs">
+                <div class="sc-icon"><i class="fas fa-briefcase"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ activeJobs() }}</div>
+                    <div class="sc-lbl">Active Jobs</div>
+                    <div class="sc-sub">{{ draftJobs() }} in draft</div>
+                </div>
+                <a routerLink="/dashboard/admin/recruitment" class="sc-link"><i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+
+        <!-- ══ MAIN GRID ══ -->
+        <div class="main-grid">
+
+            <!-- LEFT COLUMN -->
+            <div class="left-col">
+
+                <!-- Department breakdown -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-building"></i> Headcount by Department</div>
+                        <span class="card-badge">{{ departments().length }} depts</span>
+                    </div>
+                    <div class="card-body">
+                        @if (usersLoading()) {
+                        <div class="card-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+                        } @else if (deptBreakdown().length === 0) {
+                        <div class="card-empty">No department data</div>
+                        } @else {
+                        <div class="dept-list">
+                            @for (d of deptBreakdown(); track d.dept) {
+                            <div class="dept-row">
+                                <div class="dept-av" [style.background]="getColor(d.dept)">{{ getInitials(d.dept) }}
+                                </div>
+                                <div class="dept-info">
+                                    <div class="dept-name">{{ d.dept }}</div>
+                                    <div class="dept-bar-wrap">
+                                        <div class="dept-bar" [style.width]="deptBarWidth(d.count)"
+                                            [style.background]="getColor(d.dept)"></div>
+                                    </div>
+                                </div>
+                                <span class="dept-count">{{ d.count }}</span>
+                            </div>
+                            }
+                        </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Quick actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-bolt"></i> Quick Actions</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="qa-grid">
+                            <a routerLink="/dashboard/admin/employees" class="qa-btn qa-emp">
+                                <div class="qa-icon"><i class="fas fa-user-plus"></i></div>
+                                <span>Add Employee</span>
+                            </a>
+                            <a routerLink="/dashboard/admin/recruitment" class="qa-btn qa-job">
+                                <div class="qa-icon"><i class="fas fa-briefcase"></i></div>
+                                <span>Post Job</span>
+                            </a>
+                            <a routerLink="/dashboard/admin/payroll" class="qa-btn qa-pay">
+                                <div class="qa-icon"><i class="fas fa-money-bill-wave"></i></div>
+                                <span>Run Payroll</span>
+                            </a>
+                            <a routerLink="/dashboard/admin/attendance" class="qa-btn qa-att">
+                                <div class="qa-icon"><i class="fas fa-calendar-check"></i></div>
+                                <span>Attendance</span>
+                            </a>
+                            <a routerLink="/dashboard/admin/leave" class="qa-btn qa-leave">
+                                <div class="qa-icon"><i class="fas fa-calendar-minus"></i></div>
+                                <span>Leaves</span>
+                            </a>
+                            <a routerLink="/dashboard/admin/reports" class="qa-btn qa-report">
+                                <div class="qa-icon"><i class="fas fa-chart-bar"></i></div>
+                                <span>Reports</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="right-col">
+
+                <!-- Activity tabs -->
+                <div class="card activity-card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-stream"></i> Live Activity</div>
+                        <div class="act-tabs">
+                            <button class="act-tab" [class.active]="activityTab()==='leaves'"
+                                (click)="activityTab.set('leaves')">
+                                Leaves <span class="act-cnt">{{ pendingLeaves().length }}</span>
+                            </button>
+                            <button class="act-tab" [class.active]="activityTab()==='attendance'"
+                                (click)="activityTab.set('attendance')">
+                                Attendance
+                            </button>
+                            <button class="act-tab" [class.active]="activityTab()==='users'"
+                                (click)="activityTab.set('users')">
+                                New Users
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Leaves list -->
+                    @if (activityTab() === 'leaves') {
+                    <div class="act-list">
+                        @if (leaveLoading()) {
+                        <div class="card-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+                        } @else if (recentLeaves().length === 0) {
+                        <div class="card-empty"><i class="fas fa-check-circle"></i> No leave requests</div>
+                        } @else {
+                        @for (l of recentLeaves(); track l.leaveRequestId) {
+                        <div class="act-row">
+                            <div class="act-av" [style.background]="getColor(l.userId)">{{ getInitials(l.userName ??
+                                l.fullName) }}</div>
+                            <div class="act-info">
+                                <div class="act-name">{{ l.userName ?? l.fullName ?? 'Employee' }}</div>
+                                <div class="act-sub">{{ l.requestType ?? l.leaveType }} · {{ formatDate(l.fromDate) }}
+                                    @if (l.toDate && l.toDate !== l.fromDate) { → {{ formatDate(l.toDate) }} }
+                                </div>
+                            </div>
+                            <span class="status-pill" [style.background]="leaveStatusColor(l.status)+'18'"
+                                [style.color]="leaveStatusColor(l.status)">
+                                {{ leaveStatusLabel(l.status) }}
+                            </span>
+                        </div>
+                        }
+                        }
+                    </div>
+                    }
+
+                    <!-- Attendance list -->
+                    @if (activityTab() === 'attendance') {
+                    <div class="act-list">
+                        @if (attLoading()) {
+                        <div class="card-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+                        } @else if (recentAttendance().length === 0) {
+                        <div class="card-empty"><i class="fas fa-calendar"></i> No check-ins today</div>
+                        } @else {
+                        @for (a of recentAttendance(); track a.attendenceId) {
+                        <div class="act-row">
+                            <div class="act-av" [style.background]="getColor(a.userId)">{{ getInitials(a.userName) }}
+                            </div>
+                            <div class="act-info">
+                                <div class="act-name">{{ a.userName ?? 'Employee' }}</div>
+                                <div class="act-sub">
+                                    In: {{ formatTime(a.checkIn) }}
+                                    @if (a.checkOut) { · Out: {{ formatTime(a.checkOut) }} }
+                                </div>
+                            </div>
+                            <span class="att-pill" [class.att-in]="a.isCheckIn && !a.isCheckOut"
+                                [class.att-out]="a.isCheckOut">
+                                {{ a.isCheckOut ? 'Checked Out' : a.isCheckIn ? 'Present' : 'Absent' }}
+                            </span>
+                        </div>
+                        }
+                        }
+                    </div>
+                    }
+
+                    <!-- New users -->
+                    @if (activityTab() === 'users') {
+                    <div class="act-list">
+                        @if (usersLoading()) {
+                        <div class="card-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+                        } @else if (recentUsers().length === 0) {
+                        <div class="card-empty"><i class="fas fa-users"></i> No users yet</div>
+                        } @else {
+                        @for (u of recentUsers(); track u.id) {
+                        <div class="act-row">
+                            <div class="act-av" [style.background]="getColor(u.id)">{{ getInitials(u.userName) }}</div>
+                            <div class="act-info">
+                                <div class="act-name">{{ u.userName }}</div>
+                                <div class="act-sub">{{ u.email }} · {{ u.department ?? '—' }}</div>
+                            </div>
+                            <span class="role-pill" [style.background]="roleColor(u.roleName ?? u.role)+'18'"
+                                [style.color]="roleColor(u.roleName ?? u.role)">
+                                {{ u.roleName ?? u.role ?? 'Employee' }}
+                            </span>
+                        </div>
+                        }
+                        }
+                    </div>
+                    }
+
+                    <div class="act-footer">
+                        @if (activityTab() === 'leaves') {
+                        <a routerLink="/dashboard/admin/leave" class="act-view-all">View all leaves <i
+                                class="fas fa-arrow-right"></i></a>
+                        } @else if (activityTab() === 'attendance') {
+                        <a routerLink="/dashboard/admin/attendance" class="act-view-all">View full report <i
+                                class="fas fa-arrow-right"></i></a>
+                        } @else {
+                        <a routerLink="/dashboard/admin/employees" class="act-view-all">Manage employees <i
+                                class="fas fa-arrow-right"></i></a>
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ══ ALL EMPLOYEES TABLE ══ -->
+        <div class="card full-card">
+            <div class="card-header">
+                <div class="card-title"><i class="fas fa-users"></i> Employees</div>
+                <div class="card-header-right">
+                    <select class="filter-select" [value]="selectedDept()"
+                        (change)="selectedDept.set($any($event.target).value)">
+                        <option value="all">All Departments</option>
+                        @for (d of departments(); track d) { <option [value]="d">{{ d }}</option> }
+                    </select>
+                    <a routerLink="/dashboard/admin/employees" class="btn-view-all">
+                        <i class="fas fa-external-link-alt"></i> View All
+                    </a>
+                </div>
+            </div>
+            <div class="tbl-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                        
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Role</th>
+                            <th>Phone</th>
+                            <th>Joined</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (u of filteredUsers(); track u.id; let i = $index) {
+                        <tr>
+                            
+                            <td class="td-emp">
+                                <div class="emp-cell">
+                                    <div class="emp-av" [style.background]="getColor(u.id)">{{ getInitials(u.userName)
+                                        }}</div>
+                                    <div>
+                                        <div class="emp-name">{{ u.userName }}</div>
+                                        <div class="emp-email">{{ u.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="td-dept">{{ u.department ?? '—' }}</td>
+                            <td>
+                                <span class="role-pill" [style.background]="roleColor(u.roleName ?? u.role)+'18'"
+                                    [style.color]="roleColor(u.roleName ?? u.role)">
+                                    {{ u.roleName ?? u.role ?? 'Employee' }}
+                                </span>
+                            </td>
+                            <td class="td-phone">{{ u.phoneNumber ?? '—' }}</td>
+                            <td class="td-date">{{ formatDate(u.createdAt) }}</td>
+                            <td>
+                                <span class="status-dot-pill" [class.active-pill]="u.isActive !== false">
+                                    <span class="sdp-dot"></span>
+                                    {{ u.isActive !== false ? 'Active' : 'Inactive' }}
+                                </span>
+                            </td>
+                        </tr>
+                        } @empty {
+                        <tr>
+                            <td colspan="7" class="td-empty">
+                                <i class="fas fa-users-slash"></i><span>No employees found</span>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</main>

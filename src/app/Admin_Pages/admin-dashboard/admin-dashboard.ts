@@ -1,62 +1,65 @@
 import { Component, computed, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Authservice } from '../../services/Auth-service/authservice';
+import { NgClass } from '@angular/common';
 import { UserService } from '../../services/user-service/user-service';
 import { AttendanceService } from '../../services/attendance-service';
 import { LeaveService } from '../../services/leave-service/leave-service';
-import { RecruitmentService } from '../../services/recruitment-service/recruitment-service';
 import { PayrollService } from '../../services/payroll-service/payrollservice';
+import { RecruitmentService } from '../../services/recruitment-service/recruitment-service';
+import { Authservice } from '../../services/Auth-service/authservice';
 import { ToastService } from '../../services/toast-service/toast';
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [RouterLink],
+  imports: [RouterLink, NgClass],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css',
 })
 export class AdminDashboard implements OnInit {
 
-  // ── Raw data ──
+  // ── Raw data signals ──
   adminInfo = signal<any>(null);
   allUsers = signal<any[]>([]);
   allAttendance = signal<any[]>([]);
   allLeaves = signal<any[]>([]);
+  pendingLeaves = signal<any[]>([]);
   allPayroll = signal<any[]>([]);
   allJobs = signal<any[]>([]);
+  allTimesheets = signal<any[]>([]);
 
-  // ── Loading ──
-  usersLoading = signal(false);
+  // ── Loading signals ──
+  empLoading = signal(false);
   attLoading = signal(false);
   leaveLoading = signal(false);
   payrollLoading = signal(false);
-  jobsLoading = signal(false);
+  recruitLoading = signal(false);
+  actionLoading = signal<any>(null);
 
-  // ── UI state ──
+  // ── UI filter signals ──
+  attFilter = signal<'all' | 'present' | 'absent'>('all');
+  userRoleFilter = signal<'all' | 'Employee' | 'Manager' | 'HR'>('all');
+
+  // ── Date strings ──
   greeting = '';
   todayDate = '';
   todayDay = '';
-  selectedDept = signal('all');
-  activityTab = signal<'leaves' | 'attendance' | 'users'>('leaves');
 
+  // ── Color pool (same as hr-dashboard) ──
   private colorPool = [
     '#09637e', '#088395', '#27ae60', '#2980b9',
     '#8e44ad', '#d68910', '#c0392b', '#16a085', '#2c3e50', '#1e8449',
   ];
 
-  // ── Admin info ──
-  adminName = computed(() => this.adminInfo()?.userName ?? 'Admin');
+  // ── Computed: user stats ──
+  adminName = computed(() => this.adminInfo()?.userName || 'Admin');
 
-  // ── User stats ──
   totalUsers = computed(() => this.allUsers().length);
-  totalEmployees = computed(() => this.allUsers().filter(u => (u.roleName ?? u.role ?? '').toLowerCase() === 'employee').length);
-  totalManagers = computed(() => this.allUsers().filter(u => (u.roleName ?? u.role ?? '').toLowerCase() === 'manager').length);
-  totalHR = computed(() => this.allUsers().filter(u => (u.roleName ?? u.role ?? '').toLowerCase() === 'hr').length);
 
-  activeUsers = computed(() =>
-    this.allUsers().filter(u => u.isActive !== false && u.isDeleted !== true).length
+  totalEmployees = computed(() =>
+    this.allUsers().length
   );
 
-  newThisMonth = computed(() => {
+  newJoineesCount = computed(() => {
     const now = new Date();
     return this.allUsers().filter(u => {
       if (!u.createdAt) return false;
@@ -65,161 +68,197 @@ export class AdminDashboard implements OnInit {
     }).length;
   });
 
-  // ── Departments ──
-  departments = computed(() => {
-    const depts = new Set(this.allUsers().map(u => u.department).filter(Boolean));
-    return Array.from(depts) as string[];
-  });
-
-  deptBreakdown = computed(() => {
-    const map: Record<string, number> = {};
-    this.allUsers().forEach(u => {
-      if (u.department) map[u.department] = (map[u.department] ?? 0) + 1;
-    });
-    return Object.entries(map)
-      .map(([dept, count]) => ({ dept, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 6);
-  });
-
-  // ── Attendance today ──
   todayAttendance = computed(() => {
     const today = this.localDate(new Date());
-    return this.allAttendance().filter(r => r.date?.toString().startsWith(today));
+    const recs = this.allAttendance().filter(r => r.date?.toString().startsWith(today));
+    const recMap = new Map(recs.map(r => [r.userId, r]));
+
+    return this.allUsers().map(u => {
+      const rec: any = recMap.get(u.id) ?? {};
+      return {
+        userId: u.id,
+        userName: u.userName,
+        roleName: u.roleName,
+        department: u.department,
+        initials: this.getInitials(u.userName),
+        avatarColor: this.getColor(u.id),
+        isCheckIn: rec.isCheckIn ?? false,
+        isCheckOut: rec.isCheckOut ?? false,
+        checkIn: rec.checkIn ?? null,
+        checkOut: rec.checkOut ?? null,
+        hours: rec.hours ?? null,
+      };
+    });
   });
 
-  presentToday = computed(() => this.todayAttendance().filter(r => r.isCheckIn).length);
-  absentToday = computed(() =>
-    Math.max(0, this.activeUsers() - this.presentToday())
-  );
-  lateToday = computed(() =>
-    this.todayAttendance().filter(r => {
-      if (!r.checkIn) return false;
-      const t = new Date(r.checkIn);
-      return t.getHours() > 9 || (t.getHours() === 9 && t.getMinutes() > 15);
-    }).length
-  );
-  attendanceRate = computed(() => {
-    const total = this.activeUsers();
-    if (!total) return 0;
-    return Math.round((this.presentToday() / total) * 100);
+  filteredAttendance = computed(() => {
+    const f = this.attFilter();
+    const all = this.todayAttendance();
+    let list = all;
+
+    if (f === 'present') list = all.filter(e => e.isCheckIn);
+    else if (f === 'absent') list = all.filter(e => !e.isCheckIn);
+
+    // Active on top → done → absent
+    return list.slice().sort((a, b) => {
+      const rank = (e: any) =>
+        e.isCheckIn && !e.isCheckOut ? 0 : e.isCheckOut ? 1 : 2;
+      return rank(a) - rank(b);
+    });
   });
 
-  // ── Leave stats ──
-  pendingLeaves = computed(() =>
-    this.allLeaves().filter(l => (l.status ?? '').toLowerCase() === 'pending')
+  slicedAttendance = computed(() => this.filteredAttendance().slice(0, 3));
+
+  todayPresent = computed(() =>
+    this.todayAttendance().filter(e => e.isCheckIn).length
   );
-  approvedLeaves = computed(() =>
-    this.allLeaves().filter(l => ['approved', 'managerapproved'].includes((l.status ?? '').toLowerCase()))
+
+  todayAbsent = computed(() =>
+    this.todayAttendance().filter(e => !e.isCheckIn).length
   );
-  todayLeaveCount = computed(() => {
-    const today = this.localDate(new Date());
-    return this.allLeaves().filter(l =>
-      ['approved', 'managerapproved'].includes((l.status ?? '').toLowerCase()) &&
-      l.fromDate?.toString().startsWith(today)
-    ).length;
+
+  todayPresentPct = computed(() => {
+    const t = this.totalUsers();
+    return t ? Math.round((this.todayPresent() / t) * 100) : 0;
   });
 
-  // ── Payroll stats (current month) ──
-  payrollGenerated = computed(() =>
-    this.allPayroll().filter(p => p.status === 'Generated').length
+  absentPct = computed(() => {
+    const t = this.totalUsers();
+    return t ? Math.round((this.todayAbsent() / t) * 100) : 0;
+  });
+
+  // ── Computed: user role filter ──
+  filteredUsers = computed(() => {
+    const role = this.userRoleFilter();
+    const all = this.allUsers();
+    if (role === 'all') return all;
+    return all.filter(u => u.roleName === role);
+  });
+
+  slicedUsers = computed(() => this.filteredUsers().slice(0, 3));
+
+  // ── Computed: department breakdown ──
+  deptBreakdown = computed(() => {
+    const deptMap = new Map<string, number>();
+    this.allUsers().forEach(u => {
+      const dept = u.department || 'Unassigned';
+      deptMap.set(dept, (deptMap.get(dept) ?? 0) + 1);
+    });
+    const sorted = [...deptMap.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+    const max = sorted[0]?.count || 1;
+    return sorted.map(d => ({ ...d, pct: Math.round((d.count / max) * 100) }));
+  });
+
+  // ── Computed: leave ──
+  pendingLeaveCount = computed(() => this.pendingLeaves().length);
+
+  // ── Computed: recent leaves (top 3, sorted by appliedOn desc) ──
+  recentLeaves = computed(() =>
+    this.allLeaves()
+      .slice()
+      .sort((a, b) => new Date(b.appliedOn).getTime() - new Date(a.appliedOn).getTime())
+      .slice(0, 3)
   );
-  payrollPaid = computed(() =>
+
+  currentMonthPayroll = computed(() => {
+    const now = new Date();
+    const month = now.getMonth() === 0 ? 12 : now.getMonth();
+    const year = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+    return this.allPayroll().filter(p =>
+      p.month === month && p.year === year
+    );
+  });
+
+  paidPayrollCount = computed(() =>
     this.allPayroll().filter(p => p.status === 'Paid').length
   );
-  totalNetPayroll = computed(() =>
-    this.allPayroll().reduce((sum, p) => sum + (p.netSalary ?? 0), 0)
+
+  unpaidPayrollCount = computed(() =>
+    this.allPayroll().filter(p => p.status === 'Generated').length
   );
 
-  // ── Recruitment stats ──
-  activeJobs = computed(() =>
-    this.allJobs().filter(j => j.status === 'Published' || j.status === 'Open').length
-  );
-  draftJobs = computed(() => this.allJobs().filter(j => j.status === 'Draft').length);
-
-  // ── Recent users (last 5 joined) ──
-  recentUsers = computed(() =>
-    [...this.allUsers()]
-      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-      .slice(0, 6)
-  );
-
-  // ── Recent leaves (pending first, then latest) ──
-  recentLeaves = computed(() => {
-    const sorted = [...this.allLeaves()].sort((a, b) => {
-      const ap = (a.status ?? '').toLowerCase() === 'pending';
-      const bp = (b.status ?? '').toLowerCase() === 'pending';
-      if (ap !== bp) return ap ? -1 : 1;
-      return new Date(b.appliedDate ?? b.createdAt ?? 0).getTime() - new Date(a.appliedDate ?? a.createdAt ?? 0).getTime();
-    });
-    return sorted.slice(0, 6);
+  paidPayrollPct = computed(() => {
+    const total = this.allPayroll().length;
+    return total ? Math.round((this.paidPayrollCount() / total) * 100) : 0;
   });
 
-  // ── Today's attendance list (latest check-ins) ──
-  recentAttendance = computed(() =>
-    [...this.todayAttendance()]
-      .sort((a, b) => new Date(b.checkIn ?? 0).getTime() - new Date(a.checkIn ?? 0).getTime())
-      .slice(0, 6)
+  unpaidPayrollPct = computed(() => {
+    const total = this.allPayroll().length;
+    return total ? Math.round((this.unpaidPayrollCount() / total) * 100) : 0;
+  });
+
+  // ── Computed: jobs ──
+  openJobCount = computed(() =>
+    this.allJobs().filter(j =>
+      j.status === 'Published' || j.status === 'Open'
+    ).length
   );
 
-  // ── Filtered users ──
-  filteredUsers = computed(() => {
-    const dept = this.selectedDept();
-    const users = dept === 'all' ? this.allUsers() : this.allUsers().filter(u => u.department === dept);
-    return [...users]
-      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-      .slice(0, 8);
-  });
+  // ── Computed: timesheets ──
+  pendingTimesheetCount = computed(() =>
+    this.allTimesheets().filter(t => t.status === 'Submitted').length
+  );
 
   constructor(
     private auth: Authservice,
     private userService: UserService,
-    private attService: AttendanceService,
+    private attendanceService: AttendanceService,
     private leaveService: LeaveService,
     private payrollService: PayrollService,
-    private recruitService: RecruitmentService,
-    private toast: ToastService
+    private recruitmentService: RecruitmentService,
+    private toast: ToastService,
   ) { }
 
   ngOnInit() {
     this.setGreeting();
-    const id:any = this.auth.getUserId();
+    const id: any = this.auth.getUserId();
     if (id) {
       this.userService.getUserById(id).subscribe({
-        next: (res: any) => this.adminInfo.set(res),
-        error: err => console.error(err)
+        next: res => this.adminInfo.set(res),
+        error: err => console.error(err),
       });
     }
-    this.loadAll();
-  }
-
-  loadAll() {
     this.loadUsers();
     this.loadAttendance();
     this.loadLeaves();
     this.loadPayroll();
     this.loadJobs();
+    this.leaveService.autorejectLeave().subscribe();
+  }
+
+  // ── Data loaders ──
+
+  setGreeting() {
+    const h = new Date().getHours();
+    this.greeting = h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
+    const now = new Date();
+    this.todayDate = now.toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric',
+    });
+    this.todayDay = now.toLocaleDateString('en-IN', { weekday: 'long' });
   }
 
   loadUsers() {
-    this.usersLoading.set(true);
+    this.empLoading.set(true);
     this.userService.getAllEmployeeManagerHr().subscribe({
       next: (res: any) => {
-        this.allUsers.set(Array.isArray(res) ? res : res?.data ?? []);
-        this.usersLoading.set(false);
+        this.allUsers.set(Array.isArray(res) ? res : res ? [res] : []);
+        this.empLoading.set(false);
       },
-      error: () => this.usersLoading.set(false)
+      error: err => { console.error(err); this.empLoading.set(false); },
     });
   }
 
   loadAttendance() {
     this.attLoading.set(true);
-    this.attService.getAllattendance().subscribe({
+    this.attendanceService.getAllattendance().subscribe({
       next: (res: any) => {
-        this.allAttendance.set(Array.isArray(res) ? res : res?.data ?? []);
+        this.allAttendance.set(Array.isArray(res) ? res : res ? [res] : []);
         this.attLoading.set(false);
       },
-      error: () => this.attLoading.set(false)
+      error: err => { console.error(err); this.attLoading.set(false); },
     });
   }
 
@@ -227,101 +266,118 @@ export class AdminDashboard implements OnInit {
     this.leaveLoading.set(true);
     this.leaveService.getAllLeaves().subscribe({
       next: (res: any) => {
-        this.allLeaves.set(Array.isArray(res) ? res : res?.data ?? []);
+        const list = Array.isArray(res) ? res : res?.data ?? (res ? [res] : []);
+        this.allLeaves.set(list);
+        this.pendingLeaves.set(
+          list.filter((l: any) =>
+            l.status === 'pending' || l.status === 'ManagerApproved'
+          )
+        );
         this.leaveLoading.set(false);
       },
-      error: () => this.leaveLoading.set(false)
+      error: err => { console.error(err); this.leaveLoading.set(false); },
     });
   }
 
   loadPayroll() {
     this.payrollLoading.set(true);
-    const month = new Date().getMonth() + 1;
-    this.payrollService.getAllPayrollByMonth(month).subscribe({
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    this.payrollService.getAllPayrollByMonth(currentMonth).subscribe({
       next: (res: any) => {
-        const list = Array.isArray(res) ? res : res?.data ?? [];
-        const year = new Date().getFullYear();
-        this.allPayroll.set(list.filter((p: any) => p.year === year));
+        this.allPayroll.set(Array.isArray(res?.data) ? res.data : []);
         this.payrollLoading.set(false);
       },
-      error: () => this.payrollLoading.set(false)
+      error: err => { console.error(err); this.payrollLoading.set(false); },
     });
   }
 
   loadJobs() {
-    this.jobsLoading.set(true);
-    this.recruitService.getAllJobs().subscribe({
+    this.recruitLoading.set(true);
+    this.recruitmentService.getAllJobs().subscribe({
       next: (res: any) => {
-        this.allJobs.set(Array.isArray(res) ? res : res?.data ?? []);
-        this.jobsLoading.set(false);
+        const list = Array.isArray(res) ? res : res ? [res] : [];
+        this.allJobs.set(list.filter((j: any) => j.status !== 'Deleted'));
+        this.recruitLoading.set(false);
       },
-      error: () => this.jobsLoading.set(false)
+      error: err => { console.error(err); this.recruitLoading.set(false); },
     });
   }
 
   // ── Helpers ──
-  private setGreeting() {
-    const h = new Date().getHours();
-    this.greeting = h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
-    this.todayDate = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-    this.todayDay = new Date().toLocaleDateString('en-IN', { weekday: 'long' });
-  }
-
-  private localDate(d: Date): string {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }
 
   getInitials(name: string): string {
     if (!name) return '?';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
   }
 
   getColor(id: any): string {
-    let hash = 0; const s = String(id);
-    for (let i = 0; i < s.length; i++) hash = s.charCodeAt(i) + ((hash << 5) - hash);
-    return this.colorPool[Math.abs(hash) % this.colorPool.length];
+    return this.colorPool[(Number(id) || 0) % this.colorPool.length];
   }
 
-  formatCurrency(n: number): string {
-    if (n >= 10000000) return `₹${(n / 10000000).toFixed(1)}Cr`;
-    if (n >= 100000) return `₹${(n / 100000).toFixed(1)}L`;
-    if (n >= 1000) return `₹${(n / 1000).toFixed(0)}K`;
-    return `₹${n}`;
-  }
-
-  formatDate(ds: string): string {
-    if (!ds) return '—';
-    return new Date(ds).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-  }
-
-  formatTime(ds: string): string {
-    if (!ds) return '—';
-    return new Date(ds).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-  }
-
-  leaveStatusColor(s: string): string {
-    const m: Record<string, string> = {
-      pending: '#d68910', approved: '#27ae60', managerapproved: '#27ae60',
-      rejected: '#c0392b', managerrejected: '#c0392b', withdrawn: '#5a8a94',
+  getRoleBadgeClass(roleName: string): string {
+    const map: Record<string, string> = {
+      Employee: 'employee',
+      Manager: 'manager',
+      HR: 'hr',
+      Admin: 'admin',
     };
-    return m[(s ?? '').toLowerCase()] ?? '#5a8a94';
+    return map[roleName] ?? 'employee';
   }
 
-  leaveStatusLabel(s: string): string {
-    const m: Record<string, string> = {
-      pending: 'Pending', approved: 'Approved', managerapproved: 'Approved',
-      rejected: 'Rejected', managerrejected: 'Rejected', withdrawn: 'Withdrawn',
+  getLeaveStatusClass(status: string): string {
+    const map: Record<string, string> = {
+      pending: 'pending',
+      ManagerApproved: 'manager-approved',
+      Approved: 'approved',
+      ManagerRejected: 'rejected',
+      Rejected: 'rejected',
+      AutoRejected: 'rejected',
     };
-    return m[(s ?? '').toLowerCase()] ?? s;
+    return map[status] ?? 'pending';
   }
 
-  roleColor(role: string): string {
-    const m: Record<string, string> = { admin: '#c0392b', hr: '#8e44ad', manager: '#2980b9', employee: '#27ae60' };
-    return m[(role ?? '').toLowerCase()] ?? '#5a8a94';
+  getLeaveStatusLabel(status: string): string {
+    const map: Record<string, string> = {
+      pending: 'Pending',
+      ManagerApproved: 'Mgr Approved',
+      Approved: 'Approved',
+      ManagerRejected: 'Rejected',
+      Rejected: 'Rejected',
+      AutoRejected: 'Auto Rejected',
+    };
+    return map[status] ?? status;
   }
 
-  deptBarWidth(count: number): string {
-    const max = Math.max(...this.deptBreakdown().map(d => d.count), 1);
-    return `${Math.round((count / max) * 100)}%`;
+  localDate(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('en-IN', {
+      day: '2-digit', month: 'short', year: 'numeric',
+    });
+  }
+
+  formatTime(timeStr: string): string {
+    if (!timeStr) return '—';
+    const clean = timeStr.toString().split('.')[0].substring(0, 5);
+    const [h, m] = clean.split(':').map(Number);
+    if (isNaN(h)) return '—';
+    return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+  }
+
+  formatAmount(amount: number): string {
+    if (amount == null) return '—';
+    return amount.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  }
+
+  getMonthLabel(month: number): string {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return months[(month ?? 1) - 1] ?? '—';
   }
 }

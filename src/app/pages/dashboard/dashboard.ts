@@ -92,8 +92,7 @@ export class Dashboardpage implements OnInit, OnDestroy {
       .slice(0, 3)
   );
 
-  // ── Attendance computed ──
-  presentCount = computed(() => this.myAttendance().filter(r => r.status === 'Present').length);
+  presentCount = computed(() => this.myAttendance().filter(r => r.status === 'Present' || r.status === 'Late').length);
   absentCount = computed(() => this.myAttendance().filter(r => r.status === 'Absent').length);
   lateCount = computed(() => this.myAttendance().filter(r => r.status === 'Late').length);
 

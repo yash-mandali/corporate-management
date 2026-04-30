@@ -6,6 +6,8 @@ import { LeaveService } from '../../services/leave-service/leave-service';
 import { TimesheetService } from '../../services/timesheet-service/timesheet-service';
 import { Authservice } from '../../services/Auth-service/authservice';
 
+const REJECTED_SET = new Set(['rejected', 'managerrejected']);
+
 @Component({
   selector: 'app-manager-team',
   imports: [LowerCasePipe],
@@ -76,8 +78,9 @@ export class Managerteampage implements OnInit {
       const presentDays = userMonthAtt.filter(r => r.status === 'Present').length;
       const lateDays = userMonthAtt.filter(r => r.status === 'Late').length;
       const absentDays = userMonthAtt.filter(r => r.status === 'Absent').length;
+      const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
       const attendanceRate = workdays
-        ? Math.round(((presentDays + lateDays) / workdays) * 100)
+        ? Math.round(((presentDays + lateDays) / totalDays) * 100)
         : 0;
 
       // Week hours
@@ -90,7 +93,7 @@ export class Managerteampage implements OnInit {
       const userLeaves = this.allLeaves().filter(l => l.userId === u.id);
       const pendingLeaves = userLeaves.filter(l => l.status === 'Pending').length;
       const approvedLeaves = userLeaves.filter(l => l.status === 'Approved').length;
-      const rejectedLeaves = userLeaves.filter(l => l.status === 'Rejected').length;
+      const rejectedLeaves = userLeaves.filter(l => REJECTED_SET.has(l.status?.toLowerCase())).length;
       const totalLeaves = userLeaves.length;
 
       return {

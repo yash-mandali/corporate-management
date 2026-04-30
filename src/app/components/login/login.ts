@@ -18,19 +18,16 @@ export class Login {
   isLoading = false;
   showPassword = false;
 
-  // Forgot password modal
-  showForgotModal = false;
+  showForgotModal = signal(false);
   fpStep = signal<'email' | 'otp' | 'password'>('email');
   fpEmail = '';
   fpLoading = false;
   fpError = signal('');
   fpSuccess = signal('');
 
-  // OTP
   otpDigits: string[] = ['', '', '', '', '', ''];
   @ViewChildren('otpInput') otpInputs!: QueryList<ElementRef<HTMLInputElement>>;
 
-  // New password
   newPasswordForm!: FormGroup;
   showNewPw = false;
   showConfirmPw = false;
@@ -95,10 +92,8 @@ export class Login {
     });
   }
 
-  // ── Forgot Password Modal ──────────────────────────────
-
   openForgotModal() {
-    this.showForgotModal = true;
+    this.showForgotModal.set(true);
     this.fpStep.set('email');
     this.fpEmail = '';
     this.fpError.set('');
@@ -108,10 +103,9 @@ export class Login {
   }
 
   closeForgotModal() {
-    this.showForgotModal = false;
+    this.showForgotModal.set(false);
   }
 
-  // Step 1 — send OTP
   onSendOtp() {
     if (!this.fpEmail || !this.fpEmail.includes('@')) {
       this.fpError.set('Please enter a valid email address.');
@@ -121,20 +115,21 @@ export class Login {
     this.fpError.set('');
 
     this.userservice.sendEmailOtp(this.fpEmail).subscribe({
-      next: () => {
+      next: (res: any) => {
+        console.log("onsendOtp res:",res);
+        
         this.fpLoading = false;
         this.fpError.set('');
-        this.fpStep.set('otp');         // step change AFTER loading stops
+        this.fpStep.set('otp');        
         this.fpSuccess.set('OTP sent! Check your inbox.');
 
-        // wait for Angular to render the OTP inputs before focusing
         setTimeout(() => {
           this.fpSuccess.set('');
           const inputs = this.otpInputs?.toArray();
           if (inputs?.length) {
             inputs[0].nativeElement.focus();
           }
-        }, 150);                       // 150ms gives change detection time to render
+        }, 150);                     
       },
       error: (err: any) => {
         this.fpLoading = false;
@@ -143,7 +138,6 @@ export class Login {
     });
   }
 
-  // OTP input handlers
   onOtpInput(index: number, event: Event) {
     const input = event.target as HTMLInputElement;
     const val = input.value.replace(/\D/g, '').slice(-1);
@@ -177,7 +171,6 @@ export class Login {
     return this.otpDigits.every(d => d !== '');
   }
 
-  // Step 2 — verify OTP
   onVerifyOtp() {
     if (!this.otpComplete) {
       this.fpError.set('Please enter the complete 6-digit OTP.');
@@ -199,7 +192,6 @@ export class Login {
     });
   }
 
-
   onChangePassword() {
     if (this.newPasswordForm.invalid) {
       this.newPasswordForm.markAllAsTouched();
@@ -215,7 +207,6 @@ export class Login {
         this.fpSuccess.set('Password changed successfully! Redirecting to login…');
         setTimeout(() => {
           this.closeForgotModal();
-          // this.router.navigate(['/login']);
         }, 1800);
       },
       error: (err: any) => {

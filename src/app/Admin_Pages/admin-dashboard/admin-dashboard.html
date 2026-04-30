@@ -11,393 +11,649 @@
             </div>
             <div class="hero-body">
                 <div class="hero-left">
-                    <div class="hero-eyebrow"><i class="fas fa-shield-alt"></i> Admin Control Panel</div>
+                    <div class="hero-eyebrow">
+                        <i class="fas fa-shield-alt"></i> Admin Portal
+                    </div>
                     <div class="hero-greeting">{{ greeting }},</div>
                     <div class="hero-name">{{ adminName() }}</div>
                     <div class="hero-date-row">
-                        <span class="hero-date"><i class="far fa-calendar"></i> {{ todayDate }}</span>
+                        <span class="hero-date">
+                            <i class="fas fa-calendar-alt"></i> {{ todayDate }}
+                        </span>
                         <span class="hero-dot"></span>
                         <span class="hero-day">{{ todayDay }}</span>
                     </div>
                 </div>
-                <!-- Hero metrics strip -->
-                <div class="hero-metrics">
-                    <div class="hm-item">
-                        <div class="hm-val">{{ totalUsers() }}</div>
-                        <div class="hm-lbl">Total Users</div>
-                    </div>
-                    <div class="hm-sep"></div>
-                    <div class="hm-item">
-                        <div class="hm-val">{{ presentToday() }}</div>
-                        <div class="hm-lbl">Present Today</div>
-                    </div>
-                    <div class="hm-sep"></div>
-                    <div class="hm-item">
-                        <div class="hm-val">{{ pendingLeaves().length }}</div>
-                        <div class="hm-lbl">Pending Leaves</div>
-                    </div>
-                    <div class="hm-sep"></div>
-                    <div class="hm-item">
-                        <div class="hm-val">{{ activeJobs() }}</div>
-                        <div class="hm-lbl">Open Jobs</div>
+                <div class="hero-right">
+                    <div class="hero-metrics">
+                        <div class="hm-item">
+                            <div class="hm-val">{{ totalUsers() }}</div>
+                            <div class="hm-lbl">Total Users</div>
+                        </div>
+                        <div class="hm-sep"></div>
+                        <div class="hm-item">
+                            <div class="hm-val">{{ todayPresentPct() }}<span>%</span></div>
+                            <div class="hm-lbl">Present Today</div>
+                        </div>
+                        <div class="hm-sep"></div>
+                        <div class="hm-item">
+                            <div class="hm-val">{{ pendingLeaveCount() }}</div>
+                            <div class="hm-lbl">Pending Leaves</div>
+                        </div>
+                        <div class="hm-sep"></div>
+                        <div class="hm-item">
+                            <div class="hm-val">{{ openJobCount() }}</div>
+                            <div class="hm-lbl">Open Jobs</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ══ STAT CARDS ROW 1 — People ══ -->
-        <div class="section-label"><i class="fas fa-users"></i> Workforce Overview</div>
+        <!-- ══ STAT CARDS ROW 1 ══ -->
         <div class="stat-row">
-            <div class="stat-card sc-total">
-                <div class="sc-icon"><i class="fas fa-users"></i></div>
-                <div class="sc-body">
-                    <div class="sc-val">{{ totalUsers() }}</div>
-                    <div class="sc-lbl">Total Users</div>
-                    <div class="sc-sub">{{ activeUsers() }} active</div>
+            <div class="stat-card sc-teal">
+                <div class="sc-top">
+                    <div class="sc-icon-wrap"><i class="fas fa-users"></i></div>
+                    <div class="sc-trend neutral"><i class="fas fa-building"></i></div>
                 </div>
-                <a routerLink="/dashboard/admin/employees" class="sc-link"><i class="fas fa-arrow-right"></i></a>
-            </div>
-            <div class="stat-card sc-emp">
-                <div class="sc-icon"><i class="fas fa-user"></i></div>
-                <div class="sc-body">
-                    <div class="sc-val">{{ totalEmployees() }}</div>
-                    <div class="sc-lbl">Employees</div>
-                    <div class="sc-sub">{{ newThisMonth() }} new this month</div>
+                <div class="sc-num">{{ totalEmployees() }}</div>
+                <div class="sc-label">Total Employees</div>
+                <div class="sc-bar-track">
+                    <div class="sc-bar" style="width: 100%"></div>
                 </div>
             </div>
-            <div class="stat-card sc-mgr">
-                <div class="sc-icon"><i class="fas fa-user-tie"></i></div>
-                <div class="sc-body">
-                    <div class="sc-val">{{ totalManagers() }}</div>
-                    <div class="sc-lbl">Managers</div>
+
+            <div class="stat-card sc-green">
+                <div class="sc-top">
+                    <div class="sc-icon-wrap"><i class="fas fa-user-check"></i></div>
+                    <div class="sc-trend positive"><i class="fas fa-arrow-up"></i></div>
+                </div>
+                <div class="sc-num">{{ todayPresent() }}</div>
+                <div class="sc-label">Present Today</div>
+                <div class="sc-bar-track">
+                    <div class="sc-bar" [style.width]="todayPresentPct() + '%'"></div>
                 </div>
             </div>
-            <div class="stat-card sc-hr">
-                <div class="sc-icon"><i class="fas fa-id-badge"></i></div>
-                <div class="sc-body">
-                    <div class="sc-val">{{ totalHR() }}</div>
-                    <div class="sc-lbl">HR Staff</div>
+
+            <div class="stat-card sc-red">
+                <div class="sc-top">
+                    <div class="sc-icon-wrap"><i class="fas fa-user-times"></i></div>
+                    <div class="sc-trend negative"><i class="fas fa-arrow-down"></i></div>
+                </div>
+                <div class="sc-num">{{ todayAbsent() }}</div>
+                <div class="sc-label">Absent Today</div>
+                <div class="sc-bar-track">
+                    <div class="sc-bar" [style.width]="absentPct() + '%'"></div>
+                </div>
+            </div>
+
+            <div class="stat-card sc-amber">
+                <div class="sc-top">
+                    <div class="sc-icon-wrap"><i class="fas fa-calendar-minus"></i></div>
+                    <div class="sc-trend warn"><i class="fas fa-clock"></i></div>
+                </div>
+                <div class="sc-num">{{ pendingLeaveCount() }}</div>
+                <div class="sc-label">Pending Leaves</div>
+                <div class="sc-bar-track">
+                    <div class="sc-bar" [style.width]="pendingLeaveCount() > 0 ? '100%' : '0'"></div>
+                </div>
+            </div>
+
+            <div class="stat-card sc-purple">
+                <div class="sc-top">
+                    <div class="sc-icon-wrap"><i class="fas fa-money-bill-wave"></i></div>
+                    <div class="sc-trend warn"><i class="fas fa-exclamation-circle"></i></div>
+                </div>
+                <div class="sc-num">{{ unpaidPayrollCount() }}</div>
+                <div class="sc-label">Payroll Unpaid</div>
+                <div class="sc-bar-track">
+                    <div class="sc-bar" [style.width]="unpaidPayrollPct() + '%'"></div>
                 </div>
             </div>
         </div>
 
-        <!-- ══ STAT CARDS ROW 2 — Operations ══ -->
-        <div class="section-label"><i class="fas fa-chart-bar"></i> Today's Operations</div>
-        <div class="stat-row ops-row">
-            <div class="stat-card sc-present">
-                <div class="sc-icon"><i class="fas fa-calendar-check"></i></div>
-                <div class="sc-body">
-                    <div class="sc-val">{{ presentToday() }}</div>
-                    <div class="sc-lbl">Present Today</div>
-                    <div class="sc-rate-bar">
-                        <div class="sc-rate-fill" [style.width]="attendanceRate() + '%'"></div>
-                    </div>
-                    <div class="sc-sub">{{ attendanceRate() }}% attendance rate</div>
+        <!-- ══ STAT CARDS ROW 2 ══ -->
+        <div class="stat-row-2">
+            <div class="stat-card sc-blue">
+                <div class="sc-top">
+                    <div class="sc-icon-wrap"><i class="fas fa-briefcase"></i></div>
+                    <div class="sc-trend positive"><i class="fas fa-plus-circle"></i></div>
                 </div>
+                <div class="sc-num">{{ openJobCount() }}</div>
+                <div class="sc-label">Open Jobs</div>
             </div>
-            <div class="stat-card sc-absent">
-                <div class="sc-icon"><i class="fas fa-user-times"></i></div>
-                <div class="sc-body">
-                    <div class="sc-val">{{ absentToday() }}</div>
-                    <div class="sc-lbl">Absent Today</div>
-                    <div class="sc-sub">{{ lateToday() }} late check-ins</div>
+
+            <div class="stat-card sc-teal">
+                <div class="sc-top">
+                    <div class="sc-icon-wrap"><i class="fas fa-user-plus"></i></div>
+                    <div class="sc-trend positive"><i class="fas fa-calendar-plus"></i></div>
                 </div>
+                <div class="sc-num">{{ newJoineesCount() }}</div>
+                <div class="sc-label">New This Month</div>
             </div>
-            <div class="stat-card sc-leave">
-                <div class="sc-icon"><i class="fas fa-calendar-minus"></i></div>
-                <div class="sc-body">
-                    <div class="sc-val">{{ pendingLeaves().length }}</div>
-                    <div class="sc-lbl">Pending Leaves</div>
-                    <div class="sc-sub">{{ todayLeaveCount() }} on leave today</div>
+
+            <div class="stat-card sc-green">
+                <div class="sc-top">
+                    <div class="sc-icon-wrap"><i class="fas fa-check-circle"></i></div>
+                    <div class="sc-trend positive"><i class="fas fa-arrow-up"></i></div>
                 </div>
-                <a routerLink="/dashboard/admin/leave" class="sc-link"><i class="fas fa-arrow-right"></i></a>
+                <div class="sc-num">{{ paidPayrollCount() }}</div>
+                <div class="sc-label">Payroll Paid</div>
             </div>
-            <div class="stat-card sc-payroll">
-                <div class="sc-icon"><i class="fas fa-money-bill-wave"></i></div>
-                <div class="sc-body">
-                    <div class="sc-val">{{ formatCurrency(totalNetPayroll()) }}</div>
-                    <div class="sc-lbl">Net Payroll</div>
-                    <div class="sc-sub">{{ payrollGenerated() }} generated · {{ payrollPaid() }} paid</div>
+
+            <div class="stat-card sc-amber">
+                <div class="sc-top">
+                    <div class="sc-icon-wrap"><i class="fas fa-file-alt"></i></div>
+                    <div class="sc-trend warn"><i class="fas fa-hourglass-half"></i></div>
                 </div>
-                <a routerLink="/dashboard/admin/payroll" class="sc-link"><i class="fas fa-arrow-right"></i></a>
-            </div>
-            <div class="stat-card sc-jobs">
-                <div class="sc-icon"><i class="fas fa-briefcase"></i></div>
-                <div class="sc-body">
-                    <div class="sc-val">{{ activeJobs() }}</div>
-                    <div class="sc-lbl">Active Jobs</div>
-                    <div class="sc-sub">{{ draftJobs() }} in draft</div>
-                </div>
-                <a routerLink="/dashboard/admin/recruitment" class="sc-link"><i class="fas fa-arrow-right"></i></a>
+                <div class="sc-num">{{ pendingTimesheetCount() }}</div>
+                <div class="sc-label">Timesheets Pending</div>
             </div>
         </div>
 
-        <!-- ══ MAIN GRID ══ -->
         <div class="main-grid">
-
-            <!-- LEFT COLUMN -->
             <div class="left-col">
 
-                <!-- Department breakdown -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title"><i class="fas fa-building"></i> Headcount by Department</div>
-                        <span class="card-badge">{{ departments().length }} depts</span>
-                    </div>
-                    <div class="card-body">
-                        @if (usersLoading()) {
-                        <div class="card-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
-                        } @else if (deptBreakdown().length === 0) {
-                        <div class="card-empty">No department data</div>
-                        } @else {
-                        <div class="dept-list">
-                            @for (d of deptBreakdown(); track d.dept) {
-                            <div class="dept-row">
-                                <div class="dept-av" [style.background]="getColor(d.dept)">{{ getInitials(d.dept) }}
-                                </div>
-                                <div class="dept-info">
-                                    <div class="dept-name">{{ d.dept }}</div>
-                                    <div class="dept-bar-wrap">
-                                        <div class="dept-bar" [style.width]="deptBarWidth(d.count)"
-                                            [style.background]="getColor(d.dept)"></div>
-                                    </div>
-                                </div>
-                                <span class="dept-count">{{ d.count }}</span>
+                <!-- TODAY'S ATTENDANCE -->
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">
+                            <i class="fas fa-calendar-check"></i> Today's Attendance
+                        </div>
+                        <div class="panel-head-right">
+                            <div class="att-filter-tabs">
+                                <button class="att-tab" [class.active]="attFilter() === 'all'"
+                                    (click)="attFilter.set('all')">All</button>
+                                <button class="att-tab green" [class.active]="attFilter() === 'present'"
+                                    (click)="attFilter.set('present')">In</button>
+                                <button class="att-tab red" [class.active]="attFilter() === 'absent'"
+                                    (click)="attFilter.set('absent')">Absent</button>
                             </div>
-                            }
+                            <a class="view-all-link" routerLink="/dashboard/hrattendance">
+                                View all <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    @if (attLoading()) {
+                    <div class="panel-skeleton">
+                        @for (i of [1,2,3,4]; track i) {
+                        <div class="sk-row">
+                            <div class="sk sk-avatar"></div>
+                            <div class="sk-lines">
+                                <div class="sk sk-line-lg"></div>
+                                <div class="sk sk-line-sm"></div>
+                            </div>
+                            <div class="sk sk-badge"></div>
                         </div>
                         }
                     </div>
+                    } @else {
+                    <div class="team-list">
+                        @for (emp of slicedAttendance(); track emp.userId) {
+                        <div class="team-row">
+                            <div class="tr-avatar" [style.background]="emp.avatarColor">
+                                {{ emp.initials }}
+                            </div>
+                            <div class="tr-info">
+                                <div class="tr-name">{{ emp.userName }}</div>
+                                <div class="tr-role">{{ emp.department || emp.roleName }}</div>
+                            </div>
+                            <div class="tr-times">
+                                @if (emp.isCheckIn) {
+                                <span class="tr-time in">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    {{ formatTime(emp.checkIn) }}
+                                </span>
+                                }
+                                @if (emp.isCheckOut) {
+                                <span class="tr-time out">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    {{ formatTime(emp.checkOut) }}
+                                </span>
+                                }
+                            </div>
+                            <div class="tr-right">
+                                @if (emp.isCheckOut) {
+                                <div class="tr-badge done">
+                                    <i class="fas fa-check-circle"></i>
+                                    {{ emp.hours || 'Done' }}
+                                </div>
+                                } @else if (emp.isCheckIn) {
+                                <div class="tr-badge active">
+                                    <span class="pulse-dot"></span> Active
+                                </div>
+                                } @else {
+                                <div class="tr-badge absent">
+                                    <i class="fas fa-minus-circle"></i> Absent
+                                </div>
+                                }
+                            </div>
+                        </div>
+                        } @empty {
+                        <div class="panel-empty">
+                            <i class="fas fa-users-slash"></i>
+                            <span>No records match this filter</span>
+                        </div>
+                        }
+                    </div>
+                    @if (filteredAttendance().length > 5) {
+                    <div class="panel-footer">
+                        <a class="pf-more-link" routerLink="/dashboard/hrattendance">
+                            <i class="fas fa-users"></i>
+                            +{{ filteredAttendance().length - 5 }} more employees
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    }
+                    }
                 </div>
 
-                <!-- Quick actions -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title"><i class="fas fa-bolt"></i> Quick Actions</div>
-                    </div>
-                    <div class="card-body">
-                        <div class="qa-grid">
-                            <a routerLink="/dashboard/admin/employees" class="qa-btn qa-emp">
-                                <div class="qa-icon"><i class="fas fa-user-plus"></i></div>
-                                <span>Add Employee</span>
-                            </a>
-                            <a routerLink="/dashboard/admin/recruitment" class="qa-btn qa-job">
-                                <div class="qa-icon"><i class="fas fa-briefcase"></i></div>
-                                <span>Post Job</span>
-                            </a>
-                            <a routerLink="/dashboard/admin/payroll" class="qa-btn qa-pay">
-                                <div class="qa-icon"><i class="fas fa-money-bill-wave"></i></div>
-                                <span>Run Payroll</span>
-                            </a>
-                            <a routerLink="/dashboard/admin/attendance" class="qa-btn qa-att">
-                                <div class="qa-icon"><i class="fas fa-calendar-check"></i></div>
-                                <span>Attendance</span>
-                            </a>
-                            <a routerLink="/dashboard/admin/leave" class="qa-btn qa-leave">
-                                <div class="qa-icon"><i class="fas fa-calendar-minus"></i></div>
-                                <span>Leaves</span>
-                            </a>
-                            <a routerLink="/dashboard/admin/reports" class="qa-btn qa-report">
-                                <div class="qa-icon"><i class="fas fa-chart-bar"></i></div>
-                                <span>Reports</span>
+                <!-- ALL USERS / RECENT EMPLOYEES -->
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">
+                            <i class="fas fa-users"></i> All Users
+                        </div>
+                        <div class="panel-head-right">
+                            <div class="att-filter-tabs">
+                                <button class="att-tab" [class.active]="userRoleFilter() === 'all'"
+                                    (click)="userRoleFilter.set('all')">All</button>
+                                <button class="att-tab" [class.active]="userRoleFilter() === 'Employee'"
+                                    (click)="userRoleFilter.set('Employee')">Emp</button>
+                                <button class="att-tab" [class.active]="userRoleFilter() === 'Manager'"
+                                    (click)="userRoleFilter.set('Manager')">Mgr</button>
+                                <button class="att-tab amber" [class.active]="userRoleFilter() === 'HR'"
+                                    (click)="userRoleFilter.set('HR')">HR</button>
+                            </div>
+                            <a class="view-all-link" routerLink="/dashboard/hremployees">
+                                View all <i class="fas fa-arrow-right"></i>
                             </a>
                         </div>
                     </div>
+
+                    @if (empLoading()) {
+                    <div class="panel-skeleton">
+                        @for (i of [1,2,3,4]; track i) {
+                        <div class="sk-row">
+                            <div class="sk sk-avatar"></div>
+                            <div class="sk-lines">
+                                <div class="sk sk-line-lg"></div>
+                                <div class="sk sk-line-sm"></div>
+                            </div>
+                            <div class="sk sk-badge"></div>
+                        </div>
+                        }
+                    </div>
+                    } @else {
+                    <div class="emp-list">
+                        @for (emp of slicedUsers(); track emp.id) {
+                        <div class="emp-row">
+                            <div class="er-avatar" [style.background]="getColor(emp.id)">
+                                {{ getInitials(emp.userName) }}
+                            </div>
+                            <div class="er-info">
+                                <div class="er-name">{{ emp.userName }}</div>
+                                <div class="er-meta">
+                                    {{ emp.email }} · {{ emp.department || '—' }}
+                                </div>
+                            </div>
+                            <div class="er-right">
+                                <span class="role-badge" [ngClass]="getRoleBadgeClass(emp.roleName)">
+                                    {{ emp.roleName }}
+                                </span>
+                                <div class="er-joined">
+                                    <div class="er-date">{{ formatDate(emp.createdAt) }}</div>
+                                    <div class="er-label">Joined</div>
+                                </div>
+                            </div>
+                        </div>
+                        } @empty {
+                        <div class="panel-empty">
+                            <i class="fas fa-user-slash"></i>
+                            <span>No users found</span>
+                        </div>
+                        }
+                    </div>
+                    @if (filteredUsers().length > 5) {
+                    <div class="panel-footer">
+                        <a class="pf-more-link" routerLink="/dashboard/hremployees">
+                            <i class="fas fa-users"></i>
+                            +{{ filteredUsers().length - 5 }} more users
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    }
+                    }
                 </div>
 
+                <!-- DEPARTMENT BREAKDOWN -->
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">
+                            <i class="fas fa-sitemap"></i> Department Breakdown
+                        </div>
+                        <div class="panel-head-right">
+                            <span class="panel-badge teal">{{ totalEmployees() }} total</span>
+                        </div>
+                    </div>
+                    @if (empLoading()) {
+                    <div class="panel-skeleton">
+                        @for (i of [1,2,3,4,5]; track i) {
+                        <div class="sk-row">
+                            <div class="sk-lines">
+                                <div class="sk sk-line-lg"></div>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                    } @else {
+                    <div class="dept-breakdown">
+                        @for (dept of deptBreakdown(); track dept.name) {
+                        <div class="db-item">
+                            <span class="db-name">{{ dept.name }}</span>
+                            <div class="db-bar-wrap">
+                                <div class="db-bar" [style.width]="dept.pct + '%'"></div>
+                            </div>
+                            <span class="db-count">{{ dept.count }}</span>
+                        </div>
+                        } @empty {
+                        <div class="panel-empty">
+                            <i class="fas fa-building"></i>
+                            <span>No department data</span>
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
             </div>
 
-            <!-- RIGHT COLUMN -->
             <div class="right-col">
 
-                <!-- Activity tabs -->
-                <div class="card activity-card">
-                    <div class="card-header">
-                        <div class="card-title"><i class="fas fa-stream"></i> Live Activity</div>
-                        <div class="act-tabs">
-                            <button class="act-tab" [class.active]="activityTab()==='leaves'"
-                                (click)="activityTab.set('leaves')">
-                                Leaves <span class="act-cnt">{{ pendingLeaves().length }}</span>
-                            </button>
-                            <button class="act-tab" [class.active]="activityTab()==='attendance'"
-                                (click)="activityTab.set('attendance')">
-                                Attendance
-                            </button>
-                            <button class="act-tab" [class.active]="activityTab()==='users'"
-                                (click)="activityTab.set('users')">
-                                New Users
-                            </button>
+                <!-- OPEN JOBS -->
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">
+                            <i class="fas fa-briefcase"></i> Open Job Postings
+                        </div>
+                        <div class="panel-head-right">
+                            @if (openJobCount() > 0) {
+                            <span class="panel-badge teal">{{ openJobCount() }} open</span>
+                            }
+                            <a class="view-all-link" routerLink="/dashboard/hrRecruitment">
+                                View all <i class="fas fa-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
 
-                    <!-- Leaves list -->
-                    @if (activityTab() === 'leaves') {
-                    <div class="act-list">
-                        @if (leaveLoading()) {
-                        <div class="card-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
-                        } @else if (recentLeaves().length === 0) {
-                        <div class="card-empty"><i class="fas fa-check-circle"></i> No leave requests</div>
-                        } @else {
-                        @for (l of recentLeaves(); track l.leaveRequestId) {
-                        <div class="act-row">
-                            <div class="act-av" [style.background]="getColor(l.userId)">{{ getInitials(l.userName ??
-                                l.fullName) }}</div>
-                            <div class="act-info">
-                                <div class="act-name">{{ l.userName ?? l.fullName ?? 'Employee' }}</div>
-                                <div class="act-sub">{{ l.requestType ?? l.leaveType }} · {{ formatDate(l.fromDate) }}
-                                    @if (l.toDate && l.toDate !== l.fromDate) { → {{ formatDate(l.toDate) }} }
+                    @if (recruitLoading()) {
+                    <div class="panel-skeleton">
+                        @for (i of [1,2,3]; track i) {
+                        <div class="sk-row">
+                            <div class="sk sk-avatar"></div>
+                            <div class="sk-lines">
+                                <div class="sk sk-line-lg"></div>
+                                <div class="sk sk-line-sm"></div>
+                            </div>
+                            <div class="sk sk-badge"></div>
+                        </div>
+                        }
+                    </div>
+                    } @else if (allJobs().length === 0) {
+                    <div class="panel-empty">
+                        <i class="fas fa-briefcase"></i>
+                        <span>No active job postings</span>
+                    </div>
+                    } @else {
+                    <div class="jobs-list">
+                        @for (job of allJobs().slice(0, 5); track job.jobId) {
+                        <div class="job-row">
+                            <div class="job-icon">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div class="job-info">
+                                <div class="job-title">{{ job.title }}</div>
+                                <div class="job-meta">
+                                    <span>{{ job.department }}</span>
+                                    <span>·</span>
+                                    <span>{{ job.employment_type }}</span>
+                                    @if (job.vacancies) {
+                                    <span>· {{ job.vacancies }} vacancy</span>
+                                    }
                                 </div>
                             </div>
-                            <span class="status-pill" [style.background]="leaveStatusColor(l.status)+'18'"
-                                [style.color]="leaveStatusColor(l.status)">
-                                {{ leaveStatusLabel(l.status) }}
+                            <span class="job-status" [ngClass]="{
+                                'open':   job.status === 'Published' || job.status === 'Open',
+                                'onhold': job.status === 'OnHold',
+                                'closed': job.status === 'Closed',
+                                'draft':  job.status === 'Draft'
+                            }">
+                                {{ job.status === 'Published' ? 'Open' : job.status }}
                             </span>
                         </div>
                         }
-                        }
+                    </div>
+                    @if (allJobs().length > 5) {
+                    <div class="panel-footer">
+                        <a class="pf-more-link" routerLink="/dashboard/hrRecruitment">
+                            <i class="fas fa-briefcase"></i>
+                            +{{ allJobs().length - 5 }} more postings
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
                     }
-
-                    <!-- Attendance list -->
-                    @if (activityTab() === 'attendance') {
-                    <div class="act-list">
-                        @if (attLoading()) {
-                        <div class="card-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
-                        } @else if (recentAttendance().length === 0) {
-                        <div class="card-empty"><i class="fas fa-calendar"></i> No check-ins today</div>
-                        } @else {
-                        @for (a of recentAttendance(); track a.attendenceId) {
-                        <div class="act-row">
-                            <div class="act-av" [style.background]="getColor(a.userId)">{{ getInitials(a.userName) }}
-                            </div>
-                            <div class="act-info">
-                                <div class="act-name">{{ a.userName ?? 'Employee' }}</div>
-                                <div class="act-sub">
-                                    In: {{ formatTime(a.checkIn) }}
-                                    @if (a.checkOut) { · Out: {{ formatTime(a.checkOut) }} }
-                                </div>
-                            </div>
-                            <span class="att-pill" [class.att-in]="a.isCheckIn && !a.isCheckOut"
-                                [class.att-out]="a.isCheckOut">
-                                {{ a.isCheckOut ? 'Checked Out' : a.isCheckIn ? 'Present' : 'Absent' }}
-                            </span>
-                        </div>
-                        }
-                        }
-                    </div>
                     }
-
-                    <!-- New users -->
-                    @if (activityTab() === 'users') {
-                    <div class="act-list">
-                        @if (usersLoading()) {
-                        <div class="card-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
-                        } @else if (recentUsers().length === 0) {
-                        <div class="card-empty"><i class="fas fa-users"></i> No users yet</div>
-                        } @else {
-                        @for (u of recentUsers(); track u.id) {
-                        <div class="act-row">
-                            <div class="act-av" [style.background]="getColor(u.id)">{{ getInitials(u.userName) }}</div>
-                            <div class="act-info">
-                                <div class="act-name">{{ u.userName }}</div>
-                                <div class="act-sub">{{ u.email }} · {{ u.department ?? '—' }}</div>
-                            </div>
-                            <span class="role-pill" [style.background]="roleColor(u.roleName ?? u.role)+'18'"
-                                [style.color]="roleColor(u.roleName ?? u.role)">
-                                {{ u.roleName ?? u.role ?? 'Employee' }}
-                            </span>
-                        </div>
-                        }
-                        }
-                    </div>
-                    }
-
-                    <div class="act-footer">
-                        @if (activityTab() === 'leaves') {
-                        <a routerLink="/dashboard/admin/leave" class="act-view-all">View all leaves <i
-                                class="fas fa-arrow-right"></i></a>
-                        } @else if (activityTab() === 'attendance') {
-                        <a routerLink="/dashboard/admin/attendance" class="act-view-all">View full report <i
-                                class="fas fa-arrow-right"></i></a>
-                        } @else {
-                        <a routerLink="/dashboard/admin/employees" class="act-view-all">Manage employees <i
-                                class="fas fa-arrow-right"></i></a>
-                        }
-                    </div>
                 </div>
+
+                <!-- ALL LEAVES -->
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">
+                            <i class="fas fa-calendar-minus"></i> Recent Leaves
+                        </div>
+                        <div class="panel-head-right">
+                            @if (pendingLeaveCount() > 0) {
+                            <span class="panel-badge amber">{{ pendingLeaveCount() }} pending</span>
+                            }
+                            <a class="view-all-link" routerLink="/dashboard/hrleave">
+                                View all <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    @if (leaveLoading()) {
+                    <div class="panel-skeleton">
+                        @for (i of [1,2,3]; track i) {
+                        <div class="sk-row">
+                            <div class="sk sk-avatar"></div>
+                            <div class="sk-lines">
+                                <div class="sk sk-line-lg"></div>
+                                <div class="sk sk-line-sm"></div>
+                            </div>
+                            <div class="sk sk-badge"></div>
+                        </div>
+                        }
+                    </div>
+                    } @else if (recentLeaves().length === 0) {
+                    <div class="panel-empty">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>No leave requests found</span>
+                    </div>
+                    } @else {
+                    <div class="leave-list">
+                        @for (leave of recentLeaves(); track leave.leaveRequestId) {
+                        <div class="leave-row">
+                            <div class="lv-avatar" [style.background]="getColor(leave.userId)">
+                                {{ getInitials(leave.userName) }}
+                            </div>
+                            <div class="lv-info">
+                                <div class="lv-name">{{ leave.userName }}</div>
+                                <div class="lv-meta">
+                                    <span class="lv-type">{{ leave.requestType }}</span>
+                                    <span class="lv-dot">·</span>
+                                    <span>{{ formatDate(leave.fromDate) }}</span>
+                                    @if (leave.totalDays) {
+                                    <span class="lv-days">{{ leave.totalDays }}d</span>
+                                    }
+                                </div>
+                                @if (leave.reason) {
+                                <div class="lv-reason">"{{ leave.reason }}"</div>
+                                }
+                            </div>
+                            <div class="lv-right">
+                                <span class="lv-status" [ngClass]="getLeaveStatusClass(leave.status)">
+                                    @if (leave.status === 'Approved') {
+                                    <i class="fas fa-check-circle"></i>
+                                    } @else if (leave.status === 'pending' || leave.status === 'ManagerApproved') {
+                                    <i class="fas fa-clock"></i>
+                                    } @else {
+                                    <i class="fas fa-times-circle"></i>
+                                    }
+                                    {{ getLeaveStatusLabel(leave.status) }}
+                                </span>
+                                @if (leave.session) {
+                                <div class="lv-session">{{ leave.session }}</div>
+                                }
+                            </div>
+                        </div>
+                        }
+                    </div>
+                    @if (allLeaves().length > 3) {
+                    <div class="panel-footer">
+                        <a class="pf-more-link" routerLink="/dashboard/hrleave">
+                            <i class="fas fa-calendar-minus"></i>
+                            +{{ allLeaves().length - 3 }} more requests
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    }
+                    }
+                </div>
+
+                <!-- PAYROLL STATUS -->
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">
+                            <i class="fas fa-money-bill-wave"></i> Payroll — Previous Month
+                        </div>
+                        <div class="panel-head-right">
+                            @if (unpaidPayrollCount() > 0) {
+                            <span class="panel-badge red">
+                                {{ unpaidPayrollCount() }} unpaid
+                            </span>
+                            }
+                            <a class="view-all-link" routerLink="/dashboard/hrpayroll">
+                                View all <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    @if (payrollLoading()) {
+                    <div class="panel-skeleton">
+                        @for (i of [1,2,3]; track i) {
+                        <div class="sk-row">
+                            <div class="sk sk-avatar"></div>
+                            <div class="sk-lines">
+                                <div class="sk sk-line-lg"></div>
+                                <div class="sk sk-line-sm"></div>
+                            </div>
+                            <div class="sk sk-badge"></div>
+                        </div>
+                        }
+                    </div>
+                    } @else if (currentMonthPayroll().length === 0) {
+                    <div class="panel-empty">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>No payroll generated yet</span>
+                    </div>
+                    } @else {
+                    <div class="payroll-list">
+                        @for (p of currentMonthPayroll().slice(0, 3); track p.payrollId) {
+                        <div class="pl-row">
+                            <div class="pl-avatar" [style.background]="getColor(p.userId)">
+                                {{ getInitials(p.userName) }}
+                            </div>
+                            <div class="pl-info">
+                                <div class="pl-name">{{ p.userName || 'Employee' }}</div>
+                                <div class="pl-meta">
+                                    {{ getMonthLabel(p.month) }} {{ p.year }}
+                                </div>
+                            </div>
+                            <div class="pl-right">
+                                <div class="pl-amount">
+                                    ₹{{ formatAmount(p.netSalary) }}
+                                </div>
+                                <div>
+                                    <span class="pl-status" [ngClass]="{
+                                        'paid':      p.status === 'Paid',
+                                        'generated': p.status === 'Generated',
+                                        'no-salary': p.status === 'No Salary'
+                                    }">
+                                        @if (p.status === 'Paid') {
+                                        <i class="fas fa-check-circle"></i>
+                                        } @else if (p.status === 'Generated') {
+                                        <i class="fas fa-clock"></i>
+                                        }
+                                        {{ p.status }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                    @if (currentMonthPayroll().length > 5) {
+                    <div class="panel-footer">
+                        <a class="pf-more-link red" routerLink="/dashboard/hrpayroll">
+                            <i class="fas fa-money-bill-wave"></i>
+                            +{{ currentMonthPayroll().length - 5 }} more records
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    }
+                    }
+                </div>
+
+                <!-- QUICK ACTIONS -->
+                <!-- <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title"><i class="fas fa-bolt"></i> Quick Actions</div>
+                    </div>
+                    <div class="quick-actions">
+                        <a class="qa-btn" routerLink="/dashboard/hremployees">
+                            <div class="qa-icon add"><i class="fas fa-user-plus"></i></div>
+                            <span>Add Employee</span>
+                            <i class="fas fa-chevron-right qa-arrow"></i>
+                        </a>
+                        <a class="qa-btn" routerLink="/dashboard/hrleave">
+                            <div class="qa-icon leave"><i class="fas fa-calendar-minus"></i></div>
+                            <span>Manage Leaves</span>
+                            <i class="fas fa-chevron-right qa-arrow"></i>
+                        </a>
+                        <a class="qa-btn" routerLink="/dashboard/hrattendance">
+                            <div class="qa-icon att"><i class="fas fa-calendar-check"></i></div>
+                            <span>View Attendance</span>
+                            <i class="fas fa-chevron-right qa-arrow"></i>
+                        </a>
+                        <a class="qa-btn" routerLink="/dashboard/hrpayroll">
+                            <div class="qa-icon payroll"><i class="fas fa-money-bill-wave"></i></div>
+                            <span>Payroll Management</span>
+                            <i class="fas fa-chevron-right qa-arrow"></i>
+                        </a>
+                        <a class="qa-btn" routerLink="/dashboard/hrRecruitment">
+                            <div class="qa-icon recruit"><i class="fas fa-briefcase"></i></div>
+                            <span>Recruitment</span>
+                            <i class="fas fa-chevron-right qa-arrow"></i>
+                        </a>
+                        <a class="qa-btn" routerLink="/dashboard/hremployees">
+                            <div class="qa-icon emp"><i class="fas fa-users"></i></div>
+                            <span>All Employees</span>
+                            <i class="fas fa-chevron-right qa-arrow"></i>
+                        </a>
+                    </div>
+                </div> -->
 
             </div>
         </div>
-
-        <!-- ══ ALL EMPLOYEES TABLE ══ -->
-        <div class="card full-card">
-            <div class="card-header">
-                <div class="card-title"><i class="fas fa-users"></i> Employees</div>
-                <div class="card-header-right">
-                    <select class="filter-select" [value]="selectedDept()"
-                        (change)="selectedDept.set($any($event.target).value)">
-                        <option value="all">All Departments</option>
-                        @for (d of departments(); track d) { <option [value]="d">{{ d }}</option> }
-                    </select>
-                    <a routerLink="/dashboard/admin/employees" class="btn-view-all">
-                        <i class="fas fa-external-link-alt"></i> View All
-                    </a>
-                </div>
-            </div>
-            <div class="tbl-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                        
-                            <th>Employee</th>
-                            <th>Department</th>
-                            <th>Role</th>
-                            <th>Phone</th>
-                            <th>Joined</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for (u of filteredUsers(); track u.id; let i = $index) {
-                        <tr>
-                            
-                            <td class="td-emp">
-                                <div class="emp-cell">
-                                    <div class="emp-av" [style.background]="getColor(u.id)">{{ getInitials(u.userName)
-                                        }}</div>
-                                    <div>
-                                        <div class="emp-name">{{ u.userName }}</div>
-                                        <div class="emp-email">{{ u.email }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="td-dept">{{ u.department ?? '—' }}</td>
-                            <td>
-                                <span class="role-pill" [style.background]="roleColor(u.roleName ?? u.role)+'18'"
-                                    [style.color]="roleColor(u.roleName ?? u.role)">
-                                    {{ u.roleName ?? u.role ?? 'Employee' }}
-                                </span>
-                            </td>
-                            <td class="td-phone">{{ u.phoneNumber ?? '—' }}</td>
-                            <td class="td-date">{{ formatDate(u.createdAt) }}</td>
-                            <td>
-                                <span class="status-dot-pill" [class.active-pill]="u.isActive !== false">
-                                    <span class="sdp-dot"></span>
-                                    {{ u.isActive !== false ? 'Active' : 'Inactive' }}
-                                </span>
-                            </td>
-                        </tr>
-                        } @empty {
-                        <tr>
-                            <td colspan="7" class="td-empty">
-                                <i class="fas fa-users-slash"></i><span>No employees found</span>
-                            </td>
-                        </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
     </div>
 </main>

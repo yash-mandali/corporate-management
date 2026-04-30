@@ -336,9 +336,9 @@
                           target="_blank" title="View Resume">
                           <i class="fas fa-file-alt"></i>
                         </a>
-                        <button class="act-btn download" (click)="downloadResume(c)" title="Download Resume">
+                        <!-- <button class="act-btn download" (click)="downloadResume(c)" title="Download Resume">
                           <i class="fas fa-download"></i>
-                        </button>
+                        </button> -->
                       }
                       <button class="act-btn view" (click)="openCandDetail(c)" title="View Details">
                         <i class="fas fa-eye"></i>
@@ -695,9 +695,9 @@
                   target="_blank" title="Open in browser">
                   <i class="fas fa-external-link-alt"></i> View
                 </a>
-                <button class="rc-btn download" (click)="downloadResume(candDetailModal()!)" title="Download">
+                <!-- <button class="rc-btn download" (click)="downloadResume(candDetailModal()!)" title="Download">
                   <i class="fas fa-download"></i> Download
-                </button>
+                </button> -->
               </div>
             </div>
           } @else {
@@ -738,9 +738,9 @@
           <a class="btn-pub" [href]="'https://localhost:44346' + candDetailModal()!.resumeUrl" target="_blank">
             <i class="fas fa-eye"></i> View Resume
           </a>
-          <button class="btn-secondary" (click)="downloadResume(candDetailModal()!)">
+          <!-- <button class="btn-secondary" (click)="downloadResume(candDetailModal()!)">
             <i class="fas fa-download"></i> Download
-          </button>
+          </button> -->
         } @else {
           <span class="no-resume-note"><i class="fas fa-exclamation-circle"></i> No resume uploaded</span>
         }

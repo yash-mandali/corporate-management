@@ -24,6 +24,7 @@ export class TimesheetService {
   getEntryByStatusApi = `${this.apiurl}/Timesheet/getByStatus(manager)`;   //manager
   HrApproveEntryApi = `${this.apiurl}/Timesheet/HrApproveT`;  //HR
   HrRejectEntryApi = `${this.apiurl}/Timesheet/HRejectT`;   //HR
+  ExportTimesheetReportApi = `${this.apiurl}/Timesheet/ExportTimesheetReport`;
 
   getAllEntry() {
     return this.http.get<any[]>(this.getallEntryApi);
@@ -84,5 +85,27 @@ export class TimesheetService {
 
   HrRejectEntry(sheetId: number, rejectReason: string) {
     return this.http.put<any>(`${this.HrRejectEntryApi}?sheetId=${sheetId}&reason=${rejectReason}`, { sheetId, rejectReason });
+  }
+
+  // -------------------- export report service-----------------------
+
+  exportTimesheetReport(fromDate: string,toDate: string,userId?: number,department?: string,status?: string,workType?: string ) {
+    let params: any = {
+      FromDate: fromDate,
+      ToDate: toDate
+    };
+
+    if (userId) params.UserId = userId;
+    if (department) params.Department = department;
+    if (status) params.Status = status;
+    if (workType) params.WorkType = workType;
+
+    return this.http.get(
+      `${this.ExportTimesheetReportApi}`,
+      {
+        params: params,
+        responseType: 'blob'
+      }
+    );
   }
 }

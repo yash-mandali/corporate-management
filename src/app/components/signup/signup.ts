@@ -24,14 +24,14 @@ export class Signup {
 
   ngOnInit() {
     this.signupForm = this.fb.group({
-      Id:[''],
+      id: [0],
       userName: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
       gender: ['', [Validators.required]],
-      address: ['empty'],
-      roleId: ['2']
+      // address: ['empty'],
+      roleId: [2]
     });
   }
 
@@ -47,9 +47,12 @@ export class Signup {
     this.isLoading = true;
     this.errorMessage.set('');
     const data = this.signupForm.value;
+    console.log("data called:", data);
 
     this.userservice.signup(data).subscribe({
       next: (res: any) => {
+        console.log("signup buttom called::", res);
+
         this.errorMessage.set('Account created successfully! Redirecting…');
         this.isLoading = false;
         this.signupForm.reset();

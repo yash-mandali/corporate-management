@@ -1,6 +1,4 @@
 <div class="login-root">
-
-    <!-- LEFT BRAND PANEL (unchanged) -->
     <div class="brand-panel">
         <div class="brand-bg"></div>
         <div class="brand-orb orb1"></div>
@@ -34,8 +32,6 @@
             </div>
         </div>
     </div>
-
-    <!-- RIGHT FORM PANEL -->
     <div class="form-panel">
         <div class="form-card">
             <div class="form-header">
@@ -109,19 +105,12 @@
     </div>
 </div>
 
-<!-- ══════════════════════════
-     FORGOT PASSWORD MODAL
-══════════════════════════ -->
-@if (showForgotModal) {
+@if (showForgotModal()) {
 <div class="fp-overlay">
     <div class="fp-modal" (click)="$event.stopPropagation()">
-
-        <!-- Close -->
         <button class="fp-close" type="button" (click)="closeForgotModal()">
             <i class="fas fa-times"></i>
         </button>
-
-        <!-- Step indicator -->
         <div class="fp-steps">
             <div class="fp-step" [class.active]="fpStep() === 'email'"
                 [class.done]="fpStep() === 'otp' || fpStep() === 'password'">
@@ -144,7 +133,6 @@
             </div>
         </div>
 
-        <!-- ── STEP 1: Email ── -->
         @if (fpStep() === 'email') {
         <div class="fp-body">
             <h2 class="fp-title">Forgot Password</h2>
@@ -173,7 +161,6 @@
         </div>
         }
 
-        <!-- ── STEP 2: OTP ── -->
         @if (fpStep() === 'otp') {
         <div class="fp-body">
             <h2 class="fp-title">Enter OTP</h2>
@@ -212,7 +199,6 @@
         </div>
         }
 
-        <!-- ── STEP 3: New Password ── -->
         @if (fpStep() === 'password') {
         <div class="fp-body">
             <h2 class="fp-title">Set New Password</h2>
@@ -223,7 +209,7 @@
                 <div class="field-group"
                     [class.has-error]="newPasswordForm.get('newPassword')?.touched && newPasswordForm.get('newPassword')?.invalid">
                     <label class="field-label">New Password</label>
-                    <div class="field-wrap"> 
+                    <div class="field-wrap">
                         <span class="field-icon"><i class="fas fa-lock"></i></span>
                         <input class="field-input" [type]="showNewPw ? 'text' : 'password'"
                             placeholder="Min. 6 characters" formControlName="newPassword" />
@@ -236,8 +222,6 @@
                         <i class="fas fa-exclamation-circle"></i> Minimum 6 characters required
                     </span>
                 </div>
-
-                <!-- Confirm Password -->
                 <div class="field-group" style="margin-top:14px;"
                     [class.has-error]="(newPasswordForm.get('confirmPassword')?.touched && newPasswordForm.get('confirmPassword')?.invalid) || (newPasswordForm.touched && newPasswordForm.errors?.['mismatch'])">
                     <label class="field-label">Confirm Password</label>
@@ -274,7 +258,6 @@
             </form>
         </div>
         }
-
     </div>
 </div>
 }

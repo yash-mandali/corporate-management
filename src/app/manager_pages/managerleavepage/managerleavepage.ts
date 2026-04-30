@@ -3,7 +3,6 @@ import { LowerCasePipe } from '@angular/common';
 import { Authservice } from '../../services/Auth-service/authservice';
 import { UserService } from '../../services/user-service/user-service';
 import { LeaveService } from '../../services/leave-service/leave-service';
-import { ToastrService } from 'ngx-toastr';
 import { ToastService } from '../../services/toast-service/toast';
 
 // Manager statuses: Pending | ManagerApproved | ManagerRejected | Withdrawn
@@ -19,11 +18,16 @@ const REJECTED_SET = new Set(['rejected', 'managerrejected']);
 export class ManagerLeavepage implements OnInit {
 
   managerId = signal<any>(null);
+
   // ── State ──
   allLeaves = signal<any[]>([]);
   ManagerTeam = signal<any[]>([]);
   leaveLoading = signal(false);
   actionLoading = signal<any>(null);
+
+  // ── Balance state ──
+  employeeLeaveBalances = signal<Map<number, any[]>>(new Map());
+  balanceLoading = signal(false);
 
   // ── Tab ──
   activeTab = signal<'approvals' | 'history' | 'balance'>('approvals');
@@ -34,14 +38,6 @@ export class ManagerLeavepage implements OnInit {
   histPage = signal(1);
   balanceSearch = signal('');
   readonly pageSize = 10;
-
-  // ── Leave types config ──
-  leaveTypes = [
-    { key: 'annual', label: 'Annual', max: 15 },
-    { key: 'sick', label: 'Sick', max: 6 },
-    { key: 'comp', label: 'Comp Off', max: 2 },
-    { key: 'emergency', label: 'Emergency', max: 2 },
-  ];
 
   // ── Colors ──
   private colorPool = [
@@ -86,29 +82,28 @@ export class ManagerLeavepage implements OnInit {
     return this.filteredHistory().slice(s, s + this.pageSize);
   });
 
-  // ── Balance tab: approved days per employee per leave type ──
-  employeeBalances = computed(() => {
-    const approved = this.allLeaves().filter(l => APPROVED_SET.has(l.status?.toLowerCase()));
-    return this.ManagerTeam().map(u => {
-      const userLeaves = approved.filter(l => l.userId === u.id);
-      const breakdown: Record<string, number> = { annual: 0, sick: 0, comp: 0, emergency: 0 };
-      userLeaves.forEach(l => {
-        const t = (l.requestType || '').toLowerCase();
-        if (t.includes('annual')) breakdown['annual'] += l.totalDays || 0;
-        else if (t.includes('sick')) breakdown['sick'] += l.totalDays || 0;
-        else if (t.includes('comp')) breakdown['comp'] += l.totalDays || 0;
-        else if (t.includes('emer')) breakdown['emergency'] += l.totalDays || 0;
-      });
-      const totalApproved = Object.values(breakdown).reduce((a, b) => a + b, 0);
-      return { userId: u.id, userName: u.userName, roleName: u.roleName, breakdown, totalApproved };
-    });
-  });
-
+  // ── Balance tab: real API data per employee ──
   filteredBalances = computed(() => {
     const q = this.balanceSearch().toLowerCase().trim();
-    return this.employeeBalances().filter(e =>
-      !q || e.userName.toLowerCase().includes(q)
-    );
+    const balancesMap = this.employeeLeaveBalances();
+
+    return this.ManagerTeam()
+      .filter(u => !q || (u.userName || '').toLowerCase().includes(q))
+      .map(u => {
+        const balances = balancesMap.get(u.id) ?? [];
+        const totalRemaining = balances.reduce((sum: number, b: any) => sum + (b.remainingLeaveBalance || 0), 0);
+        const totalUsed = balances.reduce((sum: number, b: any) => sum + (b.usedLeaveBalance || 0), 0);
+        const balanceYear = balances.length ? balances[0].balance_year : null;
+        return {
+          userId: u.id,
+          userName: u.userName,
+          roleName: u.roleName,
+          balances,
+          totalRemaining,
+          totalUsed,
+          balanceYear,
+        };
+      });
   });
 
   constructor(
@@ -131,6 +126,7 @@ export class ManagerLeavepage implements OnInit {
     this.userService.getManagerTeam(this.managerId()).subscribe({
       next: (res: any) => {
         this.ManagerTeam.set(Array.isArray(res) ? res : res ? [res] : []);
+        this.loadTeamLeaveBalances();
       },
       error: err => console.error('ManagerTeam:', err)
     });
@@ -145,6 +141,37 @@ export class ManagerLeavepage implements OnInit {
         this.leaveLoading.set(false);
       },
       error: err => { console.error('loadAllLeaves:', err); this.leaveLoading.set(false); }
+    });
+  }
+
+  // ── Load real leave balances for every team member ──
+  loadTeamLeaveBalances() {
+    const team = this.ManagerTeam();
+    if (!team.length) return;
+
+    this.balanceLoading.set(true);
+    const map = new Map<number, any[]>();
+    let completed = 0;
+
+    team.forEach(u => {
+      this.leaveService.getUserLeaveBalance(u.id).subscribe({
+        next: (res: any) => {
+          map.set(u.id, Array.isArray(res) ? res : res ? [res] : []);
+          completed++;
+          if (completed === team.length) {
+            this.employeeLeaveBalances.set(new Map(map));
+            this.balanceLoading.set(false);
+          }
+        },
+        error: () => {
+          map.set(u.id, []);
+          completed++;
+          if (completed === team.length) {
+            this.employeeLeaveBalances.set(new Map(map));
+            this.balanceLoading.set(false);
+          }
+        }
+      });
     });
   }
 
@@ -194,7 +221,28 @@ export class ManagerLeavepage implements OnInit {
     this.histPage.set(1);
   }
 
-  // ── Leave type class ──
+  // ── Leave type helpers ──
+  getLeaveTypeName(typeId: number): string {
+    switch (typeId) {
+      case 1: return 'Annual';
+      case 2: return 'Sick';
+      case 3: return 'Comp Off';
+      case 4: return 'Emergency';
+      default: return 'Leave';
+    }
+  }
+
+  leaveTypeClass(typeId: number): string {
+    switch (typeId) {
+      case 1: return 'annual';
+      case 2: return 'sick';
+      case 3: return 'comp';
+      case 4: return 'emergency';
+      default: return 'annual';
+    }
+  }
+
+  // ── Leave type class for chips ──
   typeClass(type: string): string {
     const t = (type || '').toLowerCase();
     if (t.includes('annual')) return 'type-annual';
@@ -205,8 +253,9 @@ export class ManagerLeavepage implements OnInit {
   }
 
   // ── Bar pct for balance ──
-  barPct(used: number, max: number): number {
-    return Math.min(100, Math.round(((used || 0) / max) * 100));
+  barPct(used: number, total: number): number {
+    if (!total) return 0;
+    return Math.min(100, Math.round(((used || 0) / total) * 100));
   }
 
   // ── Helpers ──

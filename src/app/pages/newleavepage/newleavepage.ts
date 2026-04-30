@@ -237,7 +237,7 @@ export class Newleavepage {
         this.message.set(res.message);
         this.toast.success(this.message() || 'Request submitted successfully!');
         this.leaveForm.reset();
-        this.router.navigate(['/dashboard/Leavepage']);
+        this.router.navigate(['/dashboard/leavepage']);
       },
       error: err => {
         this.message.set(err.error.error);

@@ -4,15 +4,15 @@
         <!-- PAGE HEADER -->
         <div class="page-header">
             <div class="ph-left">
-                <div class="ph-icon"><i class="fas fa-users"></i></div>
+                <div class="ph-icon"><i class="fas fa-shield-alt"></i></div>
                 <div>
-                    <div class="ph-title">Employee Management</div>
-                    <div class="ph-sub">{{ totalCount() }} employees · {{ activeCount() }} active</div>
+                    <div class="ph-title">User Management</div>
+                    <div class="ph-sub">{{ totalCount() }} users · {{ activeCount() }} active</div>
                 </div>
             </div>
-            <div class="ph-right">
+            <div class="ph-actions">
                 <button class="btn-add" (click)="openAddModal()">
-                    <i class="fas fa-user-plus"></i> Add Employee
+                    <i class="fas fa-user-plus"></i> Add User
                 </button>
             </div>
         </div>
@@ -23,7 +23,7 @@
                 <div class="sc-icon"><i class="fas fa-users"></i></div>
                 <div class="sc-body">
                     <div class="sc-val">{{ totalCount() }}</div>
-                    <div class="sc-lbl">Total</div>
+                    <div class="sc-lbl">Total Users</div>
                 </div>
             </div>
             <div class="stat-card sc-emp">
@@ -40,11 +40,18 @@
                     <div class="sc-lbl">Managers</div>
                 </div>
             </div>
-            <div class="stat-card sc-new">
-                <div class="sc-icon"><i class="fas fa-user-plus"></i></div>
+            <div class="stat-card sc-hr">
+                <div class="sc-icon"><i class="fas fa-id-badge"></i></div>
                 <div class="sc-body">
-                    <div class="sc-val">{{ newThisMonth() }}</div>
-                    <div class="sc-lbl">New This Month</div>
+                    <div class="sc-val">{{ hrRoleCount() }}</div>
+                    <div class="sc-lbl">HR</div>
+                </div>
+            </div>
+            <div class="stat-card sc-admin">
+                <div class="sc-icon"><i class="fas fa-crown"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ adminRoleCount() }}</div>
+                    <div class="sc-lbl">Admins</div>
                 </div>
             </div>
         </div>
@@ -86,6 +93,7 @@
                     <input type="date" [value]="joinTo()" (change)="onJoinTo($any($event.target).value)">
                 </div>
             </div>
+
             <div class="fp-row fp-row-2">
                 <div class="fp-role-tabs">
                     <button class="tf-btn" [class.active]="roleFilter() === 'all'" (click)="setRoleFilter('all')">
@@ -97,22 +105,29 @@
                     <button class="tf-btn mgr-f" [class.active]="roleFilter() === '3'" (click)="setRoleFilter('3')">
                         Manager <span class="tf-count">{{ mgrRoleCount() }}</span>
                     </button>
+                    <button class="tf-btn hr-f" [class.active]="roleFilter() === '4'" (click)="setRoleFilter('4')">
+                        HR <span class="tf-count">{{ hrRoleCount() }}</span>
+                    </button>
+                    <button class="tf-btn adm-f" [class.active]="roleFilter() === '1'" (click)="setRoleFilter('1')">
+                        Admin <span class="tf-count">{{ adminRoleCount() }}</span>
+                    </button>
                 </div>
                 @if (hasActiveFilters()) {
                 <div class="fp-active-info">
                     <i class="fas fa-filter"></i>
-                    Showing {{ filteredEmployees().length }} of {{ totalCount() }} employees
+                    Showing {{ filteredUsers().length }} of {{ totalCount() }} users
                     <button class="fp-clear-all" (click)="clearAllFilters()">
                         <i class="fas fa-times"></i> Clear all
                     </button>
                 </div>
                 } @else {
                 <div class="fp-active-info muted">
-                    <i class="fas fa-users"></i> {{ totalCount() }} total employees
+                    <i class="fas fa-users"></i> {{ totalCount() }} total users
                 </div>
                 }
             </div>
         </div>
+
         <!-- TABLE -->
         @if (isLoading()) {
         <div class="table-card">
@@ -139,11 +154,10 @@
                 <table>
                     <thead>
                         <tr>
-                            <!-- <th>#</th> -->
-                            <th>Employee</th>
+                            <th>User</th>
                             <th>Email</th>
                             <th>Phone</th>
-                            <th>Gender</th>
+                            <th>Department</th>
                             <th>Role</th>
                             <th>Joined</th>
                             <th>Status</th>
@@ -151,42 +165,52 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @for (emp of pagedEmployees(); track emp.id; let i = $index) {
-                        <tr (click)="openDetailModal(emp)">
-                            <!-- <td class="td-idx">{{ filteredEmployees().length - (currentPage()-1)*pageSize - i }}</td> -->
-                            <td class="td-emp">
+                        @for (user of pagedUsers(); track user.id; let i = $index) {
+                        <tr (click)="openDetailModal(user)">
+                            <td>
                                 <div class="emp-cell">
-                                    <div class="emp-av" [style.background]="getColor(emp.id)">{{
-                                        getInitials(emp.userName) }}</div>
+                                    <div class="emp-av" [style.background]="getColor(user.id)">
+                                        {{ getInitials(user.userName) }}
+                                    </div>
                                     <div>
-                                        <div class="emp-name">{{ emp.userName }}</div>
-                                        <div class="emp-id">ID-{{ emp.id }}</div>
+                                        <div class="emp-name">{{ user.userName }}</div>
+                                        <div class="emp-id">ID-{{ user.id }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="td-email">{{ emp.email }}</td>
-                            <td class="td-phone">{{ emp.phoneNumber || '—' }}</td>
-                            <td class="td-gender">{{ emp.gender || '—' }}</td>
+                            <td class="td-email">{{ user.email }}</td>
+                            <td class="td-phone">{{ user.phoneNumber || '—' }}</td>
+                            <td class="td-phone">{{ user.department || '—' }}</td>
                             <td>
-                                <span class="role-chip"
-                                    [class.mgr]="emp.roleId === 3 || emp.roleName?.toLowerCase().includes('manager')">
-                                    {{ emp.roleName || '—' }}
+                                <span class="role-chip" [ngClass]="getRoleClass(user)">
+                                    {{ user.roleName || '—' }}
                                 </span>
                             </td>
-                            <td class="td-date">{{ formatDate(emp.createdAt) }}</td>
-                        <td>
-                            <span class="status-chip" [class.online]="emp.isActive">
-                                <span class="status-dot"></span>
-                                {{ emp.isActive ? 'Active' : 'Offline' }}
-                            </span>
-                        </td>
+                            <td class="td-date">{{ formatDate(user.createdAt) }}</td>
+                            <td>
+                                <span class="status-chip" [class.online]="user.isActive">
+                                    <span class="status-dot"></span>
+                                    {{ user.isActive ? 'Active' : 'Offline' }}
+                                </span>
+                            </td>
                             <td class="td-act" (click)="$event.stopPropagation()">
-                                <button class="act-btn edit" (click)="openEditModal(emp)" title="Edit">
+                                <button class="act-btn view" (click)="openDetailModal(user)" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="act-btn edit" (click)="openEditModal(user)" title="Edit">
                                     <i class="fas fa-pen"></i>
                                 </button>
-                                <button class="act-btn del" (click)="confirmDelete(emp)" title="Delete"
-                                    [disabled]="deletingId() === emp.id">
-                                    @if (deletingId() === emp.id) { <span class="mini-spin red-spin"></span> }
+                                @if (isEmployee(user)) {
+                                <button class="act-btn"
+                                    style="background:rgba(39,174,96,0.08);color:#27ae60;margin-right:3px;"
+                                    (click)="openAssignModal(user)"
+                                    title="{{ user.managerId ? 'Reassign Manager' : 'Assign Manager' }}">
+                                    <i class="fas fa-link"></i>
+                                </button>
+                                }
+                                <button class="act-btn del" (click)="confirmDelete(user)" title="Delete"
+                                    [disabled]="deletingId() === user.id">
+                                    @if (deletingId() === user.id) { <span class="mini-spin red-spin"></span> }
                                     @else { <i class="fas fa-trash"></i> }
                                 </button>
                             </td>
@@ -195,7 +219,7 @@
                         <tr>
                             <td colspan="8" class="td-empty">
                                 <i class="fas fa-users-slash"></i>
-                                <span>No employees found</span>
+                                <span>No users found</span>
                             </td>
                         </tr>
                         }
@@ -222,12 +246,13 @@
                     [disabled]="currentPage()===totalPages()">
                     <i class="fas fa-angle-double-right"></i>
                 </button>
-                <span class="pg-info">{{ currentPage() }} of {{ totalPages() }} · {{ filteredEmployees().length }}
-                    employees</span>
+                <span class="pg-info">{{ currentPage() }} of {{ totalPages() }} · {{ filteredUsers().length }}
+                    users</span>
             </div>
             }
         </div>
         }
+
     </div>
 </main>
 
@@ -235,17 +260,16 @@
 @if (formModal()) {
 <div class="modal-overlay">
     <div class="form-modal" (click)="$event.stopPropagation()">
-        <div class="fm-header" [class.edit-mode]="!!editingEmployee()">
-            <div class="fm-icon"><i class="fas fa-{{ editingEmployee() ? 'pen' : 'user-plus' }}"></i></div>
+        <div class="fm-header" [class.edit-mode]="!!editingUser()">
+            <div class="fm-icon"><i class="fas fa-{{ editingUser() ? 'pen' : 'user-plus' }}"></i></div>
             <div>
-                <div class="fm-title">{{ editingEmployee() ? 'Edit Employee' : 'Add New Employee' }}</div>
-                <div class="fm-sub">{{ editingEmployee() ? 'Update employee details' : 'Fill in employee information' }}
-                </div>
+                <div class="fm-title">{{ editingUser() ? 'Edit User' : 'Add New User' }}</div>
+                <div class="fm-sub">{{ editingUser() ? 'Update user details' : 'Fill in user information' }}</div>
             </div>
             <button class="fm-close" (click)="closeFormModal()"><i class="fas fa-times"></i></button>
         </div>
 
-        <div class="fm-body" [formGroup]="empForm">
+        <div class="fm-body" [formGroup]="userForm">
             <div class="fm-grid">
 
                 <div class="ff full">
@@ -255,7 +279,7 @@
 
                 <div class="ff">
                     <label>Email <span class="req">*</span></label>
-                    <input type="email" formControlName="email" placeholder="employee@company.com">
+                    <input type="email" formControlName="email" placeholder="user@company.com">
                 </div>
 
                 <div class="ff">
@@ -263,7 +287,7 @@
                     <input type="tel" formControlName="phoneNumber" placeholder="+91 9876543210">
                 </div>
 
-                @if (!editingEmployee()) {
+                @if (!editingUser()) {
                 <div class="ff">
                     <label>Password <span class="req">*</span></label>
                     <div class="pw-wrap">
@@ -279,22 +303,23 @@
                 <div class="ff">
                     <label>Role <span class="req">*</span></label>
                     <select formControlName="roleId">
-                        <option value="" selected>Select role</option>
+                        <option value="">Select role</option>
+                        <option value="1">Admin</option>
                         <option value="2">Employee</option>
                         <option value="3">Manager</option>
+                        <option value="4">HR</option>
                     </select>
                 </div>
 
                 <div class="ff">
-                    <label>Department <span class="req">*</span></label>
+                    <label>Department</label>
                     <select formControlName="department">
-                        <option value="">All Department</option>
+                        <option value="">Select Department</option>
                         @for (d of departments; track d) {
                         <option [value]="d">{{ d }}</option>
                         }
                     </select>
                 </div>
-
 
                 <div class="ff">
                     <label>Gender</label>
@@ -320,10 +345,10 @@
 
         <div class="fm-footer">
             <button class="fm-cancel" (click)="closeFormModal()">Cancel</button>
-            <button class="fm-save" (click)="saveEmployee()" [disabled]="formSaving()">
+            <button class="fm-save" (click)="saveUser()" [disabled]="formSaving()">
                 @if (formSaving()) { <span class="mini-spin white-spin"></span> Saving... }
-                @else { <i class="fas fa-{{ editingEmployee() ? 'save' : 'user-plus' }}"></i> {{ editingEmployee() ?
-                'Save Changes' : 'Add Employee' }} }
+                @else { <i class="fas fa-{{ editingUser() ? 'save' : 'user-plus' }}"></i> {{ editingUser() ? 'Save
+                Changes' : 'Add User' }} }
             </button>
         </div>
     </div>
@@ -335,7 +360,6 @@
 <div class="modal-overlay" (click)="closeDetailModal()">
     <div class="detail-modal" (click)="$event.stopPropagation()">
 
-        <!-- Header -->
         <div class="dm-header">
             <div class="dm-hero">
                 <div class="dm-avatar" [style.background]="getColor(detailModal()!.id)">
@@ -352,7 +376,6 @@
             <button class="fm-close" (click)="closeDetailModal()"><i class="fas fa-times"></i></button>
         </div>
 
-        <!-- Body -->
         <div class="dm-body">
 
             <!-- Quick stats -->
@@ -395,8 +418,26 @@
                                 detailModal()!.roleName }}</span></div>
                         <div class="dm-row"><span class="dmr-k">Joined</span><span class="dmr-v">{{
                                 formatDate(detailModal()!.createdAt) }}</span></div>
-                        <div class="dm-row"><span class="dmr-k">Address</span><span class="dmr-v ">{{
+                        <div class="dm-row"><span class="dmr-k">Address</span><span class="dmr-v">{{
                                 detailModal()!.address || '—' }}</span></div>
+
+                        <!-- Show Manager row only for employees -->
+                        @if (isEmployee(detailModal()!)) {
+                        <div class="dm-row">
+                            <span class="dmr-k">Manager</span>
+                            @if (detailModal()!.managerName) {
+                            <span class="dmr-v manager-name">
+                                <i class="fas fa-user-tie"></i>
+                                {{ detailModal()!.managerName }}
+                            </span>
+                            } @else {
+                            <span class="dmr-v manager-unassigned">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Not Assigned
+                            </span>
+                            }
+                        </div>
+                        }
                     </div>
                 </div>
 
@@ -409,7 +450,8 @@
                     <div class="dm-att-body">
                         <div class="dm-att-track">
                             <div class="dm-att-fill" [style.width]="detailAttendanceRate() + '%'"
-                                [class.low]="detailAttendanceRate() < 75"></div>
+                                [class.low]="detailAttendanceRate() < 75">
+                            </div>
                         </div>
                         <div class="dm-att-legend">
                             <div class="dal green">
@@ -424,7 +466,7 @@
                                 <div class="dal-n">{{ detailAbsentDays() }}</div>
                                 <div class="dal-l">Absent</div>
                             </div>
-                            <div class="dal teal">
+                            <div class="dal purple">
                                 <div class="dal-n">{{ detailAttendanceRate() }}%</div>
                                 <div class="dal-l">Rate</div>
                             </div>
@@ -469,10 +511,112 @@
 
         <div class="dm-footer">
             <button class="fm-cancel" (click)="closeDetailModal()">Close</button>
+            @if (isEmployee(detailModal()!)) {
+            <button class="assign-save" (click)="openAssignModal(detailModal()!); closeDetailModal()">
+                <i class="fas fa-link"></i> {{ detailModal()!.managerId ? 'Reassign Manager' : 'Assign Manager' }}
+            </button>
+            }
             <button class="fm-save" (click)="openEditModal(detailModal()!); closeDetailModal()">
-                <i class="fas fa-pen"></i> Edit Employee
+                <i class="fas fa-pen"></i> Edit User
             </button>
         </div>
+    </div>
+</div>
+}
+
+<!-- ══ ASSIGN MANAGER MODAL ══ -->
+@if (assignModal()) {
+<div class="modal-overlay" (click)="closeAssignModal()">
+    <div class="assign-modal-box" (click)="$event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="fm-header">
+            <div class="fm-icon"><i class="fas fa-link"></i></div>
+            <div>
+                <div class="fm-title">
+                    {{ assignModal()!.managerId ? 'Reassign Manager' : 'Assign Manager' }}
+                </div>
+                <div class="fm-sub">
+                    {{ assignModal()!.managerId ? 'Change the reporting manager' : 'Link a manager to this employee' }}
+                </div>
+            </div>
+            <button class="fm-close" (click)="closeAssignModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="assign-body">
+
+            <!-- Employee Preview Card -->
+            <div class="assign-emp-card">
+                <div class="assign-emp-av" [style.background]="getColor(assignModal()!.id)">
+                    {{ getInitials(assignModal()!.userName) }}
+                </div>
+                <div class="assign-emp-info">
+                    <div class="assign-emp-name">{{ assignModal()!.userName }}</div>
+                    <div class="assign-emp-dept">{{ assignModal()!.department || 'No Department' }}</div>
+                </div>
+                <span class="assign-emp-role-badge">
+                    <i class="fas fa-user"></i> Employee
+                </span>
+            </div>
+
+            <!-- Current Manager Status -->
+            @if (assignModal()!.managerId && assignModal()!.managerName) {
+            <div class="assign-current-mgr">
+                <div class="assign-current-mgr-icon">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div>
+                    <div class="assign-current-mgr-label">Current Manager</div>
+                    <div class="assign-current-mgr-name">{{ assignModal()!.managerName }}</div>
+                </div>
+            </div>
+            } @else {
+            <div class="assign-no-mgr-banner">
+                <div class="assign-no-mgr-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="assign-no-mgr-text">No manager assigned yet — select one below</div>
+            </div>
+            }
+
+            <!-- Manager Select -->
+            <div class="assign-select-wrap">
+                <label class="assign-select-label">
+                    <i class="fas fa-user-tie"></i>
+                    Select Manager <span class="req">*</span>
+                </label>
+                <select class="assign-select" [(ngModel)]="selectedManagerId">
+                    <option value="">— Choose a manager —</option>
+                    @for (m of allManagers(); track m.id) {
+                    <option [value]="m.id">{{ m.userName }}</option>
+                    }
+                </select>
+            </div>
+
+            @if (assignError()) {
+            <div class="fm-error">
+                <i class="fas fa-exclamation-triangle"></i> {{ assignError() }}
+            </div>
+            }
+
+        </div>
+
+        <!-- Footer -->
+        <div class="assign-footer">
+            <button class="fm-cancel" (click)="closeAssignModal()">Cancel</button>
+            <button class="assign-btn-save" (click)="executeAssign()" [disabled]="assignSaving()">
+                @if (assignSaving()) {
+                <span class="mini-spin white-spin"></span> Saving...
+                } @else {
+                <i class="fas fa-{{ assignModal()!.managerId ? 'exchange-alt' : 'link' }}"></i>
+                {{ assignModal()!.managerId ? 'Reassign Manager' : 'Assign Manager' }}
+                }
+            </button>
+        </div>
+
     </div>
 </div>
 }
@@ -482,7 +626,7 @@
 <div class="modal-overlay" (click)="closeDeleteModal()">
     <div class="delete-modal" (click)="$event.stopPropagation()">
         <div class="del-icon-wrap"><i class="fas fa-exclamation-triangle"></i></div>
-        <div class="del-title">Delete Employee?</div>
+        <div class="del-title">Delete User?</div>
         <div class="del-sub">
             Are you sure you want to delete <strong>{{ deleteModal()!.userName }}</strong>?
             This action cannot be undone.

@@ -93,6 +93,10 @@
             <span class="nav-icon"></span>
             <span class="nav-label">Dashboard</span>
         </a>
+        <a class="nav-item" routerLink="/dashboard/usermanagement" routerLinkActive="active" (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">User Management</span>
+        </a>
         }
         @else {
         <a class="nav-item" routerLink="/dashboard" routerLinkActive="active" (click)="emp.closeSidebar()">

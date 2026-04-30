@@ -115,6 +115,7 @@ export class ApplyLeave {
       }
     });
   }
+  
   loadMyLeaves() {
     this.isLoading = true;
     this.leaveService.getMyleaveList(this.Id()).subscribe({

@@ -14,6 +14,7 @@ export class UserService {
   loginApi = `${this.apiurl}/User/Login`;
   logoutApi = `${this.apiurl}/User/Logout`;
   addUserApi = `${this.apiurl}/User/AddUser`;
+  hrAdminaddUserApi = `${this.apiurl}/User/HrAdminAddUser`;
   updateUserApi = `${this.apiurl}/User/UpdateUser`;
   delateUserApi = `${this.apiurl}/User/DeleteUser`;
   getUserbyIdApi = `${this.apiurl}/User/getUserById`;
@@ -43,7 +44,7 @@ export class UserService {
   }
 
   addUser(data: any) {
-    return this.http.post(this.addUserApi, data);
+    return this.http.post(this.hrAdminaddUserApi, data);
   }
 
   updateUser(data: any) {
@@ -118,7 +119,7 @@ export class UserService {
     return this.http.post(`${this.apiurl}/User/VerifyForgotPasswordOtp?email=${email}&otp=${otp}`, {});
   }
 
-  changePassword(email: string, newPassword: string, confirmPassword:string): Observable<boolean> {
+  changePassword(email: string, newPassword: string, confirmPassword: string): Observable<boolean> {
     return this.http.post<boolean>(`${this.apiurl}/User/changePassword`, { email: email, newPassword: newPassword, confirmPassword: confirmPassword });
   }
 

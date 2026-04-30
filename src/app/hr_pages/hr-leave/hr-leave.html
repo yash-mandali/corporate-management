@@ -246,34 +246,57 @@
                 </div>
                 <div class="bt-info">
                     <i class="fas fa-info-circle"></i>
-                    Showing approved leaves consumed per employee
+                    Showing leave balances for current year
                 </div>
             </div>
 
+            @if (balanceLoading()) {
+            <div class="page-loading"><i class="fas fa-spinner fa-spin"></i> Loading balances...</div>
+            } @else {
             <div class="balance-grid">
                 @for (emp of filteredBalances(); track emp.userId) {
                 <div class="balance-card">
+
+                    <!-- Card Header -->
                     <div class="bc-header">
-                        <div class="bc-avatar" [style.background]="getColor(emp.userId)">{{ getInitials(emp.userName) }}
+                        <div class="bc-avatar" [style.background]="getColor(emp.userId)">
+                            {{ getInitials(emp.userName) }}
                         </div>
                         <div class="bc-info">
                             <div class="bc-name">{{ emp.userName }}</div>
                             <div class="bc-role">{{ emp.roleName }}</div>
                         </div>
-                        <div class="bc-total-badge">{{ emp.totalApproved }} used</div>
+                        <div class="bc-total-badge">
+                            @if (emp.balanceYear) { {{ emp.balanceYear }} }
+                        </div>
                     </div>
+
+
+                    <!-- Per-type balance bars -->
                     <div class="bc-bars">
-                        @for (lt of leaveTypes; track lt.key) {
+                        @if (emp.balances.length === 0) {
+                        <div class="bc-no-data">
+                            <i class="fas fa-info-circle"></i> No balance data available
+                        </div>
+                        } @else {
+                        @for (b of emp.balances; track b.leavebalanceId) {
                         <div class="bc-bar-row">
-                            <span class="bcbr-label">{{ lt.label }}</span>
+                            <span class="bcbr-label {{ leaveTypeClass(b.leavetype_Id) }}">
+                                {{ getLeaveTypeName(b.leavetype_Id) }}
+                            </span>
                             <div class="bcbr-track">
-                                <div class="bcbr-fill {{ lt.key }}"
-                                    [style.width]="barPct(emp.breakdown[lt.key], lt.max) + '%'"></div>
+                                <div class="bcbr-fill {{ leaveTypeClass(b.leavetype_Id) }}"
+                                    [style.width]="barPct(b.usedLeaveBalance, b.totalLeaveBalance) + '%'">
+                                </div>
                             </div>
-                            <span class="bcbr-count">{{ emp.breakdown[lt.key] || 0 }}<small>/{{ lt.max }}</small></span>
+                            <span class="bcbr-count">
+                                {{ b.usedLeaveBalance }}<small>/{{ b.totalLeaveBalance }}</small>
+                            </span>
                         </div>
                         }
+                        }
                     </div>
+
                 </div>
                 } @empty {
                 <div class="balance-empty">
@@ -282,6 +305,7 @@
                 </div>
                 }
             </div>
+            }
         </div>
         }
 

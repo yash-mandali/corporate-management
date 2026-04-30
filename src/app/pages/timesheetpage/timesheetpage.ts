@@ -44,6 +44,12 @@ export class Timesheetpage implements OnInit {
   todayStr  = this.localDate(new Date());
   entryForm: FormGroup;
 
+  // ── Export Report ──
+  showExportModal = signal(false);
+  exportFromDate = signal(this.localDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
+  exportToDate = signal(this.localDate(new Date()));
+  isExporting = signal(false);
+
   constructor(
     private auth: Authservice,
     private timesheetService: TimesheetService,
@@ -324,18 +330,41 @@ export class Timesheetpage implements OnInit {
     return (eh * 60 + em) - (sh * 60 + sm);
   }
 
-  // ── Export CSV ──
-  exportCSV() {
-    const rows = [['Date','Project','Task','Start','End','Hours','Type','Status']];
-    this.filteredEntries().forEach(e => rows.push([
-      this.dateStr(e.workDate), e.projectName, e.taskDescription,
-      e.startTime, e.endTime, e.totalHours, e.workType, e.status
-    ]));
-    const csv  = rows.map(r => r.map(v => `"${v || ''}"`).join(',')).join('\n');
-    const a    = document.createElement('a');
-    a.href     = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-    a.download = 'my-timesheet.csv';
-    a.click();
+  submitExport() {
+    if (this.isExporting()) return;
+    this.isExporting.set(true);
+    alert('Exporting report. Please wait...');
+
+    const payload = {
+      fromDate: this.exportFromDate(),
+      toDate: this.exportToDate()
+    };
+    this.timesheetService.exportTimesheetReport(payload.fromDate,payload.toDate,this.userId()).subscribe({
+        next: (response: Blob) => {
+
+          const blob = new Blob([response], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'Timesheet_Report.xlsx';
+          link.click();
+          window.URL.revokeObjectURL(url);
+          this.isExporting.set(false);
+          this.showExportModal.set(false);
+        },
+
+        error: (error) => {
+          this.isExporting.set(false);
+          if (error.status === 404) {
+            alert('No records found for selected range.');
+          } else {
+            alert('Export failed. Try again.');
+          }
+          console.log('Timesheet export error:', error);
+        }
+      });
   }
 
   // ── Shared helpers ──

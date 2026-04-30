@@ -42,7 +42,7 @@ export class HrDashboard implements OnInit {
   ];
 
   // ── Computed ──
-  hrName = computed(() => this.hrInfo()?.userName || 'HR Manager');
+  hrName = computed(() => this.hrInfo()?.userName || 'HR');
   totalEmployees = computed(() => this.allEmployees().length);
 
   newJoineesCount = computed(() => {
@@ -167,7 +167,7 @@ export class HrDashboard implements OnInit {
 
   loadEmployees() {
     this.empLoading.set(true);
-    this.userService.getAllEmployee().subscribe({
+    this.userService.getAllEmployeeManager().subscribe({
       next: (res: any) => {
         this.allEmployees.set(Array.isArray(res) ? res : res ? [res] : []);
         this.empLoading.set(false);

@@ -18,3 +18,5 @@ Disciplinary records	  No	   Limited	    Yes       Yes
 Reports	Own only	   Team only	Full HR   reports  Full system
 User/Role management	  No	     No	         No	      Yes
 Company settings	      No	     No	      Limited     Yes
+
+=============================

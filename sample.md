@@ -241,4 +241,76 @@ changePassword(email: string, newPassword: string): Observable<any> {
   return this.http.post(`${this.apiurl}/User/changePassword`, {email, newPassword});
 }
 ===================================
+used::
+read this and extact my project working, apis, design, layout, roles, flows, now based on this
+make fully responsive for any screen size
+create admin dashboard with these:
+* Total employees
+* Active users
+* Attendance %
+* Leave pending
+* Payroll paid/unpaid
+* Open jobs
+and add according to you and real hrms and according to my project
+
+===============================
+
+remaining to use::
+
+this is my current admin dashboard code, in this i want to add all leave section that shows top 3 leaves
+this is api service getAllLeaves() in leaveservice file: 
+ getAllLeaves() {
+    return this.http.get<any[]>(this.getAllLeavesApi)
+  }
+the api response like this:
+[
+  {
+    "leaveRequestId": 1,
+    "userId": 16,
+    "managerId": 0,
+    "userName": "Jay",
+    "requestType": "Unpaid Leave",
+    "fromDate": "2026-04-28T00:00:00",
+    "toDate": "2026-04-28T00:00:00",
+    "totalDays": 0.5,
+    "session": "Half Day",
+    "reason": "ytr",
+    "handoverTo": "",
+    "status": "ManagerRejected",
+    "appliedOn": "0001-01-01T00:00:00"
+  }
+]
+
+=========================================
+in this i have some changes,
+1. assign manager functionality shows only user is correct, but assign manager only those employee those not have assigned manager, if manager already assigned then functioanlity work same but show manager name in model like manage already assiged,i think you understand,
+
+you get manager name and manager id in getalluser api response
+response: {
+    "id": 21,
+    "userName": "jainam",
+    "email": "jainam@gmail.com",
+    "phoneNumber": "5647382920",
+    "department": null,
+    "gender": "Male",
+    "address": "Gujrat",
+    "roleId": "2",
+    "roleName": "Employee",
+    "managerId": 20,
+    "managerName": "manager",
+    "isActive": false,
+    "createdAt": "2026-03-23T14:52:33.713"
+  },
+
+  so make working functinality,
+you understood what i want to say, so give me full updated files
+
+i given you my design and project overview so understand this,
+no i given you my my adminusermanagement page code, so make it according to my design and layout,
+now i have manager assign functionality that work properly,
+but assignmanager model looks simple so make it attractive like my design and proffesuional,
+now in detailmodel if user is employee then show managername in detail model, if manager not assigned then show manager not assigned,
+
+so make adminusermanagement page according to my prompt
+
 

@@ -92,13 +92,13 @@ export class ManagerAttendancePage implements OnInit {
 
   // ── Stats ──
   totalEmployees = computed(() => this.ManagerTeam().length);
-  presentCount = computed(() => this.dayRecords().filter(r => r.status === 'Present').length);
+  presentCount = computed(() => this.dayRecords().filter(r => r.status === 'Present' || r.status === 'Late').length);
   absentCount = computed(() => this.dayRecords().filter(r => r.status === 'Absent').length);
   lateCount = computed(() => this.dayRecords().filter(r => r.status === 'Late').length);
 
   presentPct = computed(() => {
     const t = this.totalEmployees();
-    return t ? Math.round(((this.presentCount() + this.lateCount()) / t) * 100) : 0;
+    return t ? Math.round((this.presentCount()/ t) * 100) : 0;
   });
   absentPct = computed(() => {
     const t = this.totalEmployees();

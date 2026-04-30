@@ -33,7 +33,7 @@ body {
 .hero-bg {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, #0a2e3d 0%, #09637e 50%, #0a8fa0 100%);
+    background: linear-gradient(135deg, #09637e 0%, #0a8fa0 60%, #0bbdcc 100%);
 }
 
 .hero-orb {

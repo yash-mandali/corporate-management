@@ -16,7 +16,6 @@ export class AttendanceService {
   getTeamAllAttendanceApi = `${this.apiurl}/Attendance/GetTeamAllAttendance`; //for manager
   getByUserId = `${this.apiurl}/Attendance/getByUserId`;
   getByAttendanceId = `${this.apiurl}/Attendance/getByAttendanceId`;
-  generateReportApi = `${this.apiurl}/Attendance/GetAttendanceReport`;
   exportAttendanceReportApi = `${this.apiurl}/Attendance/ExportAttendanceReport`;
 
   checkIn(Id: number) {
@@ -52,7 +51,6 @@ export class AttendanceService {
   }
 
   exportAttendanceReport(fromDate: string, toDate: string, userId?: number, department?: string) {
-
     let params: any = {
       FromDate: fromDate,
       ToDate: toDate

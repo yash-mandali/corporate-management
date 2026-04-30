@@ -119,7 +119,6 @@ export class HrEmployeesPage implements OnInit {
     this.statusFilter() !== 'all' || !!this.joinFrom() || !!this.joinTo() || !!this.searchQ()
   );
 
-  // ── Detail modal computed ──
   private detailMonthAtt = computed(() => {
     const emp = this.detailModal(); if (!emp) return [];
     const now = new Date();
@@ -131,11 +130,16 @@ export class HrEmployeesPage implements OnInit {
   });
 
   detailAttendanceRate = computed(() => {
-    const att = this.detailMonthAtt(); if (!att.length) return 0;
+    const att = this.detailMonthAtt();
+    if (!att.length) return 0;
+    const now = new Date();
     const present = att.filter(r => r.status === 'Present').length;
+    const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const late = att.filter(r => r.status === 'Late').length;
-    return Math.round(((present + late) / att.length) * 100);
+
+    return Math.round(((present + late) / totalDays) * 100);
   });
+
   detailPresentDays = computed(() => this.detailMonthAtt().filter(r => r.status === 'Present' || r.status === 'Late').length);
   detailLateDays = computed(() => this.detailMonthAtt().filter(r => r.status === 'Late').length);
   detailAbsentDays = computed(() => this.detailMonthAtt().filter(r => r.status === 'Absent').length);
@@ -313,11 +317,9 @@ export class HrEmployeesPage implements OnInit {
     }
   }
 
-  // ── Detail modal ──
   openDetailModal(emp: any) { this.detailModal.set(emp); document.body.style.overflow = 'hidden'; }
   closeDetailModal() { this.detailModal.set(null); document.body.style.overflow = ''; }
 
-  // ── Delete modal ──
   confirmDelete(emp: any) { this.deleteModal.set(emp); document.body.style.overflow = 'hidden'; }
   closeDeleteModal() { this.deleteModal.set(null); document.body.style.overflow = ''; }
 

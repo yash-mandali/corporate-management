@@ -305,14 +305,14 @@
             <table>
               <thead>
                 <tr>
-                  <th>#</th><th>Candidate</th><th>Department</th>
+                 <th>Candidate</th><th>Department</th>
                   <th>Applied For</th><th>Applied On</th><th>Stage</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 @for (c of filteredCandidates(); track c.applicationId; let i = $index) {
                   <tr (click)="openCandDetail(c)">
-                    <td class="td-idx">{{ i + 1 }}</td>
+                    
                     <td class="td-emp">
                       <div class="emp-cell">
                         <div class="emp-av" [style.background]="getColor(c.userId)">{{ getInitials(c.fullName) }}</div>

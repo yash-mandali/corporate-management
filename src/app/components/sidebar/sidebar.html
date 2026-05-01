@@ -89,14 +89,22 @@
         }
         @else if(role() === 'Admin')
         {
-        <a class="nav-item" routerLink="/dashboard/admindashboard" routerLinkActive="active" (click)="emp.closeSidebar()">
+        <a class="nav-item" routerLink="/dashboard/admindashboard" routerLinkActive="active"
+            (click)="emp.closeSidebar()">
             <span class="nav-icon"></span>
             <span class="nav-label">Dashboard</span>
         </a>
-        <a class="nav-item" routerLink="/dashboard/usermanagement" routerLinkActive="active" (click)="emp.closeSidebar()">
+        <a class="nav-item" routerLink="/dashboard/usermanagement" routerLinkActive="active"
+            (click)="emp.closeSidebar()">
             <span class="nav-icon"></span>
             <span class="nav-label">User Management</span>
         </a>
+        <a class="nav-item" routerLink="/dashboard/leavemanagement" routerLinkActive="active"
+            (click)="emp.closeSidebar()">
+            <span class="nav-icon"></span>
+            <span class="nav-label">Leave Management</span>
+        </a>
+
         }
         @else {
         <a class="nav-item" routerLink="/dashboard" routerLinkActive="active" (click)="emp.closeSidebar()">

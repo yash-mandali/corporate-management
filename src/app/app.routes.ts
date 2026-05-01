@@ -1,30 +1,10 @@
 import { Routes } from '@angular/router';
-import { Login } from './components/login/login';
-import { Signup } from './components/signup/signup';
 import { DashboardLayout } from './Layout/dashboard-layout/dashboard-layout';
 import { authGuard } from './guards/auth-guard';
-import { ApplyLeave } from './pages/apply-leave/apply-leave';
-import { Newleavepage } from './pages/newleavepage/newleavepage';
-import { MyProfile } from './pages/myprofile/myprofile';
-import { AttendancePage } from './pages/attendance-page/attendance-page';
-import { Dashboardpage } from './pages/dashboard/dashboard';
-import { Timesheetpage } from './pages/timesheetpage/timesheetpage';
-import { ManagerDashboard } from './manager_pages/managerdashboard/managerdashboard';
 import { roleGuard } from './guards/role-guard/roleguard-guard';
 import { guestGuard } from './guards/guest-guard/guest-guard';
-import { ManagerAttendancePage } from './manager_pages/managerattendance/managerattendance';
-import { ManagerLeavepage } from './manager_pages/managerleavepage/managerleavepage';
-import { ManagerTimesheetpage } from './manager_pages/managertimesheet/managertimesheet';
-import { Managerteampage } from './manager_pages/managerteamspage/managerteamspage';
-import { Teamperformance } from './manager_pages/teamperformance/teamperformance';
 import { Notfound } from './pages/notfound/notfound';
-import { HrDashboard } from './hr_pages/hr-dashboard/hr-dashboard';
-import { HrEmployeesPage } from './hr_pages/hr-employees/hr-employees';
-import { HrLeavePage } from './hr_pages/hr-leave/hr-leave';
-import { HrAttendancePage } from './hr_pages/hr-attendance/hr-attendance';
-import { HrPayroll } from './hr_pages/hr-payroll/hr-payroll';
-import { HrRecruitment } from './hr_pages/hr_recruitment/hr-recruitment/hr-recruitment';
-import { AdminDashboard } from './Admin_Pages/admin-dashboard/admin-dashboard';
+
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -183,6 +163,13 @@ export const routes: Routes = [
                 path: 'usermanagement',
                 loadComponent: () =>
                     import('./Admin_Pages/admin-user-management/admin-user-management').then(m => m.AdminUserManagement),
+                canActivate: [authGuard, roleGuard],
+                data: { roles: ['Admin'] }
+            },
+            {
+                path: 'leavemanagement',
+                loadComponent: () =>
+                    import('./Admin_Pages/admin-leave-management/admin-leave-management').then(m => m.AdminLeaveManagement),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Admin'] }
             },

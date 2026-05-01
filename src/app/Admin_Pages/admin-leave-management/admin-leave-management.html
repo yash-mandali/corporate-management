@@ -1,0 +1,646 @@
+<main class="main">
+    <div class="content">
+
+        <!-- Toast -->
+        @if (toastMessage()) {
+        <div class="alm-toast" [class.toast-success]="toastMessage()!.type === 'success'"
+            [class.toast-error]="toastMessage()!.type === 'error'">
+            <span class="toast-icon">{{ toastMessage()!.type === 'success' ? '✓' : '✕' }}</span>
+            {{ toastMessage()!.text }}
+        </div>
+        }
+
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+            <div class="ph-left">
+                <div class="ph-icon"><i class="fas fa-calendar-check"></i></div>
+                <div>
+                    <div class="ph-title">Leave Management</div>
+                    <div class="ph-sub">Review, manage, and oversee all employee leave</div>
+                </div>
+            </div>
+            <div class="ph-right">
+                <div class="tab-switcher">
+                    <button class="tab-btn" [class.active]="activeTab() === 'requests'"
+                        (click)="activeTab.set('requests')">
+                        <i class="fas fa-list-ul"></i> Requests
+                        @if (counts().managerapproved > 0) {
+                        <span class="tab-count">{{ counts().managerapproved }}</span>
+                        }
+                    </button>
+                    <button class="tab-btn" [class.active]="activeTab() === 'balance'"
+                        (click)="activeTab.set('balance')">
+                        <i class="fas fa-wallet"></i> Balance
+                    </button>
+                </div>
+                <button class="btn-add" (click)="loadAllLeaves()">
+                    <i class="fas fa-sync"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- STAT CARDS -->
+        <div class="stat-row">
+            <div class="stat-card total-c">
+                <div class="sc-icon"><i class="fas fa-calendar-alt"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ counts().all }}</div>
+                    <div class="sc-lbl">Total</div>
+                </div>
+            </div>
+            <div class="stat-card pending-c">
+                <div class="sc-icon"><i class="fas fa-hourglass-half"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ counts().pending + counts().managerapproved }}</div>
+                    <div class="sc-lbl">Pending</div>
+                </div>
+            </div>
+            <div class="stat-card approved-c">
+                <div class="sc-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ counts().approved }}</div>
+                    <div class="sc-lbl">Approved</div>
+                </div>
+            </div>
+            <div class="stat-card rejected-c">
+                <div class="sc-icon"><i class="fas fa-times-circle"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ counts().rejected + counts().managerrejected }}</div>
+                    <div class="sc-lbl">Rejected</div>
+                </div>
+            </div>
+            <div class="stat-card withdrawn-c">
+                <div class="sc-icon"><i class="fas fa-undo"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ counts().withdrawn }}</div>
+                    <div class="sc-lbl">Withdrawn</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════ TAB: REQUESTS ════ -->
+        @if (activeTab() === 'requests') {
+        <div class="tab-content">
+
+            <!-- Filter Toolbar -->
+            <div class="history-toolbar">
+                <div class="ht-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search employee, type, reason..." (input)="onSearch($event)" />
+                </div>
+                <div class="ht-filters">
+                    @for (option of filterOptions; track option.key) {
+                    <button class="hf-btn" [class.active]="activeFilter() === option.key"
+                        [class.pending]="option.key === 'pending'"
+                        [class.approved]="option.key === 'approved' || option.key === 'managerapproved'"
+                        [class.rejected]="option.key === 'rejected' || option.key === 'managerrejected'"
+                        [class.withdrawn]="option.key === 'withdrawn'" (click)="setFilter(option.key)">
+                        {{ option.label }}
+                    </button>
+                    }
+                </div>
+            </div>
+
+            @if (isLoading()) {
+            <div class="page-loading"><i class="fas fa-spinner fa-spin"></i> Loading leaves...</div>
+            } @else {
+            <div class="history-table-card">
+
+                <!-- ── DESKTOP TABLE (hidden on mobile via CSS) ── -->
+                <div class="tbl-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Leave Type</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Days</th>
+                                <th>Session</th>
+                                <th>Applied On</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (leave of pagedLeaves(); track leave.leaveRequestId) {
+                            <tr>
+                                <td>
+                                    <div class="emp-cell">
+                                        <div class="emp-av" [style.background]="getColor(leave.userId)">
+                                            {{ getInitials(leave.userName) }}
+                                        </div>
+                                        <span class="emp-name">{{ leave.userName || '—' }}</span>
+                                    </div>
+                                </td>
+                                <td><span class="type-chip {{ typeClass(leave.requestType) }}">{{ leave.requestType
+                                        }}</span></td>
+                                <td class="td-date">{{ formatDate(leave.fromDate) }}</td>
+                                <td class="td-date">{{ formatDate(leave.toDate) }}</td>
+                                <td class="td-days">{{ leave.totalDays }}d</td>
+                                <td>{{ leave.session || 'Full Day' }}</td>
+                                <td class="td-date muted">{{ formatDate(leave.appliedOn) }}</td>
+                                <td>
+                                    <span class="status-pill sp-{{ getStatusKey(leave.status) }}">
+                                        <span class="sp-dot"></span>{{ getStatusLabel(leave.status) }}
+                                    </span>
+                                </td>
+                                <td class="td-act">
+                                    <button class="act-btn view" title="View Details" (click)="openDetail(leave)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    @if (canHrAct(leave)) {
+                                    <button class="act-btn approve-act" title="Approve"
+                                        (click)="openDetail(leave); triggerAction('approve')">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="act-btn del" title="Reject"
+                                        (click)="openDetail(leave); triggerAction('reject')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    }
+                                </td>
+                            </tr>
+                            } @empty {
+                            <tr>
+                                <td colspan="9" class="td-empty">
+                                    <i class="fas fa-inbox"></i>
+                                    <span>No leave requests found</span>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ── MOBILE CARD LIST (hidden on desktop via CSS) ── -->
+                <div class="mobile-leave-list">
+                    @for (leave of pagedLeaves(); track leave.leaveRequestId) {
+                    <div class="mlc">
+                        <!-- Top row: avatar + name + type badge -->
+                        <div class="mlc-top">
+                            <div class="mlc-av" [style.background]="getColor(leave.userId)">
+                                {{ getInitials(leave.userName) }}
+                            </div>
+                            <div class="mlc-info">
+                                <div class="mlc-name">{{ leave.userName || '—' }}</div>
+                                <div class="mlc-applied">Applied {{ formatDateRelative(leave.appliedOn) }}</div>
+                            </div>
+                            <div class="mlc-badges">
+                                <span class="type-chip {{ typeClass(leave.requestType) }}">{{ leave.requestType
+                                    }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Date row -->
+                        <div class="mlc-dates">
+                            <div class="mlc-date-block">
+                                <div class="mlcd-label">From</div>
+                                <div class="mlcd-val">{{ formatDate(leave.fromDate) }}</div>
+                            </div>
+                            <div class="mlc-date-sep"><i class="fas fa-arrow-right"></i></div>
+                            <div class="mlc-date-block">
+                                <div class="mlcd-label">To</div>
+                                <div class="mlcd-val">{{ formatDate(leave.toDate) }}</div>
+                            </div>
+                            <div class="mlc-days-pill">{{ leave.totalDays }}d</div>
+                        </div>
+
+                        <!-- Bottom row: session + status + actions -->
+                        <div class="mlc-bottom">
+                            <div class="mlc-session">
+                                <span class="status-pill sp-{{ getStatusKey(leave.status) }}">
+                                    <span class="sp-dot"></span>{{ getStatusLabel(leave.status) }}
+                                </span>
+                                <span style="color:#d6eaee;margin:0 4px;">·</span>
+                                {{ leave.session || 'Full Day' }}
+                            </div>
+                            <div class="mlc-actions">
+                                <button class="act-btn view" title="View Details" (click)="openDetail(leave)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                @if (canHrAct(leave)) {
+                                <button class="act-btn approve-act" title="Approve"
+                                    (click)="openDetail(leave); triggerAction('approve')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="act-btn del" title="Reject"
+                                    (click)="openDetail(leave); triggerAction('reject')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    } @empty {
+                    <div class="mobile-empty" style="display:flex;">
+                        <i class="fas fa-inbox"></i>
+                        <span>No leave requests found</span>
+                    </div>
+                    }
+                </div>
+
+                <!-- Pagination (shared) -->
+                @if (histTotalPages() > 1) {
+                <div class="pagination">
+                    <button class="pg-btn" (click)="histPage.set(1)" [disabled]="histPage() === 1">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="pg-btn" (click)="histPage.set(histPage()-1)" [disabled]="histPage() === 1">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    @for (p of histPageNums(); track p) {
+                    <button class="pg-num" [class.active]="p === histPage()" (click)="histPage.set(p)">{{ p }}</button>
+                    }
+                    <button class="pg-btn" (click)="histPage.set(histPage()+1)"
+                        [disabled]="histPage() === histTotalPages()">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button class="pg-btn" (click)="histPage.set(histTotalPages())"
+                        [disabled]="histPage() === histTotalPages()">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                    <span class="pg-info">{{ histPage() }} / {{ histTotalPages() }} · {{ filteredLeaves().length }}
+                        records</span>
+                </div>
+                }
+            </div>
+            }
+        </div>
+        }
+
+        <!-- ════ TAB: BALANCE ════ -->
+        @if (activeTab() === 'balance') {
+        <div class="tab-content">
+            <div class="balance-toolbar">
+                <div class="bt-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search employee..." [value]="balanceSearch()"
+                        (input)="balanceSearch.set($any($event.target).value)">
+                </div>
+                <div class="bt-info">
+                    <i class="fas fa-info-circle"></i>
+                    Click a card to see full summary
+                </div>
+            </div>
+
+            @if (balanceLoading()) {
+            <div class="page-loading"><i class="fas fa-spinner fa-spin"></i> Loading balances...</div>
+            } @else {
+            <div class="balance-grid">
+                @for (emp of filteredBalances(); track emp.userId) {
+                <div class="balance-card clickable" (click)="openBalanceDetail(emp)">
+                    <div class="bc-header">
+                        <div class="bc-avatar" [style.background]="getColor(emp.userId)">
+                            {{ getInitials(emp.userName) }}
+                        </div>
+                        <div class="bc-info">
+                            <div class="bc-name">{{ emp.userName }}</div>
+                            <div class="bc-role">{{ emp.roleName }}</div>
+                        </div>
+                        <div class="bc-total-badge">
+                            @if (emp.balanceYear) { {{ emp.balanceYear }} } @else { N/A }
+                        </div>
+                    </div>
+
+                    <div class="bc-bars">
+                        @if (emp.balances.length === 0) {
+                        <div class="bc-no-data"><i class="fas fa-info-circle"></i> No balance data</div>
+                        } @else {
+                        @for (b of emp.balances; track b.leavebalanceId) {
+                        <div class="bc-bar-row">
+                            <span class="bcbr-label">{{ getLeaveTypeName(b.leavetype_Id) }}</span>
+                            <div class="bcbr-track">
+                                <div class="bcbr-fill {{ leaveTypeClass(b.leavetype_Id) }}"
+                                    [style.width]="barPct(b.usedLeaveBalance, b.totalLeaveBalance) + '%'">
+                                </div>
+                            </div>
+                            <span class="bcbr-count">
+                                {{ b.usedLeaveBalance }}<small>/{{ b.totalLeaveBalance }}</small>
+                            </span>
+                        </div>
+                        }
+                        }
+                    </div>
+
+                    <div class="bc-footer-hint">
+                        <i class="fas fa-mouse-pointer"></i> View detailed summary
+                    </div>
+                </div>
+                } @empty {
+                <div class="balance-empty">
+                    <i class="fas fa-users"></i>
+                    <span>No employee data found</span>
+                </div>
+                }
+            </div>
+            }
+        </div>
+        }
+
+    </div>
+</main>
+
+<!-- ════ LEAVE DETAIL MODAL ════ -->
+@if (showDetailModal() && selectedLeave()) {
+<div class="modal-overlay" (click)="closeDetail()">
+    <div class="detail-modal" (click)="$event.stopPropagation()">
+
+        <div class="dm-header">
+            <div class="dm-hero">
+                <div class="dm-avatar" [style.background]="getColor(selectedLeave().userId)">
+                    {{ getInitials(selectedLeave().userName) }}
+                </div>
+                <div>
+                    <div class="dm-name">{{ selectedLeave().userName || 'N/A' }}</div>
+                    <div class="dm-role-row">
+                        <span class="dm-role">{{ selectedLeave().requestType }} Leave</span>
+                        <span class="dm-id">#{{ selectedLeave().leaveRequestId }}</span>
+                    </div>
+                </div>
+            </div>
+            <button class="fm-close" (click)="closeDetail()"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="dm-body">
+
+            <div class="dm-stats">
+                <div class="dms-card">
+                    <div class="dms-val">{{ selectedLeave().totalDays }}d</div>
+                    <div class="dms-lbl">Total Days</div>
+                </div>
+                <div class="dms-card">
+                    <div class="dms-val">{{ selectedLeave().session || 'Full' }}</div>
+                    <div class="dms-lbl">Session</div>
+                </div>
+                <div class="dms-card">
+                    <div class="dms-val">
+                        <span class="status-pill sp-{{ getStatusKey(selectedLeave().status) }}" style="font-size:10px;">
+                            <span class="sp-dot"></span>{{ getStatusLabel(selectedLeave().status) }}
+                        </span>
+                    </div>
+                    <div class="dms-lbl">Status</div>
+                </div>
+                <div class="dms-card">
+                    <div class="dms-val" style="font-size:13px;">{{ formatDateRelative(selectedLeave().appliedOn) }}
+                    </div>
+                    <div class="dms-lbl">Applied</div>
+                </div>
+            </div>
+
+            <div class="dm-section">
+                <div class="dm-sec-title"><i class="fas fa-calendar-day"></i> Leave Duration</div>
+                <div class="dm-date-range">
+                    <div class="dmdr-block">
+                        <div class="dmdr-label">FROM</div>
+                        <div class="dmdr-val">{{ formatDateFull(selectedLeave().fromDate) }}</div>
+                    </div>
+                    <div class="dmdr-arrow"><i class="fas fa-long-arrow-alt-right"></i></div>
+                    <div class="dmdr-block">
+                        <div class="dmdr-label">TO</div>
+                        <div class="dmdr-val">{{ formatDateFull(selectedLeave().toDate) }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dm-section">
+                <div class="dm-sec-title"><i class="fas fa-comment-alt"></i> Reason</div>
+                <div class="dm-reason-body">
+                    <i class="fas fa-quote-left"></i>
+                    {{ selectedLeave().reason || 'No reason provided' }}
+                </div>
+            </div>
+
+            <div class="dm-section">
+                <div class="dm-sec-title"><i class="fas fa-info-circle"></i> Additional Info</div>
+                <div class="dm-rows">
+                    <div class="dm-row">
+                        <div class="dmr-k">Leave Type</div>
+                        <div class="dmr-v">
+                            <span class="type-chip {{ typeClass(selectedLeave().requestType) }}">{{
+                                selectedLeave().requestType }}</span>
+                        </div>
+                    </div>
+                    <div class="dm-row">
+                        <div class="dmr-k">Applied On</div>
+                        <div class="dmr-v">{{ formatDate(selectedLeave().appliedOn) }}</div>
+                    </div>
+                    @if (selectedLeave().handoverTo) {
+                    <div class="dm-row">
+                        <div class="dmr-k">Handover To</div>
+                        <div class="dmr-v">{{ selectedLeave().handoverTo }}</div>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="dm-footer">
+            <button class="fm-cancel" (click)="closeDetail()">Close</button>
+            @if (canHrAct(selectedLeave())) {
+            <button class="lac-btn reject" (click)="triggerAction('reject')">
+                <i class="fas fa-times"></i> Reject
+            </button>
+            <button class="lac-btn approve" (click)="triggerAction('approve')">
+                <i class="fas fa-check"></i> Approve
+            </button>
+            }
+        </div>
+    </div>
+</div>
+}
+
+<!-- ════ CONFIRM MODAL ════ -->
+@if (showConfirmModal()) {
+<div class="modal-overlay" (click)="cancelConfirm()">
+    <div class="delete-modal" (click)="$event.stopPropagation()">
+        <div class="del-icon-wrap"
+            [style.background]="confirmAction() === 'approve' ? 'rgba(39,174,96,0.1)' : 'rgba(192,57,43,0.1)'"
+            [style.color]="confirmAction() === 'approve' ? '#27ae60' : '#c0392b'">
+            <i [class]="confirmAction() === 'approve' ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+        </div>
+        <div class="del-title">{{ confirmAction() === 'approve' ? 'Approve Leave' : 'Reject Leave' }}?</div>
+        <div class="del-sub">
+            Are you sure you want to <strong>{{ confirmAction() }}</strong> the leave for
+            <strong>{{ selectedLeave()?.userName }}</strong>?
+        </div>
+        <div class="del-actions">
+            <button class="fm-cancel" (click)="cancelConfirm()" [disabled]="isActionLoading()">Cancel</button>
+            @if (confirmAction() === 'approve') {
+            <button class="del-confirm"
+                style="background:linear-gradient(135deg,#1e8449,#27ae60);box-shadow:0 3px 10px rgba(39,174,96,0.25);"
+                (click)="confirmActionExecute()" [disabled]="isActionLoading()">
+                @if (isActionLoading()) { <span class="mini-spin white-spin"></span> } @else { <i
+                    class="fas fa-check"></i> }
+                Approve
+            </button>
+            } @else {
+            <button class="del-confirm" (click)="confirmActionExecute()" [disabled]="isActionLoading()">
+                @if (isActionLoading()) { <span class="mini-spin white-spin"></span> } @else { <i
+                    class="fas fa-times"></i> }
+                Reject
+            </button>
+            }
+        </div>
+    </div>
+</div>
+}
+
+<!-- ════ EMPLOYEE BALANCE DETAIL MODAL ════ -->
+@if (showBalanceModal() && selectedEmployeeBalance()) {
+<div class="modal-overlay" (click)="closeBalanceDetail()">
+    <div class="detail-modal" (click)="$event.stopPropagation()">
+
+        <div class="dm-header">
+            <div class="dm-hero">
+                <div class="dm-avatar" [style.background]="getColor(selectedEmployeeBalance().userId)">
+                    {{ getInitials(selectedEmployeeBalance().userName) }}
+                </div>
+                <div>
+                    <div class="dm-name">{{ selectedEmployeeBalance().userName }}</div>
+                    <div class="dm-role-row">
+                        <span class="dm-role">{{ selectedEmployeeBalance().roleName }}</span>
+                        @if (selectedEmployeeBalance().balanceYear) {
+                        <span class="dm-id">{{ selectedEmployeeBalance().balanceYear }}</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <button class="fm-close" (click)="closeBalanceDetail()"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="dm-body">
+
+            <div class="dm-stats">
+                <div class="dms-card">
+                    <div class="dms-val">{{ selectedEmployeeBalance().totalAllocated }}</div>
+                    <div class="dms-lbl">Allocated</div>
+                </div>
+                <div class="dms-card">
+                    <div class="dms-val" style="color:#d68910;">{{ selectedEmployeeBalance().totalUsed }}</div>
+                    <div class="dms-lbl">Used</div>
+                </div>
+                <div class="dms-card">
+                    <div class="dms-val" style="color:#27ae60;">{{ selectedEmployeeBalance().totalRemaining }}</div>
+                    <div class="dms-lbl">Remaining</div>
+                </div>
+                <div class="dms-card">
+                    <div class="dms-val" style="color:#2980b9;">{{
+                        getUserLeaveStats(selectedEmployeeBalance().userId).total }}</div>
+                    <div class="dms-lbl">Requests</div>
+                </div>
+            </div>
+
+            <div class="dm-section">
+                <div class="dm-sec-title"><i class="fas fa-user"></i> Profile Information</div>
+                <div class="dm-rows">
+                    <div class="dm-row">
+                        <div class="dmr-k">Full Name</div>
+                        <div class="dmr-v">{{ selectedEmployeeBalance().userName }}</div>
+                    </div>
+                    <div class="dm-row">
+                        <div class="dmr-k">Role</div>
+                        <div class="dmr-v">{{ selectedEmployeeBalance().roleName || '—' }}</div>
+                    </div>
+                    @if (selectedEmployeeBalance().email) {
+                    <div class="dm-row">
+                        <div class="dmr-k">Email</div>
+                        <div class="dmr-v">{{ selectedEmployeeBalance().email }}</div>
+                    </div>
+                    }
+                    @if (selectedEmployeeBalance().phone) {
+                    <div class="dm-row">
+                        <div class="dmr-k">Phone</div>
+                        <div class="dmr-v">{{ selectedEmployeeBalance().phone }}</div>
+                    </div>
+                    }
+                    @if (selectedEmployeeBalance().department) {
+                    <div class="dm-row">
+                        <div class="dmr-k">Department</div>
+                        <div class="dmr-v">{{ selectedEmployeeBalance().department }}</div>
+                    </div>
+                    }
+                </div>
+            </div>
+
+            <div class="dm-section">
+                <div class="dm-sec-title"><i class="fas fa-chart-pie"></i> Leave Balance Breakdown</div>
+                <div class="dm-balance-body">
+                    @if (selectedEmployeeBalance().balances.length === 0) {
+                    <div class="bc-no-data"><i class="fas fa-info-circle"></i> No balance data</div>
+                    } @else {
+                    @for (b of selectedEmployeeBalance().balances; track b.leavebalanceId) {
+                    <div class="dm-bal-item">
+                        <div class="dm-bal-head">
+                            <span class="bal-type {{ leaveTypeClass(b.leavetype_Id) }}-bg">
+                                {{ getLeaveTypeName(b.leavetype_Id) }}
+                            </span>
+                            <span class="bal-stats">
+                                <strong>{{ b.usedLeaveBalance }}</strong> used ·
+                                <strong>{{ b.remainingLeaveBalance }}</strong> left ·
+                                <span class="muted">{{ b.totalLeaveBalance }} total</span>
+                            </span>
+                        </div>
+                        <div class="bcbr-track">
+                            <div class="bcbr-fill {{ leaveTypeClass(b.leavetype_Id) }}"
+                                [style.width]="barPct(b.usedLeaveBalance, b.totalLeaveBalance) + '%'">
+                            </div>
+                        </div>
+                    </div>
+                    }
+                    }
+                </div>
+            </div>
+
+            <div class="dm-section">
+                <div class="dm-sec-title"><i class="fas fa-chart-bar"></i> Leave Activity</div>
+                <div class="dm-leave-grid">
+                    <div class="dlg-card pending-c">
+                        <div class="dlg-n">{{ getUserLeaveStats(selectedEmployeeBalance().userId).pending }}</div>
+                        <div class="dlg-l">Pending</div>
+                    </div>
+                    <div class="dlg-card approved-c">
+                        <div class="dlg-n">{{ getUserLeaveStats(selectedEmployeeBalance().userId).approved }}</div>
+                        <div class="dlg-l">Approved</div>
+                    </div>
+                    <div class="dlg-card rejected-c">
+                        <div class="dlg-n">{{ getUserLeaveStats(selectedEmployeeBalance().userId).rejected }}</div>
+                        <div class="dlg-l">Rejected</div>
+                    </div>
+                    <div class="dlg-card total-c">
+                        <div class="dlg-n">{{ getUserLeaveStats(selectedEmployeeBalance().userId).total }}</div>
+                        <div class="dlg-l">Total</div>
+                    </div>
+                </div>
+            </div>
+
+            @if (getUserLeaveHistory(selectedEmployeeBalance().userId).length > 0) {
+            <div class="dm-section">
+                <div class="dm-sec-title"><i class="fas fa-history"></i> Recent Leave Requests</div>
+                <div class="dm-recent-list">
+                    @for (l of getUserLeaveHistory(selectedEmployeeBalance().userId); track l.leaveRequestId) {
+                    <div class="dm-recent-item">
+                        <div class="dmri-left">
+                            <span class="type-chip {{ typeClass(l.requestType) }}">{{ l.requestType }}</span>
+                            <span class="dmri-dates">{{ formatDate(l.fromDate) }} → {{ formatDate(l.toDate) }}</span>
+                        </div>
+                        <div class="dmri-right">
+                            <span class="dmri-days">{{ l.totalDays }}d</span>
+                            <span class="status-pill sp-{{ getStatusKey(l.status) }}">
+                                <span class="sp-dot"></span>{{ getStatusLabel(l.status) }}
+                            </span>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+
+        </div>
+
+        <div class="dm-footer">
+            <button class="fm-cancel" (click)="closeBalanceDetail()">Close</button>
+        </div>
+    </div>
+</div>
+}

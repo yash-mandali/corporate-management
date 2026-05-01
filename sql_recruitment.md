@@ -16,7 +16,7 @@ Performance review self   Yes	     Yes	    Yes	      Yes
 Performance review team	  No	     Yes	    Yes	      Yes
 Disciplinary records	  No	   Limited	    Yes       Yes
 Reports	Own only	   Team only	Full HR   reports  Full system
-User/Role management	  No	     No	         No	      Yes
+User/Role management	  No	     No	         No	      Yes   
 Company settings	      No	     No	      Limited     Yes
 
 =============================

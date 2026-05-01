@@ -313,4 +313,20 @@ now in detailmodel if user is employee then show managername in detail model, if
 
 so make adminusermanagement page according to my prompt
 
+========================================================
+
+admin leave page settings
+Create leave types (Casual Leave, Sick Leave, Earned Leave, etc.)
+Set leave limits (e.g., 12 days/year)
+Who is on leave today
+Generate Reports
+
+===================
+
+changes need to do in admin leave page,
+this is my other pages styles so style my adminleavepage according to this,
+remove auto reject expired button, and add method in ngoninit function so it works automatically when page loads,
+show each user leave balance,
+change design of leave detail model,
+when user click on leave balance component then show detail model with these leave summery details like total used leaves, remaining leaves, total leave taken, profile info, and related other details
 

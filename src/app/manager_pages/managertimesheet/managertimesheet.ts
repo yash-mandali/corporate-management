@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { LowerCasePipe } from '@angular/common';
 import { UserService } from '../../services/user-service/user-service';
 import { TimesheetService } from '../../services/timesheet-service/timesheet-service';
-import { ToastrService } from 'ngx-toastr';
 import { Authservice } from '../../services/Auth-service/authservice';
 import { ToastService } from '../../services/toast-service/toast';
 
@@ -24,7 +23,10 @@ export class ManagerTimesheetpage implements OnInit {
   selectedEntry = signal<any | null>(null);
   rejectModal = signal<any | null>(null);
   rejectReason = '';
-
+  // ── History tab extra filters ──
+  filterFromDate = signal('');
+  filterToDate = signal('');
+  filterUserId = signal('');
   // ── Tabs & filters ──
   activeTab = signal<'approvals' | 'history' | 'tracker'>('approvals');
   searchQ = signal('');
@@ -35,6 +37,15 @@ export class ManagerTimesheetpage implements OnInit {
   // ── Tracker ──
   trackerSearch = signal('');
   weekStart = signal(new Date());
+
+  // ── Export ──
+  showExportModal = signal(false);
+  exportFromDate = signal(this.localDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
+  exportToDate = signal(this.localDate(new Date()));
+  exportUserId = signal<string>('');
+  exportStatus = signal('');
+  exportWorkType = signal('');
+  isExporting = signal(false);
 
   // ── Color pool ──
   private colorPool = [
@@ -67,17 +78,44 @@ export class ManagerTimesheetpage implements OnInit {
   filteredEntries = computed(() => {
     const q = this.searchQ().toLowerCase().trim();
     const sf = this.statusFilter();
+    const from = this.filterFromDate();
+    const to = this.filterToDate();
+    const uid = this.filterUserId();
+
     return this.allEntries()
       .filter(e => {
         const matchQ = !q ||
           (e.userName || '').toLowerCase().includes(q) ||
           (e.projectName || '').toLowerCase().includes(q) ||
           (e.taskDescription || '').toLowerCase().includes(q);
+
         const matchS = sf === 'all' || e.status === sf;
-        return matchQ && matchS;
+        const dateStr = this.dateStr(e.workDate);
+        const matchFrom = !from || dateStr >= from;
+        const matchTo = !to || dateStr <= to;
+        const matchUser = !uid || String(e.userId) === String(uid);
+
+        return matchQ && matchS && matchFrom && matchTo && matchUser;
       })
       .sort((a, b) => new Date(b.workDate).getTime() - new Date(a.workDate).getTime());
   });
+
+  clearHistoryFilters() {
+    this.searchQ.set('');
+    this.statusFilter.set('all');
+    this.filterFromDate.set('');
+    this.filterToDate.set('');
+    this.filterUserId.set('');
+    this.currentPage.set(1);
+  }
+
+  get hasActiveFilters(): boolean {
+    return this.searchQ() !== '' ||
+      this.statusFilter() !== 'all' ||
+      this.filterFromDate() !== '' ||
+      this.filterToDate() !== '' ||
+      this.filterUserId() !== '';
+  }
 
   totalPages = computed(() => Math.max(1, Math.ceil(this.filteredEntries().length / this.pageSize)));
   pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
@@ -156,7 +194,64 @@ export class ManagerTimesheetpage implements OnInit {
       this.loadAllEntries();
      }  
   }
+  openExportModal() {
+    this.exportFromDate.set(this.localDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
+    this.exportToDate.set(this.localDate(new Date()));
+    this.exportUserId.set('');
+    this.exportStatus.set('');
+    this.exportWorkType.set('');
+    this.showExportModal.set(true);
+    document.body.style.overflow = 'hidden';
+  }
 
+  closeExportModal() {
+    if (this.isExporting()) return;
+    this.showExportModal.set(false);
+    document.body.style.overflow = '';
+  }
+
+  getUserName(id: string): string {
+    const user = this.allUsers().find(u => String(u.id) === String(id));
+    return user?.userName ?? 'Unknown';
+  }
+
+  submitExport() {
+    if (this.isExporting()) return;
+    this.isExporting.set(true);
+
+    const userId = this.exportUserId() ? Number(this.exportUserId()) : this.managerId();
+
+    this.timesheetService.exportTimesheetReport(
+      this.exportFromDate(),
+      this.exportToDate(),
+      userId,
+      undefined,
+      this.exportStatus() || undefined,
+      this.exportWorkType() || undefined
+    ).subscribe({
+      next: (response: Blob) => {
+        const blob = new Blob([response], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        const name = this.exportUserId() ? this.getUserName(this.exportUserId()) : 'Team';
+        link.download = `Timesheet_${name}_Report.xlsx`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.isExporting.set(false);
+        this.showExportModal.set(false);
+        document.body.style.overflow = '';
+        this.toast.success('Report exported successfully.');
+      },
+      error: (err) => {
+        this.isExporting.set(false);
+        if (err.status === 404) this.toast.error('No records found for selected filters.');
+        else this.toast.error('Export failed. Please try again.');
+      }
+    });
+  }
   loadTeamUsers() {
     this.userService.getManagerTeam(this.managerId()).subscribe({
       next: (res: any) => this.allUsers.set(Array.isArray(res) ? res : res ? [res] : []),

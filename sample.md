@@ -330,3 +330,86 @@ show each user leave balance,
 change design of leave detail model,
 when user click on leave balance component then show detail model with these leave summery details like total used leaves, remaining leaves, total leave taken, profile info, and related other details
 
+========================
+
+i given you my dsahboard page as a reference so see functionality of checkin and checkout,
+so i want to add this checkin,checkout functionality for manager so,
+add functionality in managerdashboard page
+
+here i have an issue, hear i call getteamattendance api so it load attendance only mnager team, this works perfect, but i need functionality like manager can see team attendance + our/self attendance,
+so for this if you have any solution then make this
+i have getuserbuid api that loads userattendance by userid so if you need to use this then you can use it,
+this is service code::
+  getByUID(Id: number) {
+    return this.http.get<any[]>(this.getByUserId, {
+      params: { Id: Id.toString() }
+    })
+  }
+
+here i get an error i get managwer name in attendance table but i did't get atendance valur,
+manager is checkedin and checkdout but i show - insted of entry
+still i have an issue i saw manager attendance sometime,when i refersh page then sometime i saw attendance and sometimes don't
+
+here i give timesheet page as a reference, so see how i implement exporttimesheet functionality,
+so i need same functionality i managertimesheet page
+but here main thinng is on click on export button open model that takes fields from date, to date as usual, but for userid use dropdown list of users and in dropdown list take users list that returend by getmanagerteam function, so manager can export timesheet report only their team members,
+so implement this exporttimesheet functionality in managertimesheet page, and make sure page become responsive
+
+
+ok now in managertimesheet page add filters in all entries tab,
+in current system it loads all timesheet from database, this is correct but messive ti find if need perticular user or date, so add filters like from date 
+
+======================================
+
+ok according to my project admin can do for attendance management
+
+create adminattendance management page with thes functionality
+1. 👀 View All Employees’ Attendance
+See attendance records of all users (Employee + Manager + HR)
+Filter by:
+Date range
+Employee
+Department
+
+2. 📊 View Attendance Summary / Dashboard
+Total present / absent employees
+Late check-ins
+Working hours summary
+
+👉 Useful for monitoring company-wide activity
+
+4. 📤 Export Attendance Reports
+You already implemented this 🔥
+Export to CSV / Excel
+
+5. 🔍 Search & Filter Records
+Search by employee name / ID
+Filter by:
+Date
+Status (Present / Absent / Late)
+
+-> you can get all attendance using this api service
+
+  getAllattendance() {
+    return this.http.get<any[]>(this.getAllAttendanceApi)
+  }
+response is 
+	
+Response body
+Download
+[
+  {
+    "aId": 1,
+    "userId": 16,
+    "managerId": 0,
+    "date": "2026-05-01T00:00:00",
+    "day": "Friday",
+    "checkIn": "14:49:40.2266667",
+    "checkOut": "23:00:00",
+    "hours": "08:11",
+    "isCheckIn": true,
+    "isCheckOut": true,
+    "status": "Late",
+    "createdOn": "2026-05-01T14:49:40.227"
+  }
+]

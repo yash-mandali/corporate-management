@@ -17,6 +17,7 @@ export class ManagerAttendancePage implements OnInit {
   ManagerTeam = signal<any[]>([]);
   allAttendance = signal<any[]>([]);
   isLoading = signal(false);
+  managerInfo = signal<any>(null);
   selectedRecord = signal<any | null>(null);
 
   // ── Filters ──
@@ -137,8 +138,9 @@ export class ManagerAttendancePage implements OnInit {
     const id = this.auth.getUserId();
     if (id) {
       this.managerId.set(id);
-      this.loadManagerTeam();
       this.loadTeamAllAttendance();
+      this.loadManagerTeam();
+      this.loadManagerSelf();
     } 
   }
 
@@ -146,6 +148,7 @@ export class ManagerAttendancePage implements OnInit {
     this.userService.getManagerTeam(this.managerId()).subscribe({
       next: (res: any) => {
         this.ManagerTeam.set(Array.isArray(res) ? res : res ? [res] : []);
+        this.loadManagerSelf();
       },
       error: err => console.error('ManagerTeam:', err)
     });
@@ -162,6 +165,33 @@ export class ManagerAttendancePage implements OnInit {
     });
   }
 
+  loadManagerSelf() {
+    this.userService.getUserById(this.managerId()).subscribe({
+      next: (res: any) => {
+        this.managerInfo.set(res);
+        this.ManagerTeam.update(team => {
+          const exists = team.some(u => u.id == res.id);
+          return exists ? team : [...team, res];
+        });
+      },
+      error: err => console.error('loadManagerSelf user:', err)
+    });
+
+    this.attendanceService.getByUID(this.managerId()).subscribe({
+      next: (res: any) => {
+        const records = Array.isArray(res) ? res : res ? [res] : [];
+        const normalized = records.map((r: any) => ({
+          ...r,
+          userId: r.userId ?? r.UserId ?? this.managerId()
+        }));
+        this.allAttendance.update(existing => {
+          const withoutSelf = existing.filter(r => r.userId != this.managerId());
+          return [...withoutSelf, ...normalized];
+        });
+      },
+      error: err => console.error('loadManagerSelf attendance:', err)
+    });
+  }
   // ── Date navigation ──
   onDateChange(val: string) {
     this.selectedDate.set(val);

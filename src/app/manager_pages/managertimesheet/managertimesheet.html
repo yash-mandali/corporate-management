@@ -11,6 +11,9 @@
                 </div>
             </div>
             <div class="ph-right">
+                <button class="btn-export" (click)="openExportModal()">
+                    <i class="fas fa-cloud-download"></i> Export
+                </button>
                 <div class="tab-switcher">
                     <button class="tab-btn" [class.active]="activeTab() === 'approvals'"
                         (click)="activeTab.set('approvals')">
@@ -133,22 +136,70 @@
         @if (activeTab() === 'history') {
         <div class="tab-content">
             <div class="history-toolbar">
-                <div class="ht-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search employee, project or task..." [value]="searchQ()"
-                        (input)="onSearch($any($event.target).value)">
+            
+                <!-- Row 1: Search + Status filters -->
+                <div class="ht-row">
+                    <div class="ht-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search employee, project or task..." [value]="searchQ()"
+                            (input)="onSearch($any($event.target).value)">
+                    </div>
+                    <div class="ht-filters">
+                        <button class="hf-btn" [class.active]="statusFilter() === 'all'" (click)="setFilter('all')">All</button>
+                        <button class="hf-btn submitted" [class.active]="statusFilter() === 'Submitted'"
+                            (click)="setFilter('Submitted')">Submitted</button>
+                        <button class="hf-btn approved" [class.active]="statusFilter() === 'Approved'"
+                            (click)="setFilter('Approved')">Approved</button>
+                        <button class="hf-btn rejected" [class.active]="statusFilter() === 'Rejected'"
+                            (click)="setFilter('Rejected')">Rejected</button>
+                    </div>
                 </div>
-                <div class="ht-filters">
-                    <button class="hf-btn" [class.active]="statusFilter() === 'all'"
-                        (click)="setFilter('all')">All</button>
-                    <!-- <button class="hf-btn draft" [class.active]="statusFilter() === 'Draft'"
-                        (click)="setFilter('Draft')">Draft</button> -->
-                    <button class="hf-btn submitted" [class.active]="statusFilter() === 'Submitted'"
-                        (click)="setFilter('Submitted')">Submitted</button>
-                    <button class="hf-btn approved" [class.active]="statusFilter() === 'Approved'"
-                        (click)="setFilter('Approved')">Approved</button>
-                    <button class="hf-btn rejected" [class.active]="statusFilter() === 'Rejected'"
-                        (click)="setFilter('Rejected')">Rejected</button>
+            
+                <!-- Row 2: Date range + Employee + Clear -->
+                <div class="ht-row ht-row-filters">
+            
+                    <div class="ht-filter-field">
+                        <label class="htf-label"><i class="fas fa-user"></i> Employee</label>
+                        <div class="htf-select-wrap">
+                            <select class="htf-select" (change)="filterUserId.set($any($event.target).value); currentPage.set(1)">
+                                <option value="">All Members</option>
+                                @for (u of allUsers(); track u.id) {
+                                <option [value]="u.id">
+                                    {{ u.userName }}
+                                </option>
+                                }
+                            </select>
+                            <i class="fas fa-chevron-down htf-chevron"></i>
+                        </div>
+                    </div>
+            
+                    <div class="ht-filter-field">
+                        <label class="htf-label"><i class="fas fa-calendar-alt"></i> From Date</label>
+                        <input type="date" class="htf-input" [value]="filterFromDate()"
+                            (change)="filterFromDate.set($any($event.target).value); currentPage.set(1)">
+                    </div>
+            
+                    <div class="ht-filter-field">
+                        <label class="htf-label"><i class="fas fa-calendar-alt"></i> To Date</label>
+                        <input type="date" class="htf-input" [value]="filterToDate()"
+                            (change)="filterToDate.set($any($event.target).value); currentPage.set(1)">
+                    </div>
+            
+                    <div class="ht-filter-field ht-filter-actions">
+                        <label class="htf-label htf-label-invisible">.</label>
+                        <div class="htf-right">
+                            <span class="ht-result-count">
+                                <i class="fas fa-list-ul"></i> {{ filteredEntries().length }} entr{{ filteredEntries().length === 1
+                                ? 'y' : 'ies' }}
+                            </span>
+                            @if (hasActiveFilters) {
+                            <button class="ht-clear-btn" (click)="clearHistoryFilters()" title="Clear all filters">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                            }
+                        </div>
+                    </div>
+            
                 </div>
             </div>
 
@@ -322,6 +373,126 @@
         }
 
     </div>
+
+    @if (showExportModal()) {
+    <div class="modal-overlay">
+        <div class="modal-box export-modal-box" (click)="$event.stopPropagation()">
+    
+            <!-- Header -->
+            <div class="modal-header export-header">
+                <div class="mh-left">
+                    <div class="mh-icon export-mh-icon"><i class="fas fa-cloud-download"></i></div>
+                    <div>
+                        <div class="mh-title export-mh-title">Export Timesheet Report</div>
+                        <div class="mh-sub">Download team timesheet data as Excel</div>
+                    </div>
+                </div>
+                <button class="modal-close" (click)="closeExportModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+    
+            <!-- Body -->
+            <div class="modal-body export-modal-body">
+    
+                <!-- Team Member -->
+                <div class="exp-section-label">Team Member</div>
+                <div class="exp-field" style="margin-bottom: 18px">
+                    <label class="exp-label"><i class="fas fa-user"></i> Select Employee</label>
+                    <div class="exp-select-wrap">
+                        <select class="exp-select" (change)="exportUserId.set($any($event.target).value)">
+                            <option value="">All Team Members</option>
+                            @for (u of allUsers(); track u.id) {
+                            <option [value]="u.id">{{ u.userName }}</option>
+                            }
+                        </select>
+                        <i class="fas fa-chevron-down exp-chevron"></i>
+                    </div>
+                </div>
+    
+                <!-- Date Range -->
+                <div class="exp-section-label">Date Range</div>
+                <div class="exp-date-row">
+                    <div class="exp-field">
+                        <label class="exp-label"><i class="fas fa-calendar-alt"></i> From Date</label>
+                        <input type="date" class="exp-input" [value]="exportFromDate()"
+                            (change)="exportFromDate.set($any($event.target).value)">
+                    </div>
+                    <div class="exp-sep"><i class="fas fa-arrow-right"></i></div>
+                    <div class="exp-field">
+                        <label class="exp-label"><i class="fas fa-calendar-alt"></i> To Date</label>
+                        <input type="date" class="exp-input" [value]="exportToDate()"
+                            (change)="exportToDate.set($any($event.target).value)">
+                    </div>
+                </div>
+    
+                <!-- Optional Filters -->
+                <div class="exp-section-label" style="margin-top: 18px">
+                    Filters <span class="exp-optional">Optional</span>
+                </div>
+                <div class="exp-filters-grid">
+                    <div class="exp-field">
+                        <label class="exp-label"><i class="fas fa-tasks"></i> Status</label>
+                        <div class="exp-select-wrap">
+                            <select class="exp-select" (change)="exportStatus.set($any($event.target).value)">
+                                <option value="">All Statuses</option>
+                                <option value="Draft">Draft</option>
+                                <option value="Submitted">Submitted</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                            <i class="fas fa-chevron-down exp-chevron"></i>
+                        </div>
+                    </div>
+                    <div class="exp-field">
+                        <label class="exp-label"><i class="fas fa-briefcase"></i> Work Type</label>
+                        <div class="exp-select-wrap">
+                            <select class="exp-select" (change)="exportWorkType.set($any($event.target).value)">
+                                <option value="">All Types</option>
+                                <option>Development</option>
+                                <option>Meeting</option>
+                                <option>Testing</option>
+                                <option>Research</option>
+                                <option>Design</option>
+                                <option>Review</option>
+                            </select>
+                            <i class="fas fa-chevron-down exp-chevron"></i>
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- Summary -->
+                <div class="exp-summary">
+                    <i class="fas fa-info-circle"></i>
+                    <span>
+                        Exporting
+                        @if (exportUserId()) {
+                        <strong>{{ getUserName(exportUserId()) }}</strong>
+                        } @else {
+                        <strong>All team members</strong>
+                        }
+                        · <strong>{{ exportFromDate() }}</strong> to <strong>{{ exportToDate() }}</strong>
+                        @if (exportStatus()) { · <strong>{{ exportStatus() }}</strong> }
+                        @if (exportWorkType()) { · <strong>{{ exportWorkType() }}</strong> }
+                    </span>
+                </div>
+            </div>
+    
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button class="mf-cancel" (click)="closeExportModal()" [disabled]="isExporting()">Cancel</button>
+                <button class="mf-confirm export-btn" (click)="submitExport()" [disabled]="isExporting()">
+                    @if (isExporting()) {
+                    <span class="mini-spin white"></span> Exporting...
+                    } @else {
+                    <i class="fas fa-download"></i> Export Report
+                    }
+                </button>
+            </div>
+    
+        </div>
+    </div>
+    }
 </main>
 
 <!-- REJECT MODAL -->

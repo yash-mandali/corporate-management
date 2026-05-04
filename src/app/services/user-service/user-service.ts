@@ -21,8 +21,8 @@ export class UserService {
   getManagerTeamApi = `${this.apiurl}/User/getManagerTeam`;
   getAlluserApi = `${this.apiurl}/User/getAllUsers`;
   getAllEmployeeApi = `${this.apiurl}/User/getAllEmployee`;
-  getAllEmployeeManagerHRApi = `${this.apiurl}/User/getAllEmployeeManagerHr`;
   getAllEmployeeManagerApi = `${this.apiurl}/User/getAllEmployeeManager`;
+  getAllEmployeeManagerHRApi = `${this.apiurl}/User/getAllEmployeeManagerHr`;
   getAllManagerApi = `${this.apiurl}/User/getAllManagers`;
   AssignManagerApi = `${this.apiurl}/User/assign-manager`;
   getemoployeeByDepartmentApi = `${this.apiurl}/User/getEmployeeByDepartment`;

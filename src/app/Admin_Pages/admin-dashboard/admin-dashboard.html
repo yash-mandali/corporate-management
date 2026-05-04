@@ -267,7 +267,7 @@
                                 <button class="att-tab amber" [class.active]="userRoleFilter() === 'HR'"
                                     (click)="userRoleFilter.set('HR')">HR</button>
                             </div>
-                            <a class="view-all-link" routerLink="/dashboard/hremployees">
+                            <a class="view-all-link" routerLink="/dashboard/usermanagement">
                                 View all <i class="fas fa-arrow-right"></i>
                             </a>
                         </div>
@@ -456,7 +456,7 @@
                             @if (pendingLeaveCount() > 0) {
                             <span class="panel-badge amber">{{ pendingLeaveCount() }} pending</span>
                             }
-                            <a class="view-all-link" routerLink="/dashboard/hrleave">
+                            <a class="view-all-link" routerLink="/dashboard/leavemanagement">
                                 View all <i class="fas fa-arrow-right"></i>
                             </a>
                         </div>

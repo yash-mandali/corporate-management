@@ -1,4 +1,4 @@
-import { Component, computed, signal, OnInit } from '@angular/core';
+import { Component, computed, signal, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { UserService } from '../../services/user-service/user-service';
 import { AttendanceService } from '../../services/attendance-service';
@@ -12,9 +12,10 @@ import { ToastService } from '../../services/toast-service/toast';
   templateUrl: './hr-dashboard.html',
   styleUrl: './hr-dashboard.css',
 })
-export class HrDashboard implements OnInit {
+export class HrDashboard implements OnInit, OnDestroy {
 
   // ── Raw data ──
+  hrId = signal<any>(null);
   hrInfo = signal<any>(null);
   allEmployees = signal<any[]>([]);
   allAttendance = signal<any[]>([]);
@@ -30,10 +31,25 @@ export class HrDashboard implements OnInit {
   // ── Filters ──
   attFilter = signal<'all' | 'present' | 'absent'>('all');
 
+  // ── HR's own attendance ──
+  checkedIn = signal(false);
+  checkedOut = signal(false);
+  checkInTime = signal<string | null>(null);
+  checkOutTime = signal<string | null>(null);
+  attendanceLoading = signal(false);
+  attendanceId = signal<any>(null);
+  elapsedTime = signal('00:00:00');
+  workHours = signal<string | null>(null);
+  private elapsedInterval: any;
+  private checkInDate: Date | null = null;
+  private autoCheckoutTimeout: any;
+
   // ── Date strings ──
   greeting = '';
   todayDate = '';
   todayDay = '';
+  todayNum = '';
+  todayMonth = '';
 
   // ── Color pool ──
   private colorPool = [
@@ -60,7 +76,6 @@ export class HrDashboard implements OnInit {
       .slice(0, 3)
   );
 
-  // ── Attendance computed ──
   todayAttendance = computed(() => {
     const today = this.localDate(new Date());
     const recs = this.allAttendance().filter(r => r.date?.toString().startsWith(today));
@@ -86,12 +101,9 @@ export class HrDashboard implements OnInit {
   filteredAttendance = computed(() => {
     const f = this.attFilter();
     const all = this.todayAttendance();
-
     let list = all;
     if (f === 'present') list = all.filter(e => e.isCheckIn);
     else if (f === 'absent') list = all.filter(e => !e.isCheckIn);
-
-    // Active on top → done → absent
     return list.slice().sort((a, b) => {
       const rank = (e: any) =>
         e.isCheckIn && !e.isCheckOut ? 0 : e.isCheckOut ? 1 : 2;
@@ -100,14 +112,8 @@ export class HrDashboard implements OnInit {
   });
 
   slicedAttendance = computed(() => this.filteredAttendance().slice(0, 3));
-
-  todayPresent = computed(() =>
-    this.todayAttendance().filter(e => e.isCheckIn).length
-  );
-
-  todayAbsent = computed(() =>
-    this.todayAttendance().filter(e => !e.isCheckIn).length
-  );
+  todayPresent = computed(() => this.todayAttendance().filter(e => e.isCheckIn).length);
+  todayAbsent = computed(() => this.todayAttendance().filter(e => !e.isCheckIn).length);
 
   todayPresentPct = computed(() => {
     const t = this.totalEmployees();
@@ -119,20 +125,7 @@ export class HrDashboard implements OnInit {
     return t ? Math.round((this.todayAbsent() / t) * 100) : 0;
   });
 
-  // ── Leave computed ──
   pendingLeaveCount = computed(() => this.pendingLeaves().length);
-
-  // leaveStats = computed(() => ({
-  //   pending: this.allLeaves().filter(l => l.status === 'ManagerApproved').length,
-  //   approved: this.allLeaves().filter(l => l.status === 'Approved').length,
-  //   rejected: this.allLeaves().filter(l => l.status === 'Rejected').length,
-  //   withdrawn: this.allLeaves().filter(l => l.status === 'Withdrawn').length,
-  // }));
-
-  // leaveBarPct(count: number): number {
-  //   const total = this.allLeaves().length;
-  //   return total ? Math.round((count / total) * 100) : 0;
-  // }
 
   constructor(
     private auth: Authservice,
@@ -144,17 +137,25 @@ export class HrDashboard implements OnInit {
 
   ngOnInit() {
     this.setGreeting();
-    const id:any = this.auth.getUserId();
+    const id: any = this.auth.getUserId();
     if (id) {
+      this.hrId.set(id);
       this.userService.getUserById(id).subscribe({
         next: res => this.hrInfo.set(res),
         error: err => console.error(err)
       });
+      this.attendanceService.autoCheckout().subscribe();
+      this.restoreTodayAttendance();
     }
     this.loadEmployees();
     this.loadAttendance();
     this.loadManagerApprovedLeaves();
     this.leaveService.autorejectLeave().subscribe();
+  }
+
+  ngOnDestroy() {
+    this.stopTimer();
+    if (this.autoCheckoutTimeout) { clearTimeout(this.autoCheckoutTimeout); }
   }
 
   setGreeting() {
@@ -163,8 +164,142 @@ export class HrDashboard implements OnInit {
     const now = new Date();
     this.todayDate = now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
     this.todayDay = now.toLocaleDateString('en-IN', { weekday: 'long' });
+    this.todayNum = String(now.getDate());
+    this.todayMonth = now.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
   }
 
+  // ── HR's own attendance ──
+  restoreTodayAttendance() {
+    this.attendanceService.getByUID(this.hrId()).subscribe({
+      next: (records: any[]) => {
+        const todayStr = this.localDate(new Date());
+        const rec = records.find(r => (r.date ?? '').toString().trim().startsWith(todayStr));
+        if (!rec) return;
+
+        const aid = rec.aId ?? rec.attendanceId ?? rec.id;
+        if (aid) this.attendanceId.set(aid);
+
+        if (rec.isCheckIn && rec.checkIn) {
+          const ciDate = new Date(`${todayStr}T${rec.checkIn.toString().split('.')[0]}`);
+          this.checkInDate = isNaN(ciDate.getTime()) ? new Date() : ciDate;
+          this.checkInTime.set(this.formatTime(rec.checkIn));
+          this.checkedIn.set(true);
+        }
+
+        if (rec.isCheckOut && rec.checkOut) {
+          const coDate = new Date(`${todayStr}T${rec.checkOut.toString().split('.')[0]}`);
+          this.checkOutTime.set(this.formatTime(rec.checkOut));
+          this.checkedOut.set(true);
+          if (this.checkInDate) {
+            this.workHours.set(this.calcWorkHours(
+              this.checkInDate,
+              isNaN(coDate.getTime()) ? new Date() : coDate
+            ));
+          }
+        } else if (rec.isCheckIn) {
+          this.startTimer();
+          this.scheduleAutoCheckout();
+        }
+      },
+      error: err => console.error('restoreTodayAttendance:', err)
+    });
+  }
+
+  async checkIn() {
+    if (this.attendanceLoading()) return;
+    this.attendanceLoading.set(true);
+    this.attendanceService.checkIn(this.hrId()).subscribe({
+      next: (res: any) => {
+        const aid = res?.attendanceId ?? res?.AttendanceId ?? res?.aId;
+        if (aid) this.attendanceId.set(aid);
+        const now = new Date();
+        this.checkInDate = now;
+        this.checkInTime.set(this.formatTime(now.toISOString()));
+        this.checkedIn.set(true);
+        this.attendanceLoading.set(false);
+        this.startTimer();
+        this.scheduleAutoCheckout();
+      },
+      error: err => {
+        this.toast.error(err?.error?.message ?? 'Check-in failed.');
+        this.attendanceLoading.set(false);
+      }
+    });
+  }
+
+  async checkOut() {
+    if (this.attendanceLoading()) return;
+    this.attendanceLoading.set(true);
+    this.attendanceService.checkOut(this.attendanceId()).subscribe({
+      next: () => {
+        const now = new Date();
+        this.checkOutTime.set(this.formatTime(now.toISOString()));
+        this.checkedOut.set(true);
+        this.attendanceLoading.set(false);
+        if (this.checkInDate) this.workHours.set(this.calcWorkHours(this.checkInDate, now));
+        this.stopTimer();
+        if (this.autoCheckoutTimeout) {
+          clearTimeout(this.autoCheckoutTimeout);
+          this.autoCheckoutTimeout = null;
+        }
+      },
+      error: err => {
+        this.toast.error(err?.error?.message ?? 'Check-out failed.');
+        this.attendanceLoading.set(false);
+      }
+    });
+  }
+
+  scheduleAutoCheckout() {
+    if (this.autoCheckoutTimeout) { clearTimeout(this.autoCheckoutTimeout); }
+    const now = new Date();
+    const cutoff = new Date(); cutoff.setHours(21, 0, 0, 0);
+    const ms = cutoff.getTime() - now.getTime();
+    if (ms <= 0) this.performAutoCheckout();
+    else this.autoCheckoutTimeout = setTimeout(() => this.performAutoCheckout(), ms);
+  }
+
+  performAutoCheckout() {
+    if (!this.checkedIn() || this.checkedOut() || !this.attendanceId()) return;
+    this.attendanceService.checkOut(this.attendanceId()).subscribe({
+      next: () => {
+        const now = new Date();
+        this.checkOutTime.set(this.formatTime(now.toISOString()));
+        this.checkedOut.set(true);
+        if (this.checkInDate) this.workHours.set(this.calcWorkHours(this.checkInDate, now));
+        this.stopTimer();
+      },
+      error: () => this.toast.warning('Auto check-out failed.', 'Auto Checkout Failed')
+    });
+  }
+
+  startTimer() {
+    this.stopTimer();
+    this.updateElapsed();
+    this.elapsedInterval = setInterval(() => this.updateElapsed(), 1000);
+  }
+
+  stopTimer() {
+    if (this.elapsedInterval) { clearInterval(this.elapsedInterval); this.elapsedInterval = null; }
+  }
+
+  updateElapsed() {
+    if (!this.checkInDate) return;
+    const d = Date.now() - this.checkInDate.getTime();
+    const h = Math.floor(d / 3600000);
+    const m = Math.floor((d % 3600000) / 60000);
+    const s = Math.floor((d % 60000) / 1000);
+    this.elapsedTime.set(
+      `${String(h).padStart(2, '0')}:${String(m).padStart(2, '00')}:${String(s).padStart(2, '0')}`
+    );
+  }
+
+  calcWorkHours(from: Date, to: Date): string {
+    const d = to.getTime() - from.getTime();
+    return `${Math.floor(d / 3600000)}h ${Math.floor((d % 3600000) / 60000)}m`;
+  }
+
+  // ── Data loaders ──
   loadEmployees() {
     this.empLoading.set(true);
     this.userService.getAllEmployeeManager().subscribe({
@@ -189,7 +324,6 @@ export class HrDashboard implements OnInit {
 
   loadManagerApprovedLeaves() {
     this.leaveLoading.set(true);
-    // Load all leaves for stats
     this.leaveService.getAllLeaves().subscribe({
       next: (res: any) => {
         const list = Array.isArray(res) ? res : res?.data ?? (res ? [res] : []);
@@ -201,7 +335,6 @@ export class HrDashboard implements OnInit {
     });
   }
 
-  // ── Leave actions (HR uses ManagerApprove/Reject) ──
   approveLeave(leaveRequestId: any) {
     this.actionLoading.set(leaveRequestId);
     this.leaveService.HrApproveleave(leaveRequestId).subscribe({
@@ -259,9 +392,21 @@ export class HrDashboard implements OnInit {
 
   formatTime(timeStr: string): string {
     if (!timeStr) return '—';
-    const clean = timeStr.toString().split('.')[0].substring(0, 5);
-    const [h, m] = clean.split(':').map(Number);
-    if (isNaN(h)) return '—';
-    return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+    const clean = timeStr.toString().split('.')[0];
+    const parts = clean.split(':');
+    if (timeStr.includes('T') || (timeStr.includes('-') && timeStr.length > 8)) {
+      const d = new Date(timeStr);
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+    if (parts.length >= 2) {
+      let h = parseInt(parts[0]);
+      const m = parseInt(parts[1]);
+      if (isNaN(h) || isNaN(m)) return '—';
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${h}:${String(m).padStart(2, '0')} ${ampm}`;
+    }
+    return '—';
   }
 }

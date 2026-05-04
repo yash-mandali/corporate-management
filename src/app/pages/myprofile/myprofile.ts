@@ -101,8 +101,10 @@ export class MyProfile {
     const payload = {
       id: this.profileData()?.id,
       // roleId: this.profileData()?.roleId,
-      ...this.profileForm.value
+      ...this.profileForm.getRawValue()
     };
+    console.log("update profile payload",payload);
+    
     this.userService.updateUser(payload).subscribe({
       next: () => {
         this.toast.success('Profile updated successfully!');

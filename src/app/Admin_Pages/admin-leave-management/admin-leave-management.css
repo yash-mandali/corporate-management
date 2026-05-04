@@ -2454,7 +2454,6 @@ button:disabled {
     }
 }
 
-/* ── Touch: bigger tap targets ── */
 @media (hover: none) and (pointer: coarse) {
     .act-btn {
         width: 32px;

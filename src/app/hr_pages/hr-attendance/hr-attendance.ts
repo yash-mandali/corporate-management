@@ -156,7 +156,7 @@ export class HrAttendancePage implements OnInit {
   }
 
   loadAllUsers() {
-    this.userService.getAllEmployee().subscribe({
+    this.userService.getAllEmployeeManagerHr().subscribe({
       next: (res: any) => this.allUsers.set(Array.isArray(res) ? res : res ? [res] : []),
       error: err => console.error('loadAllUsers:', err)
     });
@@ -167,6 +167,7 @@ export class HrAttendancePage implements OnInit {
     this.attendanceService.getAllattendance().subscribe({
       next: (res: any) => {
         this.allAttendance.set(Array.isArray(res) ? res : res ? [res] : []);
+        console.log('Loaded attendance records:', this.allAttendance());
         this.isLoading.set(false);
       },
       error: err => { console.error('loadAllAttendance:', err); this.isLoading.set(false); }

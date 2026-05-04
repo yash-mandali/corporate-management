@@ -173,6 +173,13 @@ export const routes: Routes = [
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Admin'] }
             },
+            {
+                path: 'attendancemanagement',
+                loadComponent: () =>
+                    import('./Admin_Pages/admin-attendance-management/admin-attendance-management').then(m => m.AdminAttendanceManagement),
+                canActivate: [authGuard, roleGuard],
+                data: { roles: ['Admin'] }
+            },
         ]
     },
     {

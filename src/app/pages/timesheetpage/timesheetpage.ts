@@ -48,6 +48,8 @@ export class Timesheetpage implements OnInit {
   showExportModal = signal(false);
   exportFromDate = signal(this.localDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
   exportToDate = signal(this.localDate(new Date()));
+  exportStatus = signal('');
+  exportWorkType = signal('');
   isExporting = signal(false);
 
   constructor(
@@ -330,43 +332,87 @@ export class Timesheetpage implements OnInit {
     return (eh * 60 + em) - (sh * 60 + sm);
   }
 
+  // submitExport() {
+  //   if (this.isExporting()) return;
+  //   this.isExporting.set(true);
+  //   alert('Exporting report. Please wait...');
+
+  //   const payload = {
+  //     fromDate: this.exportFromDate(),
+  //     toDate: this.exportToDate()
+  //   };
+  //   this.timesheetService.exportTimesheetReport(payload.fromDate,payload.toDate,this.userId()).subscribe({
+  //       next: (response: Blob) => {
+
+  //         const blob = new Blob([response], {
+  //           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  //         });
+  //         const url = window.URL.createObjectURL(blob);
+  //         const link = document.createElement('a');
+  //         link.href = url;
+  //         link.download = 'Timesheet_Report.xlsx';
+  //         link.click();
+  //         window.URL.revokeObjectURL(url);
+  //         this.isExporting.set(false);
+  //         this.showExportModal.set(false);
+  //       },
+
+  //       error: (error) => {
+  //         this.isExporting.set(false);
+  //         if (error.status === 404) {
+  //           alert('No records found for selected range.');
+  //         } else {
+  //           alert('Export failed. Try again.');
+  //         }
+  //         console.log('Timesheet export error:', error);
+  //       }
+  //     });
+  // }
+  openExportModal() {
+    this.exportFromDate.set(this.localDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
+    this.exportToDate.set(this.localDate(new Date()));
+    this.exportStatus.set('');
+    this.exportWorkType.set('');
+    this.showExportModal.set(true);
+  }
+
+  closeExportModal() {
+    if (this.isExporting()) return;
+    this.showExportModal.set(false);
+  }
+
   submitExport() {
     if (this.isExporting()) return;
     this.isExporting.set(true);
-    alert('Exporting report. Please wait...');
 
-    const payload = {
-      fromDate: this.exportFromDate(),
-      toDate: this.exportToDate()
-    };
-    this.timesheetService.exportTimesheetReport(payload.fromDate,payload.toDate,this.userId()).subscribe({
-        next: (response: Blob) => {
-
-          const blob = new Blob([response], {
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-          });
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = 'Timesheet_Report.xlsx';
-          link.click();
-          window.URL.revokeObjectURL(url);
-          this.isExporting.set(false);
-          this.showExportModal.set(false);
-        },
-
-        error: (error) => {
-          this.isExporting.set(false);
-          if (error.status === 404) {
-            alert('No records found for selected range.');
-          } else {
-            alert('Export failed. Try again.');
-          }
-          console.log('Timesheet export error:', error);
-        }
-      });
+    this.timesheetService.exportTimesheetReport(
+      this.exportFromDate(),
+      this.exportToDate(),
+      this.userId(),
+      undefined,                          // department — not used in timesheet
+      this.exportStatus() || undefined,
+      this.exportWorkType() || undefined
+    ).subscribe({
+      next: (response: Blob) => {
+        const blob = new Blob([response], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'Timesheet_Report.xlsx';
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.isExporting.set(false);
+        this.showExportModal.set(false);
+      },
+      error: (err) => {
+        this.isExporting.set(false);
+        if (err.status === 404) alert('No records found for selected filters.');
+        else alert('Export failed. Please try again.');
+      }
+    });
   }
-
   // ── Shared helpers ──
   localDate(d: Date): string {
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;

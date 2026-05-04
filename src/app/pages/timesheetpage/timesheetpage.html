@@ -33,7 +33,7 @@
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
-                <button class="btn-export" (click)="submitExport()">
+                <button class="btn-export" (click)="openExportModal()">
                     <i class="fas fa-cloud-download"></i> Export
                 </button>
                 <button class="btn-add-entry" (click)="openModal()">
@@ -272,9 +272,113 @@
         </div>
 
     </div>
+    @if (showExportModal()) {
+    <div class="modal-overlay">
+        <div class="modal-box export-modal-box" (click)="$event.stopPropagation()">
+
+            <!-- Header -->
+            <div class="modal-header">
+                <div class="mh-left">
+                    <div class="mh-icon"><i class="fas fa-cloud-download"></i></div>
+                    <div>
+                        <div class="mh-title">Export Timesheet Report</div>
+                        <div class="mh-sub">Download filtered timesheet data as Excel</div>
+                    </div>
+                </div>
+                <button class="modal-close" (click)="closeExportModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+
+                <!-- Date Range -->
+                <div class="exp-section-label">Date Range</div>
+                <div class="exp-date-row">
+                    <div class="exp-field">
+                        <label class="exp-label"><i class="fas fa-calendar-alt"></i> From Date</label>
+                        <input type="date" class="exp-input" [value]="exportFromDate()"
+                            (change)="exportFromDate.set($any($event.target).value)">
+                    </div>
+                    <div class="exp-sep"><i class="fas fa-arrow-right"></i></div>
+                    <div class="exp-field">
+                        <label class="exp-label"><i class="fas fa-calendar-alt"></i> To Date</label>
+                        <input type="date" class="exp-input" [value]="exportToDate()"
+                            (change)="exportToDate.set($any($event.target).value)">
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="exp-section-label" style="margin-top:18px">
+                    Filters <span class="exp-optional">Optional</span>
+                </div>
+
+                <div class="exp-filters-grid">
+
+                    <div class="exp-field">
+                        <label class="exp-label"><i class="fas fa-tasks"></i> Status</label>
+                        <div class="exp-select-wrap">
+                            <select class="exp-select" (change)="exportStatus.set($any($event.target).value)">
+                                <option value="">All Statuses</option>
+                                <option value="Draft">Draft</option>
+                                <option value="Submitted">Submitted</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                            <i class="fas fa-chevron-down exp-chevron"></i>
+                        </div>
+                    </div>
+
+                    <div class="exp-field">
+                        <label class="exp-label"><i class="fas fa-briefcase"></i> Work Type</label>
+                        <div class="exp-select-wrap">
+                            <select class="exp-select" (change)="exportWorkType.set($any($event.target).value)">
+                                <option value="">All Types</option>
+                                <option>Development</option>
+                                <option>Meeting</option>
+                                <option>Testing</option>
+                                <option>Research</option>
+                                <option>Design</option>
+                                <option>Review</option>
+                            </select>
+                            <i class="fas fa-chevron-down exp-chevron"></i>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Summary -->
+                <div class="exp-summary">
+                    <i class="fas fa-info-circle"></i>
+                    <span>
+                        Exporting from <strong>{{ exportFromDate() }}</strong>
+                        to <strong>{{ exportToDate() }}</strong>
+                        @if (exportStatus()) { · <strong>{{ exportStatus() }}</strong> }
+                        @else { · <strong>All statuses</strong> }
+                        @if (exportWorkType()) { · <strong>{{ exportWorkType() }}</strong> }
+                    </span>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button class="mf-cancel" (click)="closeExportModal()" [disabled]="isExporting()">Cancel</button>
+                <button class="mf-save" (click)="submitExport()" [disabled]="isExporting()">
+                    @if (isExporting()) {
+                    <span class="btn-spinner"></span> Exporting...
+                    } @else {
+                    <i class="fas fa-download"></i> Export Report
+                    }
+                </button>
+            </div>
+
+        </div>
+    </div>
+    }
 </main>
 
-<!-- ══ ADD / EDIT MODAL ══ -->
 @if (modalOpen()) {
 <div class="modal-overlay" (click)="closeModal()">
     <div class="modal-box" (click)="$event.stopPropagation()">

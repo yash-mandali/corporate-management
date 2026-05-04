@@ -1,4 +1,4 @@
-import { Component, computed, signal, OnInit } from '@angular/core';
+import { Component, computed, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LowerCasePipe } from '@angular/common';
@@ -16,7 +16,7 @@ import { ToastService } from '../../services/toast-service/toast';
   templateUrl: './managerdashboard.html',
   styleUrl: './managerdashboard.css',
 })
-export class ManagerDashboard implements OnInit {
+export class ManagerDashboard implements OnInit, OnDestroy {
   leaveUserName = signal<any[]>([]);
   // ── Core state ──
   managerId = signal<any>(null);
@@ -44,6 +44,23 @@ export class ManagerDashboard implements OnInit {
   greeting = '';
   todayDate = '';
   todayDay = '';
+
+  // ── Manager's own attendance ──
+  checkedIn = signal(false);
+  checkedOut = signal(false);
+  checkInTime = signal<string | null>(null);
+  checkOutTime = signal<string | null>(null);
+  attendanceLoading = signal(false);
+  attendanceId = signal<any>(null);
+  elapsedTime = signal('00:00:00');
+  workHours = signal<string | null>(null);
+  private elapsedInterval: any;
+  private checkInDate: Date | null = null;
+  private autoCheckoutTimeout: any;
+
+  // ── Date display (used in the card) ──
+  todayNum = '';
+  todayMonth = '';
 
   // ── Color pool for avatars ──
   private colorPool = [
@@ -158,15 +175,151 @@ export class ManagerDashboard implements OnInit {
       this.loadTeamPendingLeaves();
       this.leaveService.autorejectLeave().subscribe();
       this.loadPendingTimesheets();
+      this.attendanceService.autoCheckout().subscribe();
+      this.restoreTodayAttendance();
     }
   }
+  ngOnDestroy() {
+    this.stopTimer();
+    if (this.autoCheckoutTimeout) { clearTimeout(this.autoCheckoutTimeout); }
+  }
+  restoreTodayAttendance() {
+    this.attendanceService.getByUID(this.managerId()).subscribe({
+      next: (records: any[]) => {
+        const todayStr = this.localDate(new Date());
+        const rec = records.find(r => (r.date ?? '').toString().trim().startsWith(todayStr));
+        if (!rec) return;
 
+        const aid = rec.aId ?? rec.attendanceId ?? rec.id;
+        if (aid) this.attendanceId.set(aid);
+
+        if (rec.isCheckIn && rec.checkIn) {
+          const ciDate = new Date(`${todayStr}T${rec.checkIn.toString().split('.')[0]}`);
+          this.checkInDate = isNaN(ciDate.getTime()) ? new Date() : ciDate;
+          this.checkInTime.set(this.formatTime(rec.checkIn));
+          this.checkedIn.set(true);
+        }
+
+        if (rec.isCheckOut && rec.checkOut) {
+          const coDate = new Date(`${todayStr}T${rec.checkOut.toString().split('.')[0]}`);
+          this.checkOutTime.set(this.formatTime(rec.checkOut));
+          this.checkedOut.set(true);
+          if (this.checkInDate) {
+            this.workHours.set(this.calcWorkHours(
+              this.checkInDate,
+              isNaN(coDate.getTime()) ? new Date() : coDate
+            ));
+          }
+        } else if (rec.isCheckIn) {
+          this.startTimer();
+          this.scheduleAutoCheckout();
+        }
+      },
+      error: err => console.error('restoreTodayAttendance:', err)
+    });
+  }
+
+  async checkIn() {
+    if (this.attendanceLoading()) return;
+    this.attendanceLoading.set(true);
+    this.attendanceService.checkIn(this.managerId()).subscribe({
+      next: (res: any) => {
+        const aid = res?.attendanceId ?? res?.AttendanceId ?? res?.aId;
+        if (aid) this.attendanceId.set(aid);
+        const now = new Date();
+        this.checkInDate = now;
+        this.checkInTime.set(this.formatTime(now.toISOString()));
+        this.checkedIn.set(true);
+        this.attendanceLoading.set(false);
+        this.startTimer();
+        this.scheduleAutoCheckout();
+      },
+      error: err => {
+        this.toast.error(err?.error?.message ?? 'Check-in failed.');
+        this.attendanceLoading.set(false);
+      }
+    });
+  }
+
+  async checkOut() {
+    if (this.attendanceLoading()) return;
+    this.attendanceLoading.set(true);
+    this.attendanceService.checkOut(this.attendanceId()).subscribe({
+      next: () => {
+        const now = new Date();
+        this.checkOutTime.set(this.formatTime(now.toISOString()));
+        this.checkedOut.set(true);
+        this.attendanceLoading.set(false);
+        if (this.checkInDate) this.workHours.set(this.calcWorkHours(this.checkInDate, now));
+        this.stopTimer();
+        if (this.autoCheckoutTimeout) {
+          clearTimeout(this.autoCheckoutTimeout);
+          this.autoCheckoutTimeout = null;
+        }
+      },
+      error: err => {
+        this.toast.error(err?.error?.message ?? 'Check-out failed.');
+        this.attendanceLoading.set(false);
+      }
+    });
+  }
+
+  scheduleAutoCheckout() {
+    if (this.autoCheckoutTimeout) { clearTimeout(this.autoCheckoutTimeout); }
+    const now = new Date();
+    const cutoff = new Date(); cutoff.setHours(21, 0, 0, 0);
+    const ms = cutoff.getTime() - now.getTime();
+    if (ms <= 0) this.performAutoCheckout();
+    else this.autoCheckoutTimeout = setTimeout(() => this.performAutoCheckout(), ms);
+  }
+
+  performAutoCheckout() {
+    if (!this.checkedIn() || this.checkedOut() || !this.attendanceId()) return;
+    this.attendanceService.checkOut(this.attendanceId()).subscribe({
+      next: () => {
+        const now = new Date();
+        this.checkOutTime.set(this.formatTime(now.toISOString()));
+        this.checkedOut.set(true);
+        if (this.checkInDate) this.workHours.set(this.calcWorkHours(this.checkInDate, now));
+        this.stopTimer();
+      },
+      error: () => this.toast.warning('Auto check-out failed.', 'Auto Checkout Failed')
+    });
+  }
+
+  startTimer() {
+    this.stopTimer();
+    this.updateElapsed();
+    this.elapsedInterval = setInterval(() => this.updateElapsed(), 1000);
+  }
+
+  stopTimer() {
+    if (this.elapsedInterval) { clearInterval(this.elapsedInterval); this.elapsedInterval = null; }
+  }
+
+  updateElapsed() {
+    if (!this.checkInDate) return;
+    const d = Date.now() - this.checkInDate.getTime();
+    const h = Math.floor(d / 3600000);
+    const m = Math.floor((d % 3600000) / 60000);
+    const s = Math.floor((d % 60000) / 1000);
+    this.elapsedTime.set(
+      `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    );
+  }
+
+  calcWorkHours(from: Date, to: Date): string {
+    const d = to.getTime() - from.getTime();
+    return `${Math.floor(d / 3600000)}h ${Math.floor((d % 3600000) / 60000)}m`;
+  }
   setGreeting() {
     const h = new Date().getHours();
     this.greeting = h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
     const now = new Date();
     this.todayDate = now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
     this.todayDay = now.toLocaleDateString('en-IN', { weekday: 'long' });
+    this.todayNum = String(now.getDate());
+    this.todayMonth = now.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
   }
 
   // ── Data loaders ──
@@ -324,10 +477,22 @@ export class ManagerDashboard implements OnInit {
 
   formatTime(timeStr: string): string {
     if (!timeStr) return '—';
-    const clean = timeStr.toString().split('.')[0].substring(0, 5);
-    const [h, m] = clean.split(':').map(Number);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
+    const clean = timeStr.toString().split('.')[0];
+    const parts = clean.split(':');
+    if (timeStr.includes('T') || (timeStr.includes('-') && timeStr.length > 8)) {
+      const d = new Date(timeStr);
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+    if (parts.length >= 2) {
+      let h = parseInt(parts[0]);
+      const m = parseInt(parts[1]);
+      if (isNaN(h) || isNaN(m)) return '—';
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${h}:${String(m).padStart(2, '0')} ${ampm}`;
+    }
+    return '—';
   }
 
   formatTsHours(totalHours: string): string {

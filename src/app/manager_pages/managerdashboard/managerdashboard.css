@@ -1366,3 +1366,240 @@ body {
     color: #2980b9;
     background: rgba(41, 128, 185, 0.05);
 }
+
+/* ---------------- */
+/* ══ MANAGER CHECK-IN CARD ══ */
+.att-today-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #d6eaee;
+    box-shadow: 0 1px 6px rgba(9, 99, 126, 0.05);
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.atc-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+}
+
+.atc-date {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    padding-right: 20px;
+    border-right: 1px solid #d6eaee;
+}
+
+.atc-day-num {
+    font-size: 36px;
+    font-weight: 900;
+    color: #09637e;
+    line-height: 1;
+}
+
+.atc-weekday {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0d2d36;
+}
+
+.atc-month {
+    font-size: 11px;
+    color: #5a8a94;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.atc-times {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.atc-time-block {
+    flex: 1;
+    text-align: center;
+    padding: 0 12px;
+}
+
+.atc-sep {
+    width: 1px;
+    height: 36px;
+    background: #d6eaee;
+    flex-shrink: 0;
+}
+
+.atc-time-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #5a8a94;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.atc-time-val {
+    font-size: 15px;
+    font-weight: 900;
+    color: #0d2d36;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.atc-time-val.in {
+    color: #27ae60;
+}
+
+.atc-time-val.out {
+    color: #c0392b;
+}
+
+.atc-time-val.hours {
+    color: #09637e;
+}
+
+.live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #27ae60;
+    flex-shrink: 0;
+    animation: mgr-pulse 1.4s ease infinite;
+}
+
+@keyframes mgr-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.6);
+    }
+
+    70% {
+        box-shadow: 0 0 0 5px rgba(39, 174, 96, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0);
+    }
+}
+
+.checkin-btn,
+.checkout-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 20px;
+    border-radius: 9px;
+    border: none;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.checkin-btn {
+    background: linear-gradient(135deg, #09637e, #088395);
+    color: #fff;
+    box-shadow: 0 3px 12px rgba(9, 99, 126, 0.25);
+}
+
+.checkin-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(9, 99, 126, 0.4);
+}
+
+.checkout-btn {
+    background: linear-gradient(135deg, #c0392b, #e05c5c);
+    color: #fff;
+    box-shadow: 0 3px 12px rgba(192, 57, 43, 0.25);
+}
+
+.checkout-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(192, 57, 43, 0.4);
+}
+
+.checkin-btn:disabled,
+.checkout-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.checked-done {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #27ae60;
+    padding: 10px 16px;
+    border-radius: 9px;
+    background: rgba(39, 174, 96, 0.08);
+    border: 1.5px solid rgba(39, 174, 96, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .att-today-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .atc-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .atc-date {
+        border-right: none;
+        border-bottom: 1px solid #d6eaee;
+        padding-right: 0;
+        padding-bottom: 14px;
+        width: 100%;
+    }
+
+    .atc-times {
+        width: 100%;
+    }
+
+    .atc-right {
+        display: flex;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .atc-times {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .atc-sep {
+        display: none;
+    }
+
+    .atc-time-block {
+        text-align: left;
+        padding: 0;
+    }
+
+    .atc-time-label,
+    .atc-time-val {
+        justify-content: flex-start;
+    }
+}

@@ -53,8 +53,61 @@
         </div>
 
         <!-- ══ STAT CARDS ROW ══ -->
+        <!-- ══ MANAGER CHECK-IN CARD ══ -->
+        <div class="att-today-card">
+            <div class="atc-left">
+                <div class="atc-date">
+                    <div class="atc-day-num">{{ todayNum }}</div>
+                    <div class="atc-day-info">
+                        <div class="atc-weekday">{{ todayDay }}</div>
+                        <div class="atc-month">{{ todayMonth }}</div>
+                    </div>
+                </div>
+                <div class="atc-times">
+                    <div class="atc-time-block">
+                        <div class="atc-time-label"><i class="fas fa-sign-in-alt"></i> Check In</div>
+                        <div class="atc-time-val in">{{ checkInTime() || '—' }}</div>
+                    </div>
+                    <div class="atc-sep"></div>
+                    <div class="atc-time-block">
+                        <div class="atc-time-label"><i class="fas fa-sign-out-alt"></i> Check Out</div>
+                        <div class="atc-time-val out">{{ checkOutTime() || '—' }}</div>
+                    </div>
+                    <div class="atc-sep"></div>
+                    <div class="atc-time-block">
+                        <div class="atc-time-label"><i class="fas fa-hourglass-half"></i> Hours</div>
+                        <div class="atc-time-val hours">
+                            @if (!checkedOut() && checkedIn()) {
+                            <span class="live-dot"></span>{{ elapsedTime() }}
+                            } @else {
+                            {{ workHours() || '—' }}
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="atc-right">
+                @if (!checkedIn()) {
+                <button class="checkin-btn" (click)="checkIn()" [disabled]="attendanceLoading()">
+                    @if (attendanceLoading()) { <i class="fas fa-spinner fa-spin"></i> }
+                    @else { <i class="fas fa-sign-in-alt"></i> }
+                    Check In
+                </button>
+                } @else if (!checkedOut()) {
+                <button class="checkout-btn" (click)="checkOut()" [disabled]="attendanceLoading()">
+                    @if (attendanceLoading()) { <i class="fas fa-spinner fa-spin"></i> }
+                    @else { <i class="fas fa-sign-out-alt"></i> }
+                    Check Out
+                </button>
+                } @else {
+                <div class="checked-done">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Done for today</span>
+                </div>
+                }
+            </div>
+        </div>
         <div class="stat-row">
-
             <div class="stat-card sc-teal">
                 <div class="sc-top">
                     <div class="sc-icon-wrap"><i class="fas fa-users"></i></div>

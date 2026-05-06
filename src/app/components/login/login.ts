@@ -207,6 +207,7 @@ export class Login {
         this.fpSuccess.set('Password changed successfully! Redirecting to login…');
         setTimeout(() => {
           this.closeForgotModal();
+          this.loginForm.reset();
         }, 1800);
       },
       error: (err: any) => {

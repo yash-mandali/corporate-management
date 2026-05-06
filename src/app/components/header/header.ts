@@ -25,10 +25,6 @@ export class Header implements OnInit, OnDestroy {
   markingId = signal<number | null>(null);
   markingAll = signal(false);
 
-  // Notifications shown in panel:
-  //   • UNREAD  → always visible regardless of date
-  //   • READ    → visible only if CreatedAt is TODAY
-  // Both groups merged, sorted latest-first, max 10 shown.
   visibleNotifs = computed(() => {
     const todayStr = new Date().toDateString();
     return this.notifications()
@@ -67,7 +63,10 @@ export class Header implements OnInit, OnDestroy {
       this.timer = setInterval(() => this.updateDate(), 60_000);
       this.userEmail.set(this.auth.getEmail());
       this.getUsersdata();
-      this.loadNotifications();
+      setInterval(() => {
+        console.log("loadnotification called");
+        this.loadNotifications();
+      }, 60 * 1000);
     }
   }
 

@@ -3,120 +3,13 @@
         <span class="logo-text" routerLink="/dashboard">{{role()}} Portal</span>
     </div>
 
+    <!-- Navigation -->
     <nav class="sidebar-nav">
-        @if (role() === 'Employee') {
-        <a class="nav-item" routerLink="/dashboard/dashboardpage" routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: true }" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Dashboard</span>
+        <a *ngFor="let item of menuItems(); trackBy: trackByRoute" class="nav-item" [routerLink]="item.route"
+            routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="emp.closeSidebar()">
+            <i [class]="item.icon"></i>
+            <span class="nav-label">{{ item.label }}</span>
         </a>
-        <a class="nav-item" routerLink="/dashboard/leavepage" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">My Requests</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/attendance" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Attendance</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/timesheet" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">TimeSheet</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/myprofile" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Profile</span>
-        </a>
-        }
-
-        @else if(role() === 'Manager'){
-        <a class="nav-item" routerLink="/dashboard/managerdashboard" routerLinkActive="active"
-            (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Dashboard</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/managerattendance" routerLinkActive="active"
-            (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Attendance</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/managerleave" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Leave</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/managertimesheet" routerLinkActive="active"
-            (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Timesheet</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/managerteams" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Team</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/teamperformance" routerLinkActive="active"
-            (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Performance</span>
-        </a>
-
-        }
-        @else if(role() === 'HR'){
-        <a class="nav-item" routerLink="/dashboard/hrdashboard" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Dashboard</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/hremployees" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Employees</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/hrleave" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Leaves</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/hrattendance" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Attendance</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/hrpayroll" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Payroll</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/hrRecruitment" routerLinkActive="active"
-            (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Recruitment</span>
-        </a>
-
-        }
-        @else if(role() === 'Admin')
-        {
-        <a class="nav-item" routerLink="/dashboard/admindashboard" routerLinkActive="active"
-            (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Dashboard</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/usermanagement" routerLinkActive="active"
-            (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">User Management</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/leavemanagement" routerLinkActive="active"
-            (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Leave Management</span>
-        </a>
-        <a class="nav-item" routerLink="/dashboard/attendancemanagement" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Attendance</span>
-        </a>
-
-        }
-        @else {
-        <a class="nav-item" routerLink="/dashboard" routerLinkActive="active" (click)="emp.closeSidebar()">
-            <span class="nav-icon"></span>
-            <span class="nav-label">Dashboard</span>
-        </a>
-        }
-
     </nav>
     <div class="sidebar-logout">
         <button class="logout-btn" (click)="logout()">Logout</button>

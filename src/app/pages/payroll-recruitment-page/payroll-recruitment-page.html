@@ -1,0 +1,756 @@
+<main class="main">
+    <div class="content">
+
+        <!-- ══ PAGE HEADER ══ -->
+        <div class="page-header">
+            <div class="ph-left">
+                <div class="ph-icon">
+                    <i class="fas fa-id-badge"></i>
+                </div>
+                <div>
+                    <div class="ph-title">My Portal</div>
+                    <div class="ph-sub">Your payroll records, job openings & applications</div>
+                </div>
+            </div>
+            <div class="ph-right">
+                <div class="tab-switcher">
+                    <button class="tab-btn" [class.active]="activeTab()==='payroll'" (click)="activeTab.set('payroll')">
+                        <i class="fas fa-file-invoice-dollar"></i> My Payroll
+                    </button>
+                    <button class="tab-btn" [class.active]="activeTab()==='jobs'" (click)="activeTab.set('jobs')">
+                        <i class="fas fa-briefcase"></i> Job Openings
+                        @if (visibleJobs().length) {
+                        <span class="tab-badge">{{ visibleJobs().length }}</span>
+                        }
+                    </button>
+                    <button class="tab-btn" [class.active]="activeTab()==='applied'" (click)="activeTab.set('applied')">
+                        <i class="fas fa-paper-plane"></i> Applied Jobs
+                        @if (myApplications().length) {
+                        <span class="tab-badge tab-badge-purple">{{ myApplications().length }}</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             PAYROLL TAB
+        ══════════════════════════════════════════ -->
+        @if (activeTab() === 'payroll') {
+
+        <!-- Stat strip -->
+        <div class="stat-row stat-row-4">
+            <div class="stat-card sc-total">
+                <div class="sc-icon"><i class="fas fa-receipt"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ myPayrolls().length }}</div>
+                    <div class="sc-lbl">Total Payrolls</div>
+                </div>
+            </div>
+            <div class="stat-card sc-paid">
+                <div class="sc-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ paidCount() }}</div>
+                    <div class="sc-lbl">Paid</div>
+                </div>
+            </div>
+            <div class="stat-card sc-pending">
+                <div class="sc-icon"><i class="fas fa-clock"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ pendingCount() }}</div>
+                    <div class="sc-lbl">Pending</div>
+                </div>
+            </div>
+            <div class="stat-card sc-earned">
+                <div class="sc-icon"><i class="fas fa-wallet"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">₹{{ formatAmt(totalEarned()) }}</div>
+                    <div class="sc-lbl">Total Received</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar: search | year | month | status filters — all side by side -->
+        <div class="toolbar">
+            <div class="tb-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search month or year..." [value]="payrollSearch()"
+                    (input)="payrollSearch.set($any($event.target).value)">
+            </div>
+
+            <select class="tb-select" [value]="payrollYear()" (change)="payrollYear.set(+$any($event.target).value)">
+                @for (yr of availableYears; track yr) {
+                <option [value]="yr">{{ yr }}</option>
+                }
+            </select>
+
+            <select class="tb-select" [value]="payrollMonth()" (change)="payrollMonth.set(+$any($event.target).value)">
+                <option value="0">All Months</option>
+                @for (m of months; track m.value) {
+                <option [value]="m.value">{{ m.label }}</option>
+                }
+            </select>
+
+            <div class="tb-filters">
+                <button class="tf-btn" [class.active]="payrollStatusFilter()==='all'"
+                    (click)="payrollStatusFilter.set('all')">All</button>
+                <button class="tf-btn gen-f" [class.active]="payrollStatusFilter()==='Generated'"
+                    (click)="payrollStatusFilter.set('Generated')">Generated</button>
+                <button class="tf-btn paid-f" [class.active]="payrollStatusFilter()==='Paid'"
+                    (click)="payrollStatusFilter.set('Paid')">Paid</button>
+            </div>
+        </div>
+
+        <!-- Payroll list -->
+        @if (payrollLoading()) {
+        <div class="loading-state">
+            <div class="ls-spinner"><span class="mini-spin teal-spin"></span></div>
+            <div class="ls-text">Loading your payroll records...</div>
+        </div>
+        } @else if (filteredPayrolls().length === 0) {
+        <div class="empty-state">
+            <div class="es-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+            <div class="es-title">No payroll records found</div>
+            <div class="es-sub">Try adjusting your filters or check back later</div>
+        </div>
+        } @else {
+        <div class="payroll-grid">
+            @for (p of filteredPayrolls(); track p.payrollId) {
+            <div class="payroll-card" [class.pc-paid]="p.status === 'Paid'" (click)="openPayslip(p)">
+
+                <div class="pc-body">
+
+                    <div class="pc-head-row">
+                        <div class="pc-title-wrap">
+                            <div class="pc-month-chip">
+                                <span>{{ getMonthName(p.month).slice(0,3).toUpperCase() }}</span>
+                                <small>{{ p.year }}</small>
+                            </div>
+                            <div>
+                                <div class="pc-period">{{ getMonthName(p.month) }} Payroll</div>
+                                <div class="pc-sub">EMP-{{ p.userId }} &bull; {{ formatDate(p.generatedDate) }}</div>
+                            </div>
+                        </div>
+                        <span class="status-pill" [class]="p.status === 'Paid' ? 'sp-paid' : 'sp-generated'">
+                            <span class="spd"></span>{{ p.status }}
+                        </span>
+                    </div>
+
+                    <div class="pc-net-panel">
+                        <div>
+                            <div class="pc-net-label">Net Salary</div>
+                            <div class="pc-net-help">{{ p.status === 'Paid' ? 'Credited amount' : 'Awaiting payment' }}</div>
+                        </div>
+                        <div class="pc-net-value">
+                            ₹{{ formatAmt(p.netSalary) }}
+                        </div>
+                    </div>
+
+                    <div class="pc-breakdown-grid">
+                        <div class="pc-metric">
+                            <span class="pc-metric-label"><i class="fas fa-arrow-up"></i> Gross</span>
+                            <div>
+                                <div class="pc-bk-val">₹{{ formatAmt(p.grossSalary) }}</div>
+                            </div>
+                        </div>
+                        <div class="pc-metric">
+                            <span class="pc-metric-label danger"><i class="fas fa-arrow-down"></i> Deductions</span>
+                            <div>
+                                <div class="pc-bk-val red-val">-₹{{ formatAmt(p.totalDeductions) }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pc-chips">
+                        <span class="pc-chip"><i class="fas fa-shield-alt"></i> PF ₹{{ formatAmt(p.pf) }}</span>
+                        <span class="pc-chip"><i class="fas fa-file-alt"></i> Tax ₹{{ formatAmt(p.taxDeduction)
+                            }}</span>
+                        @if (p.leaveDeduction) {
+                        <span class="pc-chip"><i class="fas fa-calendar-times"></i> Leave ₹{{
+                            formatAmt(p.leaveDeduction) }}</span>
+                        }
+                    </div>
+
+                    <div class="pc-footer">
+                        <span class="pc-meta"><i class="fas fa-file-invoice-dollar"></i> View payslip</span>
+                        @if (p.paidDate) {
+                        <span class="pc-meta paid-green"><i class="fas fa-check-circle"></i> Paid {{ formatDate(p.paidDate)
+                            }}</span>
+                        }
+                        <button class="pc-dl-btn" (click)="$event.stopPropagation(); downloadPayslip(p)"
+                            title="Download CSV">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+        }
+        }
+
+        <!-- ══════════════════════════════════════════
+             JOBS TAB
+        ══════════════════════════════════════════ -->
+        @if (activeTab() === 'jobs') {
+
+        <!-- Stat strip -->
+        <div class="stat-row stat-row-3">
+            <div class="stat-card sc-jobs">
+                <div class="sc-icon"><i class="fas fa-briefcase"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ visibleJobs().length }}</div>
+                    <div class="sc-lbl">Total Positions</div>
+                </div>
+            </div>
+            <div class="stat-card sc-applied">
+                <div class="sc-icon"><i class="fas fa-paper-plane"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ myApplications().length }}</div>
+                    <div class="sc-lbl">My Applications</div>
+                </div>
+            </div>
+            <div class="stat-card sc-depts">
+                <div class="sc-icon"><i class="fas fa-filter"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ filteredJobs().length }}</div>
+                    <div class="sc-lbl">Matching Jobs</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar: all filters side by side -->
+        <div class="toolbar">
+            <div class="tb-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search title, dept, location..." [value]="jobSearch()"
+                    (input)="jobSearch.set($any($event.target).value)">
+            </div>
+
+            <select class="tb-select" [value]="jobDeptFilter()" (change)="jobDeptFilter.set($any($event.target).value)">
+                <option value="all">All Departments</option>
+                @for (d of departments; track d) { <option [value]="d">{{ d }}</option> }
+            </select>
+
+            <select class="tb-select" [value]="jobTypeFilter()" (change)="jobTypeFilter.set($any($event.target).value)">
+                <option value="all">All Types</option>
+                @for (t of empTypes; track t) { <option [value]="t">{{ t }}</option> }
+            </select>
+
+            <select class="tb-select" [value]="jobMonthFilter()"
+                (change)="jobMonthFilter.set(+$any($event.target).value)">
+                <option value="0">All Months</option>
+                @for (m of months; track m.value) { <option [value]="m.value">{{ m.label }}</option> }
+            </select>
+
+            <select class="tb-select" [value]="jobYearFilter()"
+                (change)="jobYearFilter.set(+$any($event.target).value)">
+                <option value="0">All Years</option>
+                @for (yr of availableYears; track yr) { <option [value]="yr">{{ yr }}</option> }
+            </select>
+        </div>
+
+        @if (jobsLoading()) {
+        <div class="loading-state">
+            <div class="ls-spinner"><span class="mini-spin teal-spin"></span></div>
+            <div class="ls-text">Loading open positions...</div>
+        </div>
+        } @else if (filteredJobs().length === 0) {
+        <div class="empty-state">
+            <div class="es-icon"><i class="fas fa-search"></i></div>
+            <div class="es-title">No matching jobs found</div>
+            <div class="es-sub">Try adjusting your search or filters</div>
+        </div>
+        } @else {
+        <div class="jobs-grid">
+            @for (job of filteredJobs(); track job.jobId) {
+            @let alreadyApplied = appliedJobIds().has(job.jobId);
+            @let canApply = canApplyJob(job);
+            @let daysLeft = daysUntilDeadline(job.application_deadline);
+
+            <div class="job-card" [class.jc-applied]="alreadyApplied" (click)="openJobDetail(job)">
+
+                <div class="jc-top">
+                    <div class="jc-dept-av" [style.background]="getColor(job.jobId)">
+                        {{ getInitials(job.department) }}
+                    </div>
+                    <div class="jc-info">
+                        <div class="jc-title">{{ job.title }}</div>
+                        <div class="jc-dept">{{ job.department }}</div>
+                    </div>
+                    @if (!canApply) {
+                    <span class="status-badge-job" [style.background]="getJobStatusBg(job)"
+                        [style.color]="getJobStatusColor(job)">
+                        <i class="fas {{ getJobStatusIcon(job) }}"></i> {{ getJobStatusMessage(job) }}
+                    </span>
+                    } @else if (alreadyApplied) {
+                    <span class="applied-badge"><i class="fas fa-check"></i> Applied</span>
+                    } @else if (daysLeft !== null && daysLeft <= 5 && daysLeft>= 0) {
+                        <span class="urgent-badge"><i class="fas fa-fire"></i> {{ daysLeft }}d left</span>
+                        }
+                </div>
+
+                <div class="jc-tags">
+                    <span class="jc-tag"><i class="fas fa-map-marker-alt"></i>{{ job.location }}</span>
+                    <span class="jc-tag"><i class="fas fa-clock"></i>{{ job.employment_type }}</span>
+                    <span class="jc-tag"><i class="fas fa-layer-group"></i>{{ job.experience_required }}</span>
+                    <span class="jc-tag"><i class="fas fa-users"></i>{{ job.vacancies }} slot(s)</span>
+                </div>
+
+                <div class="jc-salary">
+                    <i class="fas fa-rupee-sign"></i>
+                    {{ formatSalary(job.salary_min, job.salary_max, job.currency) }}
+                </div>
+
+                @if (job.required_skills) {
+                <div class="jc-skills">
+                    @for (sk of (job.required_skills || '').split(',').slice(0, 4); track sk) {
+                    @if (sk.trim()) { <span class="skill-chip">{{ sk.trim() }}</span> }
+                    }
+                    @if ((job.required_skills || '').split(',').length > 4) {
+                    <span class="skill-chip more">+{{ (job.required_skills || '').split(',').length - 4 }}</span>
+                    }
+                </div>
+                }
+
+                <div class="jc-footer">
+                    <span class="jc-posted"><i class="fas fa-calendar-alt"></i> {{ formatDate(job.created_at ??
+                        job.createdAt) }}</span>
+                    @if (job.application_deadline) {
+                    <span class="jc-deadline" [class.past]="isDeadlinePast(job.application_deadline)">
+                        <i class="fas fa-calendar-times"></i> {{ formatDate(job.application_deadline) }}
+                    </span>
+                    }
+                </div>
+
+                <div class="jc-action-row" (click)="$event.stopPropagation()">
+                    <button class="jc-view-btn" (click)="openJobDetail(job)">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    @if (alreadyApplied) {
+                    <button class="jc-applied-btn" disabled>
+                        <i class="fas fa-check-circle"></i> Applied
+                    </button>
+                    } @else if (!canApply) {
+                    <button class="jc-closed-btn" disabled [style.background]="getJobStatusBg(job)"
+                        [style.color]="getJobStatusColor(job)">
+                        <i class="fas {{ getJobStatusIcon(job) }}"></i> {{ getJobStatusMessage(job) }}
+                    </button>
+                    } @else if (isDeadlinePast(job.application_deadline)) {
+                    <button class="jc-closed-btn" disabled>
+                        <i class="fas fa-lock"></i> Deadline Passed
+                    </button>
+                    } @else {
+                    <button class="jc-apply-btn" (click)="openApplyModal(job)"
+                        [disabled]="applyLoading() === job.jobId">
+                        @if (applyLoading() === job.jobId) {
+                        <span class="mini-spin white-spin"></span>
+                        } @else {
+                        <i class="fas fa-paper-plane"></i>
+                        }
+                        Apply Now
+                    </button>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+        }
+        }
+
+        <!-- ══════════════════════════════════════════
+             APPLIED JOBS TAB
+        ══════════════════════════════════════════ -->
+        @if (activeTab() === 'applied') {
+
+        <!-- Stat strip -->
+        <div class="stat-row stat-row-3">
+            <div class="stat-card sc-total">
+                <div class="sc-icon"><i class="fas fa-paper-plane"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ myApplications().length }}</div>
+                    <div class="sc-lbl">Total Applied</div>
+                </div>
+            </div>
+            <div class="stat-card sc-paid">
+                <div class="sc-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ myApplications().filter(a => a.applicationStatus === 'Hired').length }}</div>
+                    <div class="sc-lbl">Hired</div>
+                </div>
+            </div>
+            <div class="stat-card sc-pending">
+                <div class="sc-icon"><i class="fas fa-hourglass-half"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ myApplications().filter(a => a.applicationStatus === 'Applied' ||
+                        a.applicationStatus === 'Screening' || a.applicationStatus === 'Interview').length }}</div>
+                    <div class="sc-lbl">In Progress</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Applied jobs toolbar -->
+        <div class="toolbar">
+            <div class="tb-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search job title, department..." [value]="appliedSearch()"
+                    (input)="appliedSearch.set($any($event.target).value)">
+            </div>
+
+            <select class="tb-select" [value]="appliedStatusFilter()"
+                (change)="appliedStatusFilter.set($any($event.target).value)">
+                <option value="all">All Statuses</option>
+                @for (s of applicationStatuses; track s) { <option [value]="s">{{ s }}</option> }
+            </select>
+
+            <select class="tb-select" [value]="appliedMonthFilter()"
+                (change)="appliedMonthFilter.set(+$any($event.target).value)">
+                <option value="0">All Months</option>
+                @for (m of months; track m.value) { <option [value]="m.value">{{ m.label }}</option> }
+            </select>
+
+            <select class="tb-select" [value]="appliedYearFilter()"
+                (change)="appliedYearFilter.set(+$any($event.target).value)">
+                <option value="0">All Years</option>
+                @for (yr of availableYears; track yr) { <option [value]="yr">{{ yr }}</option> }
+            </select>
+        </div>
+
+        @if (appliedJobsLoading()) {
+        <div class="loading-state">
+            <div class="ls-spinner"><span class="mini-spin teal-spin"></span></div>
+            <div class="ls-text">Loading your applications...</div>
+        </div>
+        } @else if (filteredApplied().length === 0) {
+        <div class="empty-state">
+            <div class="es-icon"><i class="fas fa-paper-plane"></i></div>
+            <div class="es-title">No applications found</div>
+            <div class="es-sub">You haven't applied to any jobs yet. Browse openings in the Job Openings tab!</div>
+        </div>
+        } @else {
+        <div class="applied-table-card">
+            <div class="applied-table-scroll">
+                <table class="applied-table">
+                    <thead>
+                        <tr>
+                            <th>Job</th>
+                            <th>Department</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Applied On</th>
+                            <th>Status</th>
+                            <th>Resume</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (app of filteredApplied(); track app.applicationId ?? app.jobId) {
+                        <tr (click)="openAppliedJobDetail(app)">
+                            <td>
+                                <div class="app-job-cell">
+                                    <div class="app-job-avatar" [style.background]="getColor(app.jobId)">
+                                        {{ getInitials(app.department) }}
+                                    </div>
+                                    <div>
+                                        <div class="app-job-title">{{ app.jobTitle ?? 'Job #' + app.jobId }}</div>
+                                        <div class="app-job-sub">Job ID #{{ app.jobId }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ app.department || 'â€”' }}</td>
+                            <td>{{ app.employment_type || 'â€”' }}</td>
+                            <td>{{ app.location || 'â€”' }}</td>
+                            <td>{{ formatDate(app.appliedDate) }}</td>
+                            <td>
+                                <span class="apc-status-pill" [style.background]="stageBg(app.applicationStatus)"
+                                    [style.color]="stageColor(app.applicationStatus)">
+                                    <span class="spd"></span>{{ app.applicationStatus }}
+                                </span>
+                            </td>
+                            <td (click)="$event.stopPropagation()">
+                                @if (app.resumeUrl) {
+                                <a [href]="'https://localhost:44346' + app.resumeUrl" target="_blank"
+                                    class="app-resume-link">
+                                    <i class="fas fa-file-alt"></i> View
+                                </a>
+                                } @else {
+                                <span class="app-muted">Not attached</span>
+                                }
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    }
+
+    </div>
+</main>
+
+<!-- ══ PAYSLIP MODAL ══ -->
+@if (payslipModal()) {
+<div class="modal-overlay" (click)="closePayslip()">
+    <div class="payslip-modal" (click)="$event.stopPropagation()" id="payslip-print">
+
+        <div class="psm-header">
+            <div class="psm-company">
+                <div class="psm-co-icon"><i class="fas fa-building"></i></div>
+                <div>
+                    <div class="psm-co-name">HRMS Company</div>
+                    <div class="psm-co-sub">Payroll Department</div>
+                </div>
+            </div>
+            <div class="psm-period">
+                SALARY SLIP — {{ getMonthName(payslipModal()!.month) }} {{ payslipModal()!.year }}
+            </div>
+            <button class="modal-close" (click)="closePayslip()"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="psm-body">
+            <div class="psm-emp-info">
+                <div class="pei-item">
+                    <span>Employee ID</span><strong>EMP-{{ payslipModal()!.userId }}</strong>
+                </div>
+                <div class="pei-item">
+                    <span>Pay Period</span><strong>{{ getMonthName(payslipModal()!.month) }} {{ payslipModal()!.year
+                        }}</strong>
+                </div>
+                <div class="pei-item">
+                    <span>Status</span>
+                    <strong [style.color]="payslipModal()!.status === 'Paid' ? '#27ae60' : '#2980b9'">{{
+                        payslipModal()!.status }}</strong>
+                </div>
+                <div class="pei-item">
+                    <span>Generated On</span><strong>{{ formatDate(payslipModal()!.generatedDate) }}</strong>
+                </div>
+                @if (payslipModal()!.paidDate) {
+                <div class="pei-item">
+                    <span>Paid On</span><strong>{{ formatDate(payslipModal()!.paidDate) }}</strong>
+                </div>
+                }
+            </div>
+
+            <div class="psm-table">
+                <div class="psm-col earnings-col">
+                    <div class="psm-col-head">Earnings</div>
+                    <div class="psm-row"><span>Basic Salary</span><span>₹{{ formatAmt(payslipModal()!.basicSalary)
+                            }}</span></div>
+                    <div class="psm-row"><span>Allowances (HRA + Other)</span><span>₹{{
+                            formatAmt(payslipModal()!.allowances) }}</span></div>
+                    <div class="psm-total"><span>Gross Salary</span><span>₹{{ formatAmt(payslipModal()!.grossSalary)
+                            }}</span></div>
+                </div>
+                <div class="psm-col deductions-col">
+                    <div class="psm-col-head">Deductions</div>
+                    <div class="psm-row"><span>Provident Fund (12%)</span><span>₹{{ formatAmt(payslipModal()!.pf)
+                            }}</span></div>
+                    <div class="psm-row"><span>Tax Deduction (TDS)</span><span>₹{{
+                            formatAmt(payslipModal()!.taxDeduction) }}</span></div>
+                    <div class="psm-row"><span>Leave Deduction</span><span>₹{{ formatAmt(payslipModal()!.leaveDeduction)
+                            }}</span></div>
+                    @if (payslipModal()!.unpaidLeaveDays) {
+                    <div class="psm-row muted"><span>Unpaid Leave Days</span><span>{{ payslipModal()!.unpaidLeaveDays }}
+                            day(s)</span></div>
+                    }
+                    <div class="psm-total red-total"><span>Total Deductions</span><span>₹{{
+                            formatAmt(payslipModal()!.totalDeductions) }}</span></div>
+                </div>
+            </div>
+
+            <div class="psm-net-banner">
+                <span>Net Salary Payable</span>
+                <strong>₹{{ formatAmt(payslipModal()!.netSalary) }}</strong>
+            </div>
+        </div>
+
+        <div class="psm-footer">
+            <button class="psm-print" (click)="printPayslip()"><i class="fas fa-print"></i> Print</button>
+            <button class="psm-dl" (click)="downloadPayslip(payslipModal()!)"><i class="fas fa-download"></i> Download
+                CSV</button>
+            <button class="psm-close" (click)="closePayslip()">Close</button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ══ JOB DETAIL MODAL ══ -->
+@if (jobDetailModal()) {
+<div class="modal-overlay" (click)="closeJobDetail()">
+    <div class="job-detail-modal" (click)="$event.stopPropagation()">
+
+        <div class="jdm-header">
+            <div class="jdm-hero">
+                <div class="jdm-icon" [style.background]="getColor(jobDetailModal()!.jobId)">
+                    {{ getInitials(jobDetailModal()!.department) }}
+                </div>
+                <div>
+                    <div class="jdm-title">{{ jobDetailModal()!.title }}</div>
+                    <div class="jdm-sub">{{ jobDetailModal()!.department }} · {{ jobDetailModal()!.location }}</div>
+                </div>
+            </div>
+            <button class="modal-close" (click)="closeJobDetail()"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="jdm-body">
+            <div class="jdm-info-grid">
+                <div class="jig"><span>Type</span><strong>{{ jobDetailModal()!.employment_type }}</strong></div>
+                <div class="jig"><span>Experience</span><strong>{{ jobDetailModal()!.experience_required }}</strong>
+                </div>
+                <div class="jig"><span>Vacancies</span><strong>{{ jobDetailModal()!.vacancies }} open</strong></div>
+                <div class="jig"><span>Salary</span><strong>{{ formatSalary(jobDetailModal()!.salary_min,
+                        jobDetailModal()!.salary_max, jobDetailModal()!.currency) }}</strong></div>
+                <div class="jig"><span>Deadline</span>
+                    <strong [class.red-text]="isDeadlinePast(jobDetailModal()!.application_deadline)">
+                        {{ formatDate(jobDetailModal()!.application_deadline) }}
+                    </strong>
+                </div>
+                <div class="jig"><span>Status</span>
+                    <strong [style.color]="canApplyJob(jobDetailModal()!) ? '#27ae60' : '#e67e22'">
+                        {{ jobDetailModal()!.status }}
+                    </strong>
+                </div>
+                <div class="jig"><span>Posted On</span><strong>{{ formatDate(jobDetailModal()!.created_at ??
+                        jobDetailModal()!.createdAt) }}</strong></div>
+            </div>
+
+            @if (jobDetailModal()!.description) {
+            <div class="jdm-section">
+                <div class="jdm-sec-title"><i class="fas fa-align-left"></i> Description</div>
+                <p class="jdm-text">{{ jobDetailModal()!.description }}</p>
+            </div>
+            }
+            @if (jobDetailModal()!.responsibilities) {
+            <div class="jdm-section">
+                <div class="jdm-sec-title"><i class="fas fa-tasks"></i> Responsibilities</div>
+                <p class="jdm-text">{{ jobDetailModal()!.responsibilities }}</p>
+            </div>
+            }
+            @if (jobDetailModal()!.required_skills) {
+            <div class="jdm-section">
+                <div class="jdm-sec-title"><i class="fas fa-code"></i> Required Skills</div>
+                <div class="jdm-skills">
+                    @for (sk of (jobDetailModal()!.required_skills || '').split(','); track sk) {
+                    @if (sk.trim()) { <span class="skill-chip">{{ sk.trim() }}</span> }
+                    }
+                </div>
+            </div>
+            }
+            @if (jobDetailModal()!.qualifications) {
+            <div class="jdm-section">
+                <div class="jdm-sec-title"><i class="fas fa-graduation-cap"></i> Qualifications</div>
+                <p class="jdm-text">{{ jobDetailModal()!.qualifications }}</p>
+            </div>
+            }
+        </div>
+
+        <div class="jdm-footer">
+            @if (appliedJobIds().has(jobDetailModal()!.jobId)) {
+            <button class="jdm-applied-btn" disabled><i class="fas fa-check-circle"></i> Already Applied</button>
+            } @else if (!canApplyJob(jobDetailModal()!)) {
+            <span class="deadline-note" style="color:#e67e22"><i class="fas fa-pause-circle"></i> Applications not
+                accepted — {{ jobDetailModal()!.status }}</span>
+            } @else if (!isDeadlinePast(jobDetailModal()!.application_deadline)) {
+            <button class="jdm-apply-btn" (click)="openApplyModal(jobDetailModal()!); closeJobDetail()">
+                <i class="fas fa-paper-plane"></i> Apply Now
+            </button>
+            } @else {
+            <span class="deadline-note"><i class="fas fa-lock"></i> Application deadline has passed</span>
+            }
+            <button class="psm-close ml-auto" (click)="closeJobDetail()">Close</button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ══ APPLY MODAL ══ -->
+@if (applyModal()) {
+<div class="modal-overlay" (click)="closeApplyModal()">
+    <div class="apply-modal" (click)="$event.stopPropagation()">
+
+        <div class="apm-header">
+            <div class="apm-icon"><i class="fas fa-paper-plane"></i></div>
+            <div>
+                <div class="apm-title">Apply for Position</div>
+                <div class="apm-sub">{{ applyModal()!.title }} · {{ applyModal()!.department }}</div>
+            </div>
+            <button class="modal-close" (click)="closeApplyModal()"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="apm-body">
+            @if (applySuccess()) {
+            <div class="apply-success">
+                <div class="as-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="as-title">Application Submitted!</div>
+                <div class="as-sub">Your application for <strong>{{ applyModal()!.title }}</strong> has been sent. We'll
+                    be in touch!</div>
+            </div>
+            } @else {
+            <div class="apm-job-preview">
+                <div class="ajp-row"><i class="fas fa-map-marker-alt"></i><span>{{ applyModal()!.location }}</span>
+                </div>
+                <div class="ajp-row"><i class="fas fa-clock"></i><span>{{ applyModal()!.employment_type }}</span></div>
+                <div class="ajp-row"><i class="fas fa-rupee-sign"></i><span>{{ formatSalary(applyModal()!.salary_min,
+                        applyModal()!.salary_max, applyModal()!.currency) }}</span></div>
+                @if (applyModal()!.application_deadline) {
+                <div class="ajp-row" [class.red-row]="isDeadlinePast(applyModal()!.application_deadline)">
+                    <i class="fas fa-calendar-times"></i>
+                    <span>Deadline: {{ formatDate(applyModal()!.application_deadline) }}</span>
+                </div>
+                }
+            </div>
+
+            <div class="apm-field">
+                <label>Upload Your Resume <span class="req-note">(PDF, DOC, DOCX · max 5 MB) *</span></label>
+                @if (!resumeFile()) {
+                <label class="resume-dropzone" for="emp-resume-upload">
+                    <div class="rdz-icon"><i class="fas fa-file-upload"></i></div>
+                    <div class="rdz-text">
+                        <span class="rdz-main">Click to upload your resume</span>
+                        <span class="rdz-sub">PDF, DOC, DOCX — max 5 MB</span>
+                    </div>
+                    <input id="emp-resume-upload" type="file" accept=".pdf,.doc,.docx" class="rdz-input"
+                        (change)="onResumeSelected($event)">
+                </label>
+                } @else {
+                <div class="resume-preview">
+                    <div class="rp-icon">
+                        <i class="fas fa-{{ resumeFile()!.name.endsWith('.pdf') ? 'file-pdf' : 'file-word' }}"></i>
+                    </div>
+                    <div class="rp-info">
+                        <div class="rp-name">{{ resumeFile()!.name }}</div>
+                        <div class="rp-size">{{ (resumeFile()!.size / 1024).toFixed(0) }} KB</div>
+                    </div>
+                    <button class="rp-remove" (click)="clearResume()" type="button"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                }
+            </div>
+
+            @if (applyError()) {
+            <div class="apm-error"><i class="fas fa-exclamation-triangle"></i> {{ applyError() }}</div>
+            }
+
+            <div class="apm-note">
+                <i class="fas fa-info-circle"></i>
+                Only one application per job is allowed. Ensure your resume is up to date before submitting.
+            </div>
+            }
+        </div>
+
+        @if (!applySuccess()) {
+        <div class="apm-footer">
+            <button class="psm-close" (click)="closeApplyModal()">Cancel</button>
+            <button class="apm-submit" (click)="submitApplication()"
+                [disabled]="applyLoading() === applyModal()!.jobId || !resumeFile()">
+                @if (applyLoading() === applyModal()!.jobId) {
+                <span class="mini-spin white-spin"></span> Submitting...
+                } @else {
+                <i class="fas fa-paper-plane"></i> Submit Application
+                }
+            </button>
+        </div>
+        }
+    </div>
+</div>
+}

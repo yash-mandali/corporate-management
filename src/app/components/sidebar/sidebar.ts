@@ -28,8 +28,51 @@ export class Sidebar {
     this.role.set(this.auth.getRole())
     this.userId.set(this.auth.getUserId())
   }
+  menuItems = computed(() => {
+    const role = this.role();
+
+    const menus: Record<string, any[]> = {
+      Employee: [
+        { label: 'Dashboard', route: '/dashboard/dashboardpage', icon: 'fas fa-chart-line' },
+        { label: 'My Requests', route: '/dashboard/leavepage', icon: 'fas fa-paper-plane' },
+        { label: 'Attendance', route: '/dashboard/attendance', icon: 'fas fa-clock' },
+        { label: 'TimeSheet', route: '/dashboard/timesheet', icon: 'fas fa-tasks' },
+        { label: 'Salary & Payroll', route: '/dashboard/salarypayroll', icon: 'fas fa-coins' },
+        { label: 'Profile', route: '/dashboard/myprofile', icon: 'fas fa-user' },
+      ],
+      Manager: [
+        { label: 'Dashboard', route: '/dashboard/managerdashboard', icon: 'fas fa-chart-line' },
+        { label: 'Attendance', route: '/dashboard/managerattendance', icon: 'fas fa-clock' },
+        { label: 'Leave', route: '/dashboard/managerleave', icon: 'fas fa-calendar-alt' },
+        { label: 'Timesheet', route: '/dashboard/managertimesheet', icon: 'fas fa-tasks' },
+        { label: 'Team', route: '/dashboard/managerteams', icon: 'fas fa-users' },
+        { label: 'Performance', route: '/dashboard/teamperformance', icon: 'fas fa-chart-bar' },
+      ],
+      HR: [
+        { label: 'Dashboard', route: '/dashboard/hrdashboard', icon: 'fas fa-chart-line' },
+        { label: 'Employees', route: '/dashboard/hremployees', icon: 'fas fa-users' },
+        { label: 'Leaves', route: '/dashboard/hrleave', icon: 'fas fa-calendar-alt' },
+        { label: 'Attendance', route: '/dashboard/hrattendance', icon: 'fas fa-clock' },
+        { label: 'Payroll', route: '/dashboard/hrpayroll', icon: 'fas fa-coins' },
+        { label: 'Recruitment', route: '/dashboard/hrRecruitment', icon: 'fas fa-bullhorn' },
+      ],
+      Admin: [
+        { label: 'Dashboard', route: '/dashboard/admindashboard', icon: 'fas fa-chart-line' },
+        { label: 'Attendance', route: '/dashboard/attendancemanagement', icon: 'fas fa-clock' },
+        { label: 'Leave Management', route: '/dashboard/leavemanagement', icon: 'fas fa-calendar-alt' },
+        { label: 'User Management', route: '/dashboard/usermanagement', icon: 'fas fa-users' },
+      ],
+    };
+
+    return menus[role] || [{ label: 'Dashboard', route: '/dashboard', icon: 'fas fa-tachometer-alt' }];
+  });
+
+  trackByRoute(index: number, item: any) {
+    return item.route;
+  }
 
   logout() {
+    if (this.isLoggingOut) return;
     this.isLoggingOut = true;
     setTimeout(() => {
       this.auth.Logout();

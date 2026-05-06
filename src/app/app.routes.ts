@@ -48,6 +48,14 @@ export const routes: Routes = [
                 data: { roles: ['Employee'] }
             },
             {
+                path: 'salarypayroll',
+                loadComponent: () =>
+                    import('./pages/payroll-recruitment-page/payroll-recruitment-page').then(m => m.PayrollRecruitmentPage),
+                canActivate: [authGuard, roleGuard],
+                data: { roles: ['Employee'] }
+            },
+            
+            {
                 path: 'myprofile',
                 loadComponent: () =>
                     import('./pages/myprofile/myprofile').then(m => m.MyProfile),

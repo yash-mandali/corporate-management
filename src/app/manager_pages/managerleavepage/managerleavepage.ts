@@ -136,6 +136,7 @@ export class ManagerLeavepage implements OnInit {
     this.leaveLoading.set(true);
     this.leaveService.getTeamAllleaves(this.managerId()).subscribe({
       next: (res: any) => {
+       // console.log("getTeamAllLeaves called:",res);
         const list = Array.isArray(res) ? res : res?.data ?? (res ? [res] : []);
         this.allLeaves.set(list);
         this.leaveLoading.set(false);

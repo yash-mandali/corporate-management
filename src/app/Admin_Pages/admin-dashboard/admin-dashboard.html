@@ -1,6 +1,5 @@
 <main class="main">
     <div class="content">
-
         <!-- ══ HERO BANNER ══ -->
         <div class="hero-banner">
             <div class="hero-bg">
@@ -498,7 +497,7 @@
                                     }
                                 </div>
                                 @if (leave.reason) {
-                                <div class="lv-reason">"{{ leave.reason }}"</div>
+                                <div class="lv-reason">"{{ leave.reason.length > 25 ? (leave.reason | slice:0:25)+ '...' : leave.reason || '—' }}"</div>
                                 }
                             </div>
                             <div class="lv-right">

@@ -3,7 +3,6 @@
     <span class="welcome">Welcome, {{ userName() }}</span>
     <span class="top-date">{{ currentDate }}</span>
 
-    <!-- ── NOTIFICATION BELL ── -->
     <div class="notif-wrap" (click)="toggleNotif($event)">
         <button class="notif-btn" [class.notif-active]="notifOpen()" aria-label="Notifications">
             <i class="fas fa-bell"></i>

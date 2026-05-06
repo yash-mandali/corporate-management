@@ -237,7 +237,7 @@ export class HrPayroll implements OnInit {
 
   ngOnInit() {
     this.isLoading.set(true);
-    this.userService.getAllEmployee().subscribe({
+    this.userService.getAllEmployeeManager().subscribe({
       next: (res: any) => {
         this.allEmployees.set(Array.isArray(res) ? res : res ? [res] : []);
         this.isLoading.set(false);

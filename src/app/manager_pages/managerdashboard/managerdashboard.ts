@@ -360,7 +360,7 @@ export class ManagerDashboard implements OnInit, OnDestroy {
           ? res[0]?.data ?? res
           : res?.data ?? (res ? [res] : []);
         this.pendingLeaves.set(list);
-        console.log("pending leaves: ",this.pendingLeaves());
+      //  console.log("pending leaves: ",this.pendingLeaves());
         
         this.leaveLoading.set(false);
       },

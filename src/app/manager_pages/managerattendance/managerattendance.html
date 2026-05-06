@@ -22,6 +22,9 @@
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
+                <button class="btn-today" (click)="openExportModal()">
+                    <i class="fas fa-cloud-download"></i> Export
+                </button>
                 <button class="btn-today" (click)="goToday()" [disabled]="isToday()">
                     <i class="fas fa-crosshairs"></i> Today
                 </button>
@@ -139,7 +142,6 @@
                     <table>
                         <thead>
                             <tr>
-                            
                                 <th>Employee</th>
                                 <th>Clock In</th>
                                 <th>Clock Out</th>
@@ -151,7 +153,6 @@
                             @for (r of pagedRecords(); track r.userId; let i = $index) {
                             <tr (click)="selectRecord(r)" [class.tr-selected]="selectedRecord()?.userId === r.userId"
                                 class="tr-{{ r.status | lowercase }}">
-                               
                                 <td class="td-emp">
                                     <div class="emp-cell">
                                         <div class="emp-avatar" [style.background]="getColor(r.userId)">{{ r.initials }}
@@ -234,7 +235,6 @@
                 </div>
 
                 <div class="dp-body">
-                    <!-- Time blocks -->
                     <div class="dp-time-row">
                         <div class="dp-time-block">
                             <div class="dtb-icon in"><i class="fas fa-sign-in-alt"></i></div>
@@ -253,7 +253,6 @@
                         </div>
                     </div>
 
-                    <!-- Hours block -->
                     <div class="dp-hours-block">
                         <div class="dhb-icon"><i class="fas fa-hourglass-half"></i></div>
                         <div>
@@ -262,7 +261,6 @@
                         </div>
                     </div>
 
-                    <!-- Date block -->
                     <div class="dp-info-block">
                         <div class="dib-row">
                             <span class="dib-key"><i class="fas fa-calendar"></i> Date</span>
@@ -286,4 +284,89 @@
 
         </div>
     </div>
+
+    <!-- ── EXPORT MODAL ── -->
+    @if (showExportModal()) {
+    <div class="modal-backdrop" (click)="closeExportModal()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <div class="modal-icon"><i class="fas fa-cloud-download"></i></div>
+                    <div>
+                        <div class="modal-title">Export Team Attendance</div>
+                        <div class="modal-sub">Download your team's attendance data as Excel</div>
+                    </div>
+                </div>
+                <button class="modal-close" (click)="closeExportModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="modal-section-label">Date Range</div>
+                <div class="modal-date-row">
+                    <div class="modal-field">
+                        <label class="mf-label"><i class="fas fa-calendar-alt"></i> From Date</label>
+                        <input type="date" class="mf-input" [value]="exportFromDate()"
+                            (change)="exportFromDate.set($any($event.target).value)">
+                    </div>
+                    <div class="modal-date-sep"><i class="fas fa-arrow-right"></i></div>
+                    <div class="modal-field">
+                        <label class="mf-label"><i class="fas fa-calendar-alt"></i> To Date</label>
+                        <input type="date" class="mf-input" [value]="exportToDate()"
+                            (change)="exportToDate.set($any($event.target).value)">
+                    </div>
+                </div>
+
+                <div class="modal-section-label" style="margin-top:20px">
+                    Filter by Employee <span class="optional-tag">Optional</span>
+                </div>
+
+                <div class="modal-field">
+                    <label class="mf-label"><i class="fas fa-user"></i> Team Member</label>
+                    <div class="mf-select-wrap">
+                        <select class="mf-select"
+                            (change)="exportUserId.set($any($event.target).value ? +$any($event.target).value : null)">
+                            <option value="">All Team Members</option>
+                            @for (u of ManagerTeam(); track u.id) {
+                            <option [value]="u.id" [selected]="exportUserId() === u.id">
+                                {{ u.userName }} ({{ u.roleName }})
+                            </option>
+                            }
+                        </select>
+                        <i class="fas fa-chevron-down mf-chevron"></i>
+                    </div>
+                </div>
+
+                <div class="export-summary">
+                    <i class="fas fa-info-circle"></i>
+                    <span>
+                        Exporting records from <strong>{{ exportFromDate() }}</strong> to
+                        <strong>{{ exportToDate() }}</strong>
+                        @if (exportUserId()) { · <strong>1 member selected</strong> }
+                        @else { · <strong>Entire team</strong> }
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="modal-btn-cancel" (click)="closeExportModal()" [disabled]="isExporting()">
+                    Cancel
+                </button>
+                <button class="modal-btn-export" (click)="submitExport()" [disabled]="isExporting()">
+                    @if (isExporting()) {
+                    <span class="export-spinner"></span> Exporting...
+                    } @else {
+                    <i class="fas fa-download"></i> Export Report
+                    }
+                </button>
+            </div>
+
+        </div>
+    </div>
+    }
+
 </main>

@@ -168,8 +168,8 @@ export class Dashboardpage implements OnInit, OnDestroy {
   loadUser() {
     this.userService.getUserById(this.userId()).subscribe({
       next: res => {
-        this.userInfo.set(res),
-          console.log("loaduser:: ",this.userInfo());
+        this.userInfo.set(res)
+        //  console.log("loaduser:: ",this.userInfo());
      
       },
       error: err => console.error(err)

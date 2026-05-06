@@ -167,7 +167,7 @@ export class HrAttendancePage implements OnInit {
     this.attendanceService.getAllattendance().subscribe({
       next: (res: any) => {
         this.allAttendance.set(Array.isArray(res) ? res : res ? [res] : []);
-        console.log('Loaded attendance records:', this.allAttendance());
+       // console.log('Loaded attendance records:', this.allAttendance());
         this.isLoading.set(false);
       },
       error: err => { console.error('loadAllAttendance:', err); this.isLoading.set(false); }
@@ -273,7 +273,7 @@ export class HrAttendancePage implements OnInit {
           } else {
             this.toast.error('Failed to export report. Please try again.');
           }
-          console.log('Export error:', error);
+          //console.log('Export error:', error);
         }
       });
   }

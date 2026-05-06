@@ -21,7 +21,7 @@ body {
     gap: 20px;
 }
 
-/* ══ PAGE HEADER ══ */
+/* â•â• PAGE HEADER â•â• */
 .page-header {
     display: flex;
     align-items: center;
@@ -44,19 +44,19 @@ body {
     display: grid;
     place-items: center;
     color: #fff;
-    font-size: 18px;
+    font-size: 17px;
     flex-shrink: 0;
     box-shadow: 0 4px 14px rgba(9, 99, 126, 0.28);
 }
 
 .ph-title {
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 900;
     color: #0d2d36;
 }
 
 .ph-sub {
-    font-size: 12px;
+    font-size: 11px;
     color: #5a8a94;
     font-weight: 600;
     margin-top: 3px;
@@ -89,7 +89,7 @@ body {
     border: none;
     background: transparent;
     font-family: 'Nunito', sans-serif;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     color: #5a8a94;
     cursor: pointer;
@@ -116,7 +116,7 @@ body {
     border-radius: 9px;
     background: #27ae60;
     color: #fff;
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 900;
     padding: 0 5px;
 }
@@ -129,7 +129,7 @@ body {
     background: rgba(255, 255, 255, 0.25);
 }
 
-/* ══ STAT ROW ══ */
+/* â•â• STAT ROW â•â• */
 .stat-row {
     display: grid;
     gap: 14px;
@@ -206,7 +206,7 @@ body {
     border-radius: 10px;
     display: grid;
     place-items: center;
-    font-size: 16px;
+    font-size: 15px;
     flex-shrink: 0;
 }
 
@@ -246,14 +246,14 @@ body {
 }
 
 .sc-val {
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 900;
     color: #0d2d36;
     line-height: 1;
 }
 
 .sc-lbl {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     color: #5a8a94;
     text-transform: uppercase;
@@ -261,7 +261,7 @@ body {
     margin-top: 3px;
 }
 
-/* ══ TOOLBAR ══ */
+/* â•â• TOOLBAR â•â• */
 .toolbar {
     display: flex;
     align-items: center;
@@ -285,7 +285,7 @@ body {
 
 .tb-search i {
     color: #5a8a94;
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .tb-search input {
@@ -294,7 +294,7 @@ body {
     outline: none;
     background: transparent;
     font-family: 'Nunito', sans-serif;
-    font-size: 13px;
+    font-size: 12px;
     color: #0d2d36;
     width: 100%;
 }
@@ -309,7 +309,7 @@ body {
     border: 1px solid #d6eaee;
     background: #fff;
     font-family: 'Nunito', sans-serif;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     color: #0d2d36;
     outline: none;
@@ -336,7 +336,7 @@ body {
     border: none;
     background: transparent;
     font-family: 'Nunito', sans-serif;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: #5a8a94;
     cursor: pointer;
@@ -360,7 +360,240 @@ body {
     background: #ebf4f6;
 }
 
-/* ══ LOADING / EMPTY ══ */
+.view-switcher {
+    display: flex;
+    gap: 3px;
+    background: #fff;
+    border: 1px solid #d6eaee;
+    border-radius: 9px;
+    padding: 3px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(9, 99, 126, 0.05);
+}
+
+.view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 11px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #5a8a94;
+    font-family: 'Nunito', sans-serif;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.view-btn.active {
+    background: #09637e;
+    color: #fff;
+}
+
+.view-btn:not(.active):hover {
+    background: #ebf4f6;
+}
+
+.data-table-card {
+    background: #fff;
+    border: 1px solid #d6eaee;
+    border-radius: 14px;
+    box-shadow: 0 1px 6px rgba(9, 99, 126, 0.05);
+    overflow: hidden;
+}
+
+.data-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    min-width: 1040px;
+    border-collapse: collapse;
+}
+
+.jobs-table {
+    min-width: 1180px;
+}
+
+.data-table th {
+    padding: 11px 13px;
+    background: #f7fbfc;
+    border-bottom: 1px solid #d6eaee;
+    color: #5a8a94;
+    font-size: 9px;
+    font-weight: 800;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: 12px 13px;
+    border-bottom: 1px solid #f0f8fa;
+    color: #0d2d36;
+    font-size: 11px;
+    font-weight: 700;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.data-table tbody tr {
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.data-table tbody tr:hover {
+    background: #f7fbfc;
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.period-cell,
+.job-table-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 220px;
+}
+
+.period-chip {
+    width: 42px;
+    height: 34px;
+    border-radius: 9px;
+    border: 1px solid #cfe7ec;
+    background: linear-gradient(180deg, #f7fbfc, #ebf4f6);
+    color: #09637e;
+    display: grid;
+    place-items: center;
+    font-size: 10px;
+    font-weight: 900;
+    flex-shrink: 0;
+}
+
+.job-table-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 900;
+    flex-shrink: 0;
+}
+
+.table-strong {
+    font-size: 12px;
+    font-weight: 900;
+    color: #0d2d36;
+}
+
+.table-muted {
+    font-size: 9px;
+    font-weight: 700;
+    color: #5a8a94;
+    margin-top: 2px;
+}
+
+.amount-cell {
+    font-weight: 900 !important;
+    text-align: right;
+}
+
+.amount-cell.primary {
+    color: #09637e;
+}
+
+.amount-cell.danger,
+.danger {
+    color: #c0392b !important;
+}
+
+.table-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.icon-action {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    border: 1px solid #d6eaee;
+    background: #fff;
+    color: #09637e;
+    display: inline-grid;
+    place-items: center;
+    font-size: 9px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.icon-action:hover {
+    background: #09637e;
+    border-color: #09637e;
+    color: #fff;
+}
+
+.open-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.table-apply {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 86px;
+    padding: 7px 12px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #09637e, #088395);
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(9, 99, 126, 0.18);
+}
+
+.table-apply.applied {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+    box-shadow: none;
+}
+
+.table-apply.closed {
+    background: rgba(127, 140, 141, 0.1);
+    color: #7f8c8d;
+    box-shadow: none;
+}
+
+.table-apply:disabled {
+    cursor: not-allowed;
+}
+
+.row-applied td:first-child {
+    box-shadow: inset 3px 0 0 #27ae60;
+}
+
+/* â•â• LOADING / EMPTY â•â• */
 .loading-state {
     display: flex;
     flex-direction: column;
@@ -373,11 +606,11 @@ body {
 }
 
 .ls-spinner {
-    font-size: 20px;
+    font-size: 19px;
 }
 
 .ls-text {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: #5a8a94;
 }
@@ -401,24 +634,24 @@ body {
     background: #ebf4f6;
     display: grid;
     place-items: center;
-    font-size: 24px;
+    font-size: 23px;
     color: #5a8a94;
     margin-bottom: 4px;
 }
 
 .es-title {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 900;
     color: #0d2d36;
 }
 
 .es-sub {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: #5a8a94;
 }
 
-/* ══ PAYROLL GRID — REDESIGNED CARD ══ */
+/* â•â• PAYROLL GRID â€” REDESIGNED CARD â•â• */
 .payroll-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -491,20 +724,20 @@ body {
 }
 
 .pc-month-chip span {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 900;
     line-height: 1;
 }
 
 .pc-month-chip small {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     color: #5a8a94;
     margin-top: 4px;
 }
 
 .pc-period {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 900;
     color: #0d2d36;
     white-space: nowrap;
@@ -513,7 +746,7 @@ body {
 }
 
 .pc-sub {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     color: #5a8a94;
     margin-top: 3px;
@@ -525,7 +758,7 @@ body {
     gap: 4px;
     padding: 3px 9px;
     border-radius: 20px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     flex-shrink: 0;
 }
@@ -559,7 +792,7 @@ body {
 }
 
 .pc-net-label {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     color: #5a8a94;
     text-transform: uppercase;
@@ -567,14 +800,14 @@ body {
 }
 
 .pc-net-help {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: #0d2d36;
     margin-top: 4px;
 }
 
 .pc-net-value {
-    font-size: 24px;
+    font-size: 23px;
     font-weight: 900;
     color: #09637e;
     line-height: 1;
@@ -606,7 +839,7 @@ body {
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     color: #5a8a94;
     text-transform: uppercase;
@@ -614,7 +847,7 @@ body {
 
 .pc-metric-label i {
     color: #27ae60;
-    font-size: 9px;
+    font-size: 8px;
 }
 
 .pc-metric-label.danger i {
@@ -624,7 +857,7 @@ body {
 .pc-metric strong,
 .pc-bk-val {
     display: block;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
     color: #0d2d36;
     margin-top: 5px;
@@ -644,7 +877,7 @@ body {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     color: #5a8a94;
     background: #fff;
@@ -654,7 +887,7 @@ body {
 }
 
 .pc-chip i {
-    font-size: 9px;
+    font-size: 8px;
     color: #09637e;
 }
 
@@ -671,14 +904,14 @@ body {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
     color: #5a8a94;
 }
 
 .pc-meta i {
     color: #09637e;
-    font-size: 9px;
+    font-size: 8px;
 }
 
 .paid-green {
@@ -700,7 +933,7 @@ body {
     cursor: pointer;
     display: grid;
     place-items: center;
-    font-size: 10px;
+    font-size: 9px;
     transition: all 0.15s;
     flex-shrink: 0;
 }
@@ -711,7 +944,7 @@ body {
     color: #fff;
 }
 
-/* ══ JOBS GRID ══ */
+/* â•â• JOBS GRID â•â• */
 .jobs-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -753,7 +986,7 @@ body {
     display: grid;
     place-items: center;
     color: #fff;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 900;
     flex-shrink: 0;
 }
@@ -764,7 +997,7 @@ body {
 }
 
 .jc-title {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 900;
     color: #0d2d36;
     white-space: nowrap;
@@ -773,7 +1006,7 @@ body {
 }
 
 .jc-dept {
-    font-size: 11px;
+    font-size: 10px;
     color: #5a8a94;
     font-weight: 600;
     margin-top: 2px;
@@ -787,7 +1020,7 @@ body {
     border-radius: 20px;
     background: rgba(39, 174, 96, 0.1);
     color: #27ae60;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     flex-shrink: 0;
 }
@@ -798,7 +1031,7 @@ body {
     gap: 4px;
     padding: 3px 9px;
     border-radius: 20px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     flex-shrink: 0;
 }
@@ -811,7 +1044,7 @@ body {
     border-radius: 20px;
     background: rgba(192, 57, 43, 0.1);
     color: #c0392b;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     flex-shrink: 0;
     animation: pulse 2s infinite;
@@ -839,7 +1072,7 @@ body {
     display: flex;
     align-items: center;
     gap: 3px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
     color: #5a8a94;
     background: #f5fafb;
@@ -849,12 +1082,12 @@ body {
 }
 
 .jc-tag i {
-    font-size: 9px;
+    font-size: 8px;
     color: #09637e;
 }
 
 .jc-salary {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 900;
     color: #09637e;
     display: flex;
@@ -873,7 +1106,7 @@ body {
     border-radius: 20px;
     background: rgba(9, 99, 126, 0.07);
     color: #09637e;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     border: 1px solid rgba(9, 99, 126, 0.12);
 }
@@ -899,14 +1132,14 @@ body {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
     color: #5a8a94;
 }
 
 .jc-posted i {
     color: #09637e;
-    font-size: 9px;
+    font-size: 8px;
 }
 
 .jc-deadline.past {
@@ -929,7 +1162,7 @@ body {
     background: #fff;
     color: #09637e;
     font-family: 'Nunito', sans-serif;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.15s;
@@ -950,7 +1183,7 @@ body {
     background: linear-gradient(135deg, #09637e, #088395);
     color: #fff;
     font-family: 'Nunito', sans-serif;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(9, 99, 126, 0.22);
@@ -979,7 +1212,7 @@ body {
     background: rgba(39, 174, 96, 0.1);
     color: #27ae60;
     font-family: 'Nunito', sans-serif;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
     cursor: not-allowed;
     flex: 1;
@@ -996,7 +1229,7 @@ body {
     background: rgba(127, 140, 141, 0.1);
     color: #7f8c8d;
     font-family: 'Nunito', sans-serif;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     cursor: not-allowed;
     flex: 1;
@@ -1028,7 +1261,7 @@ body {
     background: #f7fbfc;
     border-bottom: 1px solid #d6eaee;
     color: #5a8a94;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -1040,7 +1273,7 @@ body {
     padding: 13px 14px;
     border-bottom: 1px solid #f0f8fa;
     color: #0d2d36;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     vertical-align: middle;
 }
@@ -1072,20 +1305,20 @@ body {
     display: grid;
     place-items: center;
     color: #fff;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 900;
     flex-shrink: 0;
 }
 
 .app-job-title {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 900;
     color: #0d2d36;
 }
 
 .app-job-sub,
 .app-muted {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     color: #5a8a94;
     margin-top: 2px;
@@ -1100,7 +1333,7 @@ body {
     border: 1px solid #d6eaee;
     color: #09637e;
     background: #fff;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
     text-decoration: none;
     transition: all 0.15s;
@@ -1112,7 +1345,7 @@ body {
     color: #fff;
 }
 
-/* ══ APPLIED JOBS GRID ══ */
+/* â•â• APPLIED JOBS GRID â•â• */
 .applied-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
@@ -1162,7 +1395,7 @@ body {
     display: grid;
     place-items: center;
     color: #fff;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 900;
     flex-shrink: 0;
 }
@@ -1173,7 +1406,7 @@ body {
 }
 
 .apc-title {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 900;
     color: #0d2d36;
     white-space: nowrap;
@@ -1182,7 +1415,7 @@ body {
 }
 
 .apc-dept {
-    font-size: 11px;
+    font-size: 10px;
     color: #5a8a94;
     font-weight: 600;
     margin-top: 2px;
@@ -1194,7 +1427,7 @@ body {
     gap: 4px;
     padding: 4px 10px;
     border-radius: 20px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     flex-shrink: 0;
 }
@@ -1209,7 +1442,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
     color: #5a8a94;
     background: #f7fbfc;
@@ -1223,7 +1456,7 @@ body {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: #09637e;
     text-decoration: none;
@@ -1255,7 +1488,7 @@ body {
     background: #f0f8fa;
     border: 2px solid #d6eaee;
     color: #5a8a94;
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 800;
     flex-shrink: 0;
     transition: all 0.2s;
@@ -1266,7 +1499,7 @@ body {
     background: #27ae60;
     border-color: #27ae60;
     color: #fff;
-    font-size: 9px;
+    font-size: 8px;
 }
 
 .apc-stage-dot.active {
@@ -1296,7 +1529,7 @@ body {
 }
 
 .stage-num {
-    font-size: 8px;
+    font-size: 7px;
     font-weight: 900;
 }
 
@@ -1304,7 +1537,7 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
     color: #c0392b;
     background: rgba(192, 57, 43, 0.06);
@@ -1313,7 +1546,7 @@ body {
     border: 1px solid rgba(192, 57, 43, 0.12);
 }
 
-/* ══ MODALS ══ */
+/* â•â• MODALS â•â• */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -1361,7 +1594,7 @@ body {
     cursor: pointer;
     display: grid;
     place-items: center;
-    font-size: 11px;
+    font-size: 10px;
     transition: all 0.15s;
     flex-shrink: 0;
 }
@@ -1370,7 +1603,7 @@ body {
     background: rgba(255, 255, 255, 0.25);
 }
 
-/* ── Payslip Modal ── */
+/* â”€â”€ Payslip Modal â”€â”€ */
 .payslip-modal {
     background: #fff;
     border-radius: 16px;
@@ -1406,25 +1639,25 @@ body {
     background: rgba(255, 255, 255, 0.18);
     display: grid;
     place-items: center;
-    font-size: 14px;
+    font-size: 13px;
     color: #fff;
     flex-shrink: 0;
 }
 
 .psm-co-name {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 900;
     color: #fff;
 }
 
 .psm-co-sub {
-    font-size: 10px;
+    font-size: 9px;
     color: rgba(255, 255, 255, 0.65);
     font-weight: 600;
 }
 
 .psm-period {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
     color: rgba(255, 255, 255, 0.75);
     letter-spacing: 0.5px;
@@ -1467,7 +1700,7 @@ body {
 }
 
 .pei-item span {
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 700;
     color: #5a8a94;
     text-transform: uppercase;
@@ -1475,7 +1708,7 @@ body {
 }
 
 .pei-item strong {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     color: #0d2d36;
 }
@@ -1494,7 +1727,7 @@ body {
 
 .psm-col-head {
     padding: 9px 14px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -1515,7 +1748,7 @@ body {
     display: flex;
     justify-content: space-between;
     padding: 7px 14px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: #0d2d36;
     border-bottom: 1px solid #f5fafb;
@@ -1533,7 +1766,7 @@ body {
     display: flex;
     justify-content: space-between;
     padding: 9px 14px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 900;
     border-top: 1px solid #d6eaee;
     background: #f7fbfc;
@@ -1553,13 +1786,13 @@ body {
 }
 
 .psm-net-banner span {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
     color: rgba(255, 255, 255, 0.75);
 }
 
 .psm-net-banner strong {
-    font-size: 26px;
+    font-size: 25px;
     font-weight: 900;
     color: #fff;
 }
@@ -1584,7 +1817,7 @@ body {
     background: #0d2d36;
     color: #fff;
     font-family: 'Nunito', sans-serif;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s;
@@ -1604,7 +1837,7 @@ body {
     background: linear-gradient(135deg, #1e8449, #27ae60);
     color: #fff;
     font-family: 'Nunito', sans-serif;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     cursor: pointer;
     box-shadow: 0 3px 10px rgba(39, 174, 96, 0.2);
@@ -1622,7 +1855,7 @@ body {
     background: #fff;
     color: #5a8a94;
     font-family: 'Nunito', sans-serif;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.15s;
@@ -1636,7 +1869,7 @@ body {
     margin-left: auto;
 }
 
-/* ── Job Detail Modal ── */
+/* â”€â”€ Job Detail Modal â”€â”€ */
 .job-detail-modal {
     background: #fff;
     border-radius: 16px;
@@ -1674,20 +1907,20 @@ body {
     display: grid;
     place-items: center;
     color: #fff;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 900;
     flex-shrink: 0;
     border: 2px solid rgba(255, 255, 255, 0.25);
 }
 
 .jdm-title {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 900;
     color: #fff;
 }
 
 .jdm-sub {
-    font-size: 11px;
+    font-size: 10px;
     color: rgba(255, 255, 255, 0.65);
     font-weight: 600;
     margin-top: 2px;
@@ -1728,7 +1961,7 @@ body {
 }
 
 .jig span {
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 700;
     color: #5a8a94;
     text-transform: uppercase;
@@ -1736,7 +1969,7 @@ body {
 }
 
 .jig strong {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     color: #0d2d36;
 }
@@ -1759,7 +1992,7 @@ body {
     padding: 9px 14px;
     background: #f7fbfc;
     border-bottom: 1px solid #f0f8fa;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
     color: #0d2d36;
 }
@@ -1770,7 +2003,7 @@ body {
 
 .jdm-text {
     padding: 12px 14px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: #0d2d36;
     line-height: 1.6;
@@ -1805,7 +2038,7 @@ body {
     background: linear-gradient(135deg, #09637e, #088395);
     color: #fff;
     font-family: 'Nunito', sans-serif;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     cursor: pointer;
     box-shadow: 0 3px 10px rgba(9, 99, 126, 0.2);
@@ -1826,7 +2059,7 @@ body {
     background: rgba(39, 174, 96, 0.1);
     color: #27ae60;
     font-family: 'Nunito', sans-serif;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     cursor: not-allowed;
 }
@@ -1835,12 +2068,12 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     color: #c0392b;
 }
 
-/* ── Apply Modal ── */
+/* â”€â”€ Apply Modal â”€â”€ */
 .apply-modal {
     background: #fff;
     border-radius: 16px;
@@ -1871,18 +2104,18 @@ body {
     display: grid;
     place-items: center;
     color: #fff;
-    font-size: 14px;
+    font-size: 13px;
     flex-shrink: 0;
 }
 
 .apm-title {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 900;
     color: #fff;
 }
 
 .apm-sub {
-    font-size: 11px;
+    font-size: 10px;
     color: rgba(255, 255, 255, 0.65);
     font-weight: 600;
     margin-top: 1px;
@@ -1911,14 +2144,14 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     color: #0d2d36;
 }
 
 .ajp-row i {
     color: #09637e;
-    font-size: 11px;
+    font-size: 10px;
     width: 14px;
     text-align: center;
 }
@@ -1938,7 +2171,7 @@ body {
 }
 
 .apm-field label {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     color: #0d2d36;
     text-transform: uppercase;
@@ -1949,7 +2182,7 @@ body {
     color: #5a8a94;
     font-weight: 600;
     text-transform: none;
-    font-size: 9px;
+    font-size: 8px;
     letter-spacing: 0;
 }
 
@@ -1973,7 +2206,7 @@ body {
 }
 
 .rdz-icon {
-    font-size: 26px;
+    font-size: 25px;
     color: #5a8a94;
 }
 
@@ -1987,14 +2220,14 @@ body {
 
 .rdz-main {
     display: block;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
     color: #0d2d36;
 }
 
 .rdz-sub {
     display: block;
-    font-size: 11px;
+    font-size: 10px;
     color: #5a8a94;
     font-weight: 600;
     margin-top: 3px;
@@ -2020,7 +2253,7 @@ body {
 }
 
 .rp-icon {
-    font-size: 26px;
+    font-size: 25px;
     flex-shrink: 0;
 }
 
@@ -2038,7 +2271,7 @@ body {
 }
 
 .rp-name {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     color: #0d2d36;
     white-space: nowrap;
@@ -2047,7 +2280,7 @@ body {
 }
 
 .rp-size {
-    font-size: 10px;
+    font-size: 9px;
     color: #5a8a94;
     font-weight: 600;
     margin-top: 2px;
@@ -2063,7 +2296,7 @@ body {
     cursor: pointer;
     display: grid;
     place-items: center;
-    font-size: 11px;
+    font-size: 10px;
     transition: all 0.15s;
     flex-shrink: 0;
 }
@@ -2079,7 +2312,7 @@ body {
     border-radius: 9px;
     background: rgba(192, 57, 43, 0.07);
     color: #c0392b;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     border: 1px solid rgba(192, 57, 43, 0.15);
     display: flex;
@@ -2092,7 +2325,7 @@ body {
     border-radius: 9px;
     background: rgba(9, 99, 126, 0.05);
     border: 1px solid rgba(9, 99, 126, 0.12);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
     color: #09637e;
     display: flex;
@@ -2119,7 +2352,7 @@ body {
     background: linear-gradient(135deg, #8e44ad, #9b59b6);
     color: #fff;
     font-family: 'Nunito', sans-serif;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     cursor: pointer;
     box-shadow: 0 3px 10px rgba(142, 68, 173, 0.2);
@@ -2147,7 +2380,7 @@ body {
 }
 
 .as-icon {
-    font-size: 48px;
+    font-size: 47px;
     color: #27ae60;
     animation: popIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -2165,13 +2398,13 @@ body {
 }
 
 .as-title {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 900;
     color: #0d2d36;
 }
 
 .as-sub {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: #5a8a94;
     line-height: 1.6;
@@ -2208,7 +2441,7 @@ body {
     }
 }
 
-/* ══ PRINT ══ */
+/* â•â• PRINT â•â• */
 @media print {
     body>*:not(.modal-overlay) {
         display: none !important;
@@ -2238,7 +2471,7 @@ body {
     }
 }
 
-/* ══ RESPONSIVE ══ */
+/* â•â• RESPONSIVE â•â• */
 @media (max-width: 1200px) {
     .stat-row-4 {
         grid-template-columns: repeat(2, 1fr);
@@ -2297,7 +2530,7 @@ body {
 
     .tab-btn {
         padding: 7px 11px;
-        font-size: 11px;
+        font-size: 10px;
     }
 }
 
@@ -2314,7 +2547,7 @@ body {
     }
 
     .sc-val {
-        font-size: 18px;
+        font-size: 17px;
     }
 
     .payroll-grid {

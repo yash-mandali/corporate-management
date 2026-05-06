@@ -12,12 +12,12 @@
             </div>
             <div class="ph-right">
                 <div class="view-toggle">
-                    <button class="vt-btn" [class.active]="viewMode() === 'grid'" (click)="viewMode.set('grid')">
-                        <i class="fas fa-th-large"></i>
-                    </button>
                     <button class="vt-btn" [class.active]="viewMode() === 'list'" (click)="viewMode.set('list')">
                         <i class="fas fa-list"></i>
                     </button>
+                    <button class="vt-btn" [class.active]="viewMode() === 'grid'" (click)="viewMode.set('grid')">
+                        <i class="fas fa-th-large"></i>
+                    </button> 
                 </div>
             </div>
         </div>

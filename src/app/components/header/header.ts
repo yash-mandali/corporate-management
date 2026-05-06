@@ -63,10 +63,11 @@ export class Header implements OnInit, OnDestroy {
       this.timer = setInterval(() => this.updateDate(), 60_000);
       this.userEmail.set(this.auth.getEmail());
       this.getUsersdata();
+      // this.loadNotifications();
       setInterval(() => {
         console.log("loadnotification called");
         this.loadNotifications();
-      }, 60 * 1000);
+      }, 10 * 1000);
     }
   }
 
@@ -106,7 +107,7 @@ export class Header implements OnInit, OnDestroy {
     this.notifOpen.set(next);
     if (next) {
       this.profileOpen = false;
-      this.loadNotifications(); // refresh on open
+      // this.loadNotifications(); // refresh on open
     }
   }
 
@@ -177,11 +178,25 @@ export class Header implements OnInit, OnDestroy {
     return new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
   }
 
+  // @HostListener('document:click', ['$event'])
+  // onDocumentClick(event: MouseEvent) {
+  //   const target = event.target as HTMLElement;
+  //   if (!target.closest('.profile-wrap')) this.profileOpen = false;
+  //   if (!target.closest('.notif-wrap')) this.notifOpen.set(false);
+  // }
+  
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    if (!target.closest('.profile-wrap')) this.profileOpen = false;
-    if (!target.closest('.notif-wrap')) this.notifOpen.set(false);
+    if (!target.closest('.profile-wrap')) {
+      this.profileOpen = false;
+    }
+    if (!target.closest('.notif-wrap')) {
+      if (this.notifOpen()) {
+        this.markAllRead();
+      }
+      this.notifOpen.set(false);
+    }
   }
 
   getInitials = computed(() => {

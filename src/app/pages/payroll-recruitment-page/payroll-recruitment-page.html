@@ -99,6 +99,17 @@
                 <button class="tf-btn paid-f" [class.active]="payrollStatusFilter()==='Paid'"
                     (click)="payrollStatusFilter.set('Paid')">Paid</button>
             </div>
+
+            <div class="view-switcher" aria-label="Payroll view">
+                <button class="view-btn" [class.active]="payrollView()==='list'" (click)="payrollView.set('list')"
+                    title="List view">
+                    <i class="fas fa-list"></i> List
+                </button>
+                <button class="view-btn" [class.active]="payrollView()==='card'" (click)="payrollView.set('card')"
+                    title="Card view">
+                    <i class="fas fa-th-large"></i> Card
+                </button>
+            </div>
         </div>
 
         <!-- Payroll list -->
@@ -114,12 +125,65 @@
             <div class="es-sub">Try adjusting your filters or check back later</div>
         </div>
         } @else {
+        @if (payrollView() === 'list') {
+        <div class="data-table-card">
+            <div class="data-table-scroll">
+                <table class="data-table payroll-table">
+                    <thead>
+                        <tr>
+                            <th>Pay Period</th>
+                            <th>Employee</th>
+                            <th>Generated</th>
+                            <th>Gross</th>
+                            <th>Deductions</th>
+                            <th>Net Salary</th>
+                            <th>Status</th>
+                            <th>Paid On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (p of filteredPayrolls(); track p.payrollId) {
+                        <tr (click)="openPayslip(p)">
+                            <td>
+                                <div class="period-cell">
+                                    <span class="period-chip">{{ getMonthName(p.month).slice(0,3).toUpperCase() }}</span>
+                                    <div>
+                                        <div class="table-strong">{{ getMonthName(p.month) }} {{ p.year }}</div>
+                                        <div class="table-muted">Payroll</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>EMP-{{ p.userId }}</td>
+                            <td>{{ formatDate(p.generatedDate) }}</td>
+                            <td class="amount-cell">₹{{ formatAmt(p.grossSalary) }}</td>
+                            <td class="amount-cell danger">-₹{{ formatAmt(p.totalDeductions) }}</td>
+                            <td class="amount-cell primary">₹{{ formatAmt(p.netSalary) }}</td>
+                            <td>
+                                <span class="status-pill" [class]="p.status === 'Paid' ? 'sp-paid' : 'sp-generated'">
+                                    <span class="spd"></span>{{ p.status }}
+                                </span>
+                            </td>
+                            <td>{{ p.paidDate ? formatDate(p.paidDate) : '—' }}</td>
+                            <td class="table-actions" (click)="$event.stopPropagation()">
+                                <button class="icon-action" (click)="openPayslip(p)" title="View payslip">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="icon-action" (click)="downloadPayslip(p)" title="Download CSV">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        } @else {
         <div class="payroll-grid">
             @for (p of filteredPayrolls(); track p.payrollId) {
             <div class="payroll-card" [class.pc-paid]="p.status === 'Paid'" (click)="openPayslip(p)">
-
                 <div class="pc-body">
-
                     <div class="pc-head-row">
                         <div class="pc-title-wrap">
                             <div class="pc-month-chip">
@@ -188,6 +252,7 @@
         </div>
         }
         }
+        }
 
         <!-- ══════════════════════════════════════════
              JOBS TAB
@@ -248,6 +313,17 @@
                 <option value="0">All Years</option>
                 @for (yr of availableYears; track yr) { <option [value]="yr">{{ yr }}</option> }
             </select>
+
+            <div class="view-switcher" aria-label="Job openings view">
+                <button class="view-btn" [class.active]="jobView()==='list'" (click)="jobView.set('list')"
+                    title="List view">
+                    <i class="fas fa-list"></i> List
+                </button>
+                <button class="view-btn" [class.active]="jobView()==='card'" (click)="jobView.set('card')"
+                    title="Card view">
+                    <i class="fas fa-th-large"></i> Card
+                </button>
+            </div>
         </div>
 
         @if (jobsLoading()) {
@@ -260,6 +336,92 @@
             <div class="es-icon"><i class="fas fa-search"></i></div>
             <div class="es-title">No matching jobs found</div>
             <div class="es-sub">Try adjusting your search or filters</div>
+        </div>
+        } @else {
+        @if (jobView() === 'list') {
+        <div class="data-table-card">
+            <div class="data-table-scroll">
+                <table class="data-table jobs-table">
+                    <thead>
+                        <tr>
+                            <th>Position</th>
+                            <th>Department</th>
+                            <th>Location</th>
+                            <th>Type</th>
+                            <th>Experience</th>
+                            <th>Vacancies</th>
+                            <th>Salary</th>
+                            <th>Deadline</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (job of filteredJobs(); track job.jobId) {
+                        @let alreadyApplied = appliedJobIds().has(job.jobId);
+                        @let canApply = canApplyJob(job);
+                        <tr [class.row-applied]="alreadyApplied" (click)="openJobDetail(job)">
+                            <td>
+                                <div class="job-table-cell">
+                                    <div class="job-table-avatar" [style.background]="getColor(job.jobId)">
+                                        {{ getInitials(job.department) }}
+                                    </div>
+                                    <div>
+                                        <div class="table-strong">{{ job.title }}</div>
+                                        <div class="table-muted">Posted {{ formatDate(job.created_at ?? job.createdAt) }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ job.department }}</td>
+                            <td>{{ job.location }}</td>
+                            <td>{{ job.employment_type }}</td>
+                            <td>{{ job.experience_required }}</td>
+                            <td>{{ job.vacancies }} slot(s)</td>
+                            <td class="amount-cell primary">{{ formatSalary(job.salary_min, job.salary_max, job.currency) }}</td>
+                            <td [class.danger]="isDeadlinePast(job.application_deadline)">
+                                {{ formatDate(job.application_deadline) }}
+                            </td>
+                            <td>
+                                @if (alreadyApplied) {
+                                <span class="applied-badge"><i class="fas fa-check"></i> Applied</span>
+                                } @else if (!canApply) {
+                                <span class="status-badge-job" [style.background]="getJobStatusBg(job)"
+                                    [style.color]="getJobStatusColor(job)">
+                                    <i class="fas {{ getJobStatusIcon(job) }}"></i> {{ getJobStatusMessage(job) }}
+                                </span>
+                                } @else {
+                                <span class="open-badge"><span class="spd"></span> Open</span>
+                                }
+                            </td>
+                            <td class="table-actions" (click)="$event.stopPropagation()">
+                                <button class="icon-action" (click)="openJobDetail(job)" title="View job">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                @if (alreadyApplied) {
+                                <button class="table-apply applied" disabled>
+                                    <i class="fas fa-check-circle"></i> Applied
+                                </button>
+                                } @else if (!canApply || isDeadlinePast(job.application_deadline)) {
+                                <button class="table-apply closed" disabled>
+                                    <i class="fas fa-lock"></i> Closed
+                                </button>
+                                } @else {
+                                <button class="table-apply" (click)="openApplyModal(job)"
+                                    [disabled]="applyLoading() === job.jobId">
+                                    @if (applyLoading() === job.jobId) {
+                                    <span class="mini-spin white-spin"></span>
+                                    } @else {
+                                    <i class="fas fa-paper-plane"></i>
+                                    }
+                                    Apply
+                                </button>
+                                }
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
         } @else {
         <div class="jobs-grid">
@@ -355,6 +517,7 @@
             </div>
             }
         </div>
+        }
         }
         }
 

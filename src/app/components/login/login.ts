@@ -116,7 +116,7 @@ export class Login {
 
     this.userservice.sendEmailOtp(this.fpEmail).subscribe({
       next: (res: any) => {
-        console.log("onsendOtp res:",res);
+       // console.log("onsendOtp res:",res);
         
         this.fpLoading = false;
         this.fpError.set('');

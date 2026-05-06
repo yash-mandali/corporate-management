@@ -69,9 +69,9 @@ export class MyProfile {
     this.userService.getUserById(Id).subscribe({
       next: (res) => {
         this.profileData.set(res);
-        console.log("userprofile:",res);
-        
-        console.log(res);
+      //  console.log("userprofile:",res);
+
+      //  console.log(res);
       },
       error: (err) => console.error(err)
     });
@@ -103,7 +103,7 @@ export class MyProfile {
       // roleId: this.profileData()?.roleId,
       ...this.profileForm.getRawValue()
     };
-    console.log("update profile payload",payload);
+    //console.log("update profile payload",payload);
     
     this.userService.updateUser(payload).subscribe({
       next: () => {

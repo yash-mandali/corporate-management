@@ -44,7 +44,7 @@ export class HrLeavePage implements OnInit {
 
   // ── Computed stats ──
   managerapprovedCount = computed(() => this.allLeaves().filter(l => l.status?.toLowerCase() === 'managerapproved').length);
-  pendingCount = computed(() => this.allLeaves().filter(l => l.status?.toLowerCase() === 'pending').length);
+  pendingCount = computed(() => this.allLeaves().filter(l => l.status?.toLowerCase() === 'managerapproved').length);
   approvedCount = computed(() => this.allLeaves().filter(l => APPROVED_SET.has(l.status?.toLowerCase())).length);
   rejectedCount = computed(() => this.allLeaves().filter(l => REJECTED_SET.has(l.status?.toLowerCase())).length);
   withdrawnCount = computed(() => this.allLeaves().filter(l => l.status?.toLowerCase() === 'withdrawn').length);

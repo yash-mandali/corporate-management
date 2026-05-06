@@ -25,7 +25,7 @@ export class Managerteampage implements OnInit {
   isLoading = signal(false);
 
   // ── UI state ──
-  viewMode = signal<'grid' | 'list'>('grid');
+  viewMode = signal<'grid' | 'list'>('list');
   searchQ = signal('');
   statusFilter = signal('all');
   selectedEmployee = signal<any | null>(null);
@@ -40,11 +40,11 @@ export class Managerteampage implements OnInit {
   enrichedEmployees = computed(() => {
     const today = this.localDate(new Date());
     const todayAtt = this.allAttendance().filter(r => r.date?.toString().startsWith(today));
-    console.log("todayAtt:", todayAtt);
-    console.log("todayAtt length:", todayAtt.length);
+   // console.log("todayAtt:", todayAtt);
+    //console.log("todayAtt length:", todayAtt.length);
     
     const todayMap = new Map(todayAtt.map(r => [r.userId, r]));
-    console.log("todaymap",todayMap);
+    //console.log("todaymap",todayMap);
     
 
     // Current month attendance
@@ -62,11 +62,11 @@ export class Managerteampage implements OnInit {
     );
 
     return this.rawUsers().map(u => {
-      console.log("rawusers::",u);
+      //console.log("rawusers::",u);
       
       // Today status
       const todayRec = todayMap.get(u.id);
-      console.log("todayRec",todayRec);
+      //console.log("todayRec",todayRec);
       
       const isActive = u.isActive
      
@@ -109,7 +109,7 @@ export class Managerteampage implements OnInit {
     const q = this.searchQ().toLowerCase().trim();
     const sf = this.statusFilter();
     return this.enrichedEmployees().filter(emp => {
-      console.log("filterrmployee:: ",emp);
+     // console.log("filterrmployee:: ",emp);
       
       const matchQ = !q ||
         (emp.userName || '').toLowerCase().includes(q) ||
@@ -155,12 +155,12 @@ export class Managerteampage implements OnInit {
   loadAllData() {
     let pending = 3;
     const done = () => { if (--pending === 0) this.isLoading.set(false); };
-    console.log("manager id:: ",this.userId());
+    //console.log("manager id:: ",this.userId());
     
     this.userService.getManagerTeam(this.userId()).subscribe({
       next: (res: any) => {
         this.rawUsers.set(Array.isArray(res) ? res : res ? [res] : []);
-        console.log("rawusers:: ",this.rawUsers());
+        //console.log("rawusers:: ",this.rawUsers());
         
         done();
       },

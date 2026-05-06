@@ -229,7 +229,7 @@
                     </div>
                     @if (filteredAttendance().length > 5) {
                     <div class="panel-footer">
-                        <a class="pf-more-link" routerLink="/hr/attendance">
+                        <a class="pf-more-link" routerLink="/dashboard/hrattendance">
                             <i class="fas fa-users"></i>
                             +{{ filteredAttendance().length - 5 }} more employees
                             <i class="fas fa-arrow-right"></i>
@@ -359,7 +359,7 @@
                     </div>
                     @if (pendingLeaves().length > 3) {
                     <div class="panel-footer">
-                        <a class="pf-more-link amber" routerLink="/hr/leaves">
+                        <a class="pf-more-link amber" routerLink="/dashboard/hrleave">
                             <i class="fas fa-calendar-minus"></i>
                             +{{ pendingLeaves().length - 3 }} more requests
                             <i class="fas fa-arrow-right"></i>
@@ -434,7 +434,7 @@
                             <span>Manage Leaves</span>
                             <i class="fas fa-chevron-right qa-arrow"></i>
                         </a>
-                        <a class="qa-btn" routerLink="/hr/attendance">
+                        <a class="qa-btn" routerLink="/dashboard/hrattendance">
                             <div class="qa-icon att"><i class="fas fa-calendar-check"></i></div>
                             <span>View Attendance</span>
                             <i class="fas fa-chevron-right qa-arrow"></i>

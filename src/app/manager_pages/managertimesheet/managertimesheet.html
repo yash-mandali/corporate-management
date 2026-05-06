@@ -83,50 +83,69 @@
                 <div class="ac-sub">No pending timesheet submissions</div>
             </div>
             } @else {
-            <div class="approvals-grid">
-                @for (t of submittedEntries(); track t.timesheetId) {
-                <div class="ts-approval-card" [class.actioning]="tsActionLoading() === t.timesheetId">
-                    <div class="tac-header">
-                        <div class="tac-avatar" [style.background]="getColor(t.userId)">{{ getInitials(t.userName) }}
-                        </div>
-                        <div class="tac-info">
-                            <div class="tac-name">{{ t.userName || 'Employee' }}</div>
-                            <div class="tac-date"><i class="fas fa-calendar"></i> {{ formatDate(t.workDate) }}</div>
-                        </div>
-                        <div class="tac-hours-badge">{{ formatHours(t.totalHours) }}</div>
-                    </div>
-
-                    <div class="tac-body">
-                        <div class="tac-project">
-                            <span class="tac-proj-tag {{ workTypeClass(t.workType) }}">{{ t.workType }}</span>
-                            <span class="tac-proj-name">{{ t.projectName || '—' }}</span>
-                        </div>
-                        <div class="tac-task">{{ t.taskDescription || '—' }}</div>
-                        <div class="tac-time-row">
-                            <span class="tac-time in"><i class="fas fa-play-circle"></i> {{ formatTime(t.startTime)
-                                }}</span>
-                            <span class="tac-sep">→</span>
-                            <span class="tac-time out"><i class="fas fa-stop-circle"></i> {{ formatTime(t.endTime)
-                                }}</span>
-                        </div>
-                    </div>
-
-                    <div class="tac-actions">
-                        <button class="tac-btn reject" (click)="openRejectModal(t)"
-                            [disabled]="tsActionLoading() === t.timesheetId">
-                            @if (tsActionLoading() === t.timesheetId) { <span class="mini-spin red"></span> }
-                            @else { <i class="fas fa-times"></i> }
-                            Reject
-                        </button>
-                        <button class="tac-btn approve" (click)="approveEntry(t.timesheetId)"
-                            [disabled]="tsActionLoading() === t.timesheetId">
-                            @if (tsActionLoading() === t.timesheetId) { <span class="mini-spin white"></span> }
-                            @else { <i class="fas fa-check"></i> }
-                            Approve
-                        </button>
-                    </div>
+            <div class="history-table-card">
+                <div class="tbl-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Date</th>
+                                <th>Project</th>
+                                <th>Task</th>
+                                <th>Start</th>
+                                <th>End</th>
+                                <th>Hours</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (t of submittedEntries(); track t.timesheetId) {
+                            <tr>
+                                <td class="td-emp">
+                                    <div class="emp-cell">
+                                        <div class="emp-av" [style.background]="getColor(t.userId)">{{
+                                            getInitials(t.userName) }}</div>
+                                        <span class="emp-name">{{ t.userName || '—' }}</span>
+                                    </div>
+                                </td>
+                                <td class="td-date">{{ formatDate(t.workDate) }}</td>
+                                <td class="td-project">{{ t.projectName || '—' }}</td>
+                                <td class="td-task" [title]="t.taskDescription">{{ t.taskDescription }}</td>
+                                <td class="td-time">{{ formatTime(t.startTime) }}</td>
+                                <td class="td-time">{{ formatTime(t.endTime) }}</td>
+                                <td class="td-hours">{{ formatHours(t.totalHours) }}</td>
+                                <td><span class="type-chip {{ workTypeClass(t.workType) }}">{{ t.workType }}</span></td>
+                                <td>
+                                    <span class="s-pill sp-submitted">
+                                        <span class="sp-dot"></span>Submitted
+                                    </span>
+                                </td>
+                                <td class="td-act">
+                                    <button class="act-btn approve-sm" (click)="approveEntry(t.timesheetId)"
+                                        [disabled]="tsActionLoading() === t.timesheetId" title="Approve">
+                                        @if (tsActionLoading() === t.timesheetId) { <span
+                                            class="mini-spin green-spin"></span> }
+                                        @else { <i class="fas fa-check"></i> }
+                                    </button>
+                                    <button class="act-btn reject-sm" (click)="openRejectModal(t)"
+                                        [disabled]="tsActionLoading() === t.timesheetId" title="Reject">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            } @empty {
+                            <tr>
+                                <td colspan="10" class="td-empty">
+                                    <i class="fas fa-clock"></i>
+                                    <span>No pending timesheet submissions</span>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
-                }
             </div>
             }
         </div>
@@ -136,7 +155,7 @@
         @if (activeTab() === 'history') {
         <div class="tab-content">
             <div class="history-toolbar">
-            
+
                 <!-- Row 1: Search + Status filters -->
                 <div class="ht-row">
                     <div class="ht-search">
@@ -145,7 +164,8 @@
                             (input)="onSearch($any($event.target).value)">
                     </div>
                     <div class="ht-filters">
-                        <button class="hf-btn" [class.active]="statusFilter() === 'all'" (click)="setFilter('all')">All</button>
+                        <button class="hf-btn" [class.active]="statusFilter() === 'all'"
+                            (click)="setFilter('all')">All</button>
                         <button class="hf-btn submitted" [class.active]="statusFilter() === 'Submitted'"
                             (click)="setFilter('Submitted')">Submitted</button>
                         <button class="hf-btn approved" [class.active]="statusFilter() === 'Approved'"
@@ -154,14 +174,15 @@
                             (click)="setFilter('Rejected')">Rejected</button>
                     </div>
                 </div>
-            
+
                 <!-- Row 2: Date range + Employee + Clear -->
                 <div class="ht-row ht-row-filters">
-            
+
                     <div class="ht-filter-field">
                         <label class="htf-label"><i class="fas fa-user"></i> Employee</label>
                         <div class="htf-select-wrap">
-                            <select class="htf-select" (change)="filterUserId.set($any($event.target).value); currentPage.set(1)">
+                            <select class="htf-select"
+                                (change)="filterUserId.set($any($event.target).value); currentPage.set(1)">
                                 <option value="">All Members</option>
                                 @for (u of allUsers(); track u.id) {
                                 <option [value]="u.id">
@@ -172,24 +193,25 @@
                             <i class="fas fa-chevron-down htf-chevron"></i>
                         </div>
                     </div>
-            
+
                     <div class="ht-filter-field">
                         <label class="htf-label"><i class="fas fa-calendar-alt"></i> From Date</label>
                         <input type="date" class="htf-input" [value]="filterFromDate()"
                             (change)="filterFromDate.set($any($event.target).value); currentPage.set(1)">
                     </div>
-            
+
                     <div class="ht-filter-field">
                         <label class="htf-label"><i class="fas fa-calendar-alt"></i> To Date</label>
                         <input type="date" class="htf-input" [value]="filterToDate()"
                             (change)="filterToDate.set($any($event.target).value); currentPage.set(1)">
                     </div>
-            
+
                     <div class="ht-filter-field ht-filter-actions">
                         <label class="htf-label htf-label-invisible">.</label>
                         <div class="htf-right">
                             <span class="ht-result-count">
-                                <i class="fas fa-list-ul"></i> {{ filteredEntries().length }} entr{{ filteredEntries().length === 1
+                                <i class="fas fa-list-ul"></i> {{ filteredEntries().length }} entr{{
+                                filteredEntries().length === 1
                                 ? 'y' : 'ies' }}
                             </span>
                             @if (hasActiveFilters) {
@@ -199,7 +221,7 @@
                             }
                         </div>
                     </div>
-            
+
                 </div>
             </div>
 
@@ -211,7 +233,7 @@
                     <table>
                         <thead>
                             <tr>
-                              
+
                                 <th>Employee</th>
                                 <th>Date</th>
                                 <th>Project</th>
@@ -228,7 +250,7 @@
                             @for (t of pagedEntries(); track t.timesheetId; let i = $index) {
                             <tr [class.tr-selected]="selectedEntry()?.timesheetId === t.timesheetId"
                                 (click)="selectedEntry.set(t)">
-                                
+
                                 <td class="td-emp">
                                     <div class="emp-cell">
                                         <div class="emp-av" [style.background]="getColor(t.userId)">{{
@@ -377,7 +399,7 @@
     @if (showExportModal()) {
     <div class="modal-overlay">
         <div class="modal-box export-modal-box" (click)="$event.stopPropagation()">
-    
+
             <!-- Header -->
             <div class="modal-header export-header">
                 <div class="mh-left">
@@ -391,10 +413,10 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-    
+
             <!-- Body -->
             <div class="modal-body export-modal-body">
-    
+
                 <!-- Team Member -->
                 <div class="exp-section-label">Team Member</div>
                 <div class="exp-field" style="margin-bottom: 18px">
@@ -409,7 +431,7 @@
                         <i class="fas fa-chevron-down exp-chevron"></i>
                     </div>
                 </div>
-    
+
                 <!-- Date Range -->
                 <div class="exp-section-label">Date Range</div>
                 <div class="exp-date-row">
@@ -425,7 +447,7 @@
                             (change)="exportToDate.set($any($event.target).value)">
                     </div>
                 </div>
-    
+
                 <!-- Optional Filters -->
                 <div class="exp-section-label" style="margin-top: 18px">
                     Filters <span class="exp-optional">Optional</span>
@@ -460,7 +482,7 @@
                         </div>
                     </div>
                 </div>
-    
+
                 <!-- Summary -->
                 <div class="exp-summary">
                     <i class="fas fa-info-circle"></i>
@@ -477,7 +499,7 @@
                     </span>
                 </div>
             </div>
-    
+
             <!-- Footer -->
             <div class="modal-footer">
                 <button class="mf-cancel" (click)="closeExportModal()" [disabled]="isExporting()">Cancel</button>
@@ -489,7 +511,7 @@
                     }
                 </button>
             </div>
-    
+
         </div>
     </div>
     }

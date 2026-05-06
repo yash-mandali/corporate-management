@@ -20,6 +20,8 @@ export class PayrollRecruitmentPage implements OnInit {
 
   // ── Tab ──
   activeTab = signal<'payroll' | 'jobs' | 'applied'>('payroll');
+  payrollView = signal<'list' | 'card'>('list');
+  jobView = signal<'list' | 'card'>('list');
 
   // ── Loading ──
   payrollLoading = signal(false);

@@ -1,6 +1,6 @@
 import { Component, computed, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { NgClass } from '@angular/common';
+import { NgClass, SlicePipe } from '@angular/common';
 import { UserService } from '../../services/user-service/user-service';
 import { AttendanceService } from '../../services/attendance-service';
 import { LeaveService } from '../../services/leave-service/leave-service';
@@ -11,7 +11,7 @@ import { ToastService } from '../../services/toast-service/toast';
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [RouterLink, NgClass],
+  imports: [RouterLink, NgClass, SlicePipe],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css',
 })

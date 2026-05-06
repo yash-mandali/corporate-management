@@ -3,6 +3,7 @@ import { LowerCasePipe } from '@angular/common';
 import { Authservice } from '../../services/Auth-service/authservice';
 import { UserService } from '../../services/user-service/user-service';
 import { AttendanceService } from '../../services/attendance-service';
+import { ToastService } from '../../services/toast-service/toast';
 
 @Component({
   selector: 'app-manager-attendance',
@@ -26,6 +27,13 @@ export class ManagerAttendancePage implements OnInit {
   searchQ = signal('');
   currentPage = signal(1);
   readonly pageSize = 6;
+
+  // ── Export Modal ──
+  showExportModal = signal(false);
+  exportFromDate = signal(this.localDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
+  exportToDate = signal(this.localDate(new Date()));
+  exportUserId = signal<number | any | null>(null);
+  isExporting = signal(false);
 
   // ── Color pool ──
   private colorPool = [
@@ -75,9 +83,9 @@ export class ManagerAttendancePage implements OnInit {
     const sf = this.statusFilter();
 
     const statusRank = (s: string) => {
-      if (s === 'Present') return 0;  // active — top
-      if (s === 'Late') return 1;  // late — second
-      if (s === 'Absent') return 2;  // absent — bottom
+      if (s === 'Present') return 0;
+      if (s === 'Late') return 1;
+      if (s === 'Absent') return 2;
       return 3;
     };
 
@@ -99,7 +107,7 @@ export class ManagerAttendancePage implements OnInit {
 
   presentPct = computed(() => {
     const t = this.totalEmployees();
-    return t ? Math.round((this.presentCount()/ t) * 100) : 0;
+    return t ? Math.round((this.presentCount() / t) * 100) : 0;
   });
   absentPct = computed(() => {
     const t = this.totalEmployees();
@@ -131,7 +139,8 @@ export class ManagerAttendancePage implements OnInit {
   constructor(
     private auth: Authservice,
     private userService: UserService,
-    private attendanceService: AttendanceService
+    private attendanceService: AttendanceService,
+    private toast:ToastService
   ) { }
 
   ngOnInit() {
@@ -141,7 +150,7 @@ export class ManagerAttendancePage implements OnInit {
       this.loadTeamAllAttendance();
       this.loadManagerTeam();
       this.loadManagerSelf();
-    } 
+    }
   }
 
   loadManagerTeam() {
@@ -192,6 +201,7 @@ export class ManagerAttendancePage implements OnInit {
       error: err => console.error('loadManagerSelf attendance:', err)
     });
   }
+
   // ── Date navigation ──
   onDateChange(val: string) {
     this.selectedDate.set(val);
@@ -228,6 +238,55 @@ export class ManagerAttendancePage implements OnInit {
 
   selectRecord(r: any) {
     this.selectedRecord.set(this.selectedRecord()?.userId === r.userId ? null : r);
+  }
+
+  // ── Export Modal ──
+  openExportModal() {
+    this.exportFromDate.set(this.localDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
+    this.exportToDate.set(this.localDate(new Date()));
+    this.exportUserId.set(null);
+    this.showExportModal.set(true);
+  }
+
+  closeExportModal() {
+    if (this.isExporting()) return;
+    this.showExportModal.set(false);
+  }
+
+  submitExport() {
+    if (this.isExporting()) return;
+    this.isExporting.set(true);
+
+    this.attendanceService
+      .exportAttendanceReport(
+        this.exportFromDate(),
+        this.exportToDate(),
+        this.exportUserId() || null,
+        
+      )
+      .subscribe({
+        next: (response: Blob) => {
+          const blob = new Blob([response], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'Team_Attendance_Report.xlsx';
+          link.click();
+          window.URL.revokeObjectURL(url);
+          this.isExporting.set(false);
+          this.showExportModal.set(false);
+        },
+        error: (error) => {
+          this.isExporting.set(false);
+          if (error.status === 404) {
+            this.toast.error('No records found for the selected filters.', 'error');
+          } else {
+            this.toast.error('Failed to export report. Please try again.', 'error');
+          }
+        }
+      });
   }
 
   // ── Helpers ──

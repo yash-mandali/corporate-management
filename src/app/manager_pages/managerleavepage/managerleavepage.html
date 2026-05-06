@@ -167,6 +167,7 @@
                                 <th>From</th>
                                 <th>To</th>
                                 <th>Days</th>
+                                <th>Reason</th>
                                 <th>Applied On</th>
                                 <th>Status</th>
                             </tr>
@@ -186,6 +187,7 @@
                                 <td class="td-date">{{ formatDate(l.fromDate) }}</td>
                                 <td class="td-date">{{ formatDate(l.toDate) }}</td>
                                 <td class="td-days">{{ l.totalDays }}d</td>
+                                <td class="td-reason">{{ l.reason || '—' }}</td>
                                 <td class="td-date muted">{{ formatDate(l.appliedOn) }}</td>
                                 <td>
                                     <span class="status-pill sp-{{ l.status | lowercase }}">

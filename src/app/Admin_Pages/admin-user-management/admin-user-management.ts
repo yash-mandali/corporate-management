@@ -385,7 +385,6 @@ export class AdminUserManagement implements OnInit {
       this.assignError.set('Please select a manager.');
       return;
     }
-
     this.assignSaving.set(true);
     this.userService.assignManager(user.id, this.selectedManagerId).subscribe({
       next: () => {

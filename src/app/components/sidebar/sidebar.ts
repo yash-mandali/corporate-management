@@ -42,11 +42,11 @@ export class Sidebar {
       ],
       Manager: [
         { label: 'Dashboard', route: '/dashboard/managerdashboard', icon: 'fas fa-chart-line' },
+        { label: 'Team', route: '/dashboard/managerteams', icon: 'fas fa-users' },
         { label: 'Attendance', route: '/dashboard/managerattendance', icon: 'fas fa-clock' },
         { label: 'Leave', route: '/dashboard/managerleave', icon: 'fas fa-calendar-alt' },
         { label: 'Timesheet', route: '/dashboard/managertimesheet', icon: 'fas fa-tasks' },
-        { label: 'Team', route: '/dashboard/managerteams', icon: 'fas fa-users' },
-        { label: 'Performance', route: '/dashboard/teamperformance', icon: 'fas fa-chart-bar' },
+        { label: 'Performance', route: '/dashboard/teamperformance', icon: 'fas fa-arrow-trend-up' },
       ],
       HR: [
         { label: 'Dashboard', route: '/dashboard/hrdashboard', icon: 'fas fa-chart-line' },

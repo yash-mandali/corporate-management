@@ -113,6 +113,7 @@
                 }
             </div>
         </div>
+
         <!-- TABLE -->
         @if (isLoading()) {
         <div class="table-card">
@@ -139,7 +140,6 @@
                 <table>
                     <thead>
                         <tr>
-                            <!-- <th>#</th> -->
                             <th>Employee</th>
                             <th>Email</th>
                             <th>Phone</th>
@@ -153,7 +153,6 @@
                     <tbody>
                         @for (emp of pagedEmployees(); track emp.id; let i = $index) {
                         <tr (click)="openDetailModal(emp)">
-                            <!-- <td class="td-idx">{{ filteredEmployees().length - (currentPage()-1)*pageSize - i }}</td> -->
                             <td class="td-emp">
                                 <div class="emp-cell">
                                     <div class="emp-av" [style.background]="getColor(emp.id)">{{
@@ -174,16 +173,24 @@
                                 </span>
                             </td>
                             <td class="td-date">{{ formatDate(emp.createdAt) }}</td>
-                        <td>
-                            <span class="status-chip" [class.online]="emp.isActive">
-                                <span class="status-dot"></span>
-                                {{ emp.isActive ? 'Active' : 'Offline' }}
-                            </span>
-                        </td>
+                            <td>
+                                <span class="status-chip" [class.online]="emp.isActive">
+                                    <span class="status-dot"></span>
+                                    {{ emp.isActive ? 'Active' : 'Offline' }}
+                                </span>
+                            </td>
                             <td class="td-act" (click)="$event.stopPropagation()">
                                 <button class="act-btn edit" (click)="openEditModal(emp)" title="Edit">
                                     <i class="fas fa-pen"></i>
                                 </button>
+                                @if (isEmployee(emp)) {
+                                <button class="act-btn"
+                                    style="background:rgba(39,174,96,0.08);color:#27ae60;margin-right:3px;"
+                                    (click)="openAssignModal(emp)"
+                                    title="{{ emp.managerId ? 'Reassign Manager' : 'Assign Manager' }}">
+                                    <i class="fas fa-link"></i>
+                                </button>
+                                }
                                 <button class="act-btn del" (click)="confirmDelete(emp)" title="Delete"
                                     [disabled]="deletingId() === emp.id">
                                     @if (deletingId() === emp.id) { <span class="mini-spin red-spin"></span> }
@@ -295,7 +302,6 @@
                     </select>
                 </div>
 
-
                 <div class="ff">
                     <label>Gender</label>
                     <select formControlName="gender">
@@ -335,7 +341,6 @@
 <div class="modal-overlay" (click)="closeDetailModal()">
     <div class="detail-modal" (click)="$event.stopPropagation()">
 
-        <!-- Header -->
         <div class="dm-header">
             <div class="dm-hero">
                 <div class="dm-avatar" [style.background]="getColor(detailModal()!.id)">
@@ -352,10 +357,8 @@
             <button class="fm-close" (click)="closeDetailModal()"><i class="fas fa-times"></i></button>
         </div>
 
-        <!-- Body -->
         <div class="dm-body">
 
-            <!-- Quick stats -->
             <div class="dm-stats">
                 <div class="dms-card">
                     <div class="dms-val">{{ detailAttendanceRate() }}%</div>
@@ -377,7 +380,6 @@
 
             <div class="dm-grid">
 
-                <!-- Basic Info -->
                 <div class="dm-section">
                     <div class="dm-sec-title"><i class="fas fa-id-card"></i> Basic Information</div>
                     <div class="dm-rows">
@@ -395,12 +397,27 @@
                                 detailModal()!.roleName }}</span></div>
                         <div class="dm-row"><span class="dmr-k">Joined</span><span class="dmr-v">{{
                                 formatDate(detailModal()!.createdAt) }}</span></div>
-                        <div class="dm-row"><span class="dmr-k">Address</span><span class="dmr-v ">{{
+                        <div class="dm-row"><span class="dmr-k">Address</span><span class="dmr-v">{{
                                 detailModal()!.address || '—' }}</span></div>
+                        @if (isEmployee(detailModal()!)) {
+                        <div class="dm-row">
+                            <span class="dmr-k">Manager</span>
+                            @if (detailModal()!.managerName) {
+                            <span class="dmr-v manager-name">
+                                <i class="fas fa-user-tie"></i>
+                                {{ detailModal()!.managerName }}
+                            </span>
+                            } @else {
+                            <span class="dmr-v manager-unassigned">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Not Assigned
+                            </span>
+                            }
+                        </div>
+                        }
                     </div>
                 </div>
 
-                <!-- Attendance Summary -->
                 <div class="dm-section">
                     <div class="dm-sec-title"><i class="fas fa-calendar-check"></i> This Month's Attendance</div>
                     @if (detailLoading()) {
@@ -433,7 +450,6 @@
                     }
                 </div>
 
-                <!-- Leave Summary -->
                 <div class="dm-section full-width">
                     <div class="dm-sec-title"><i class="fas fa-calendar-minus"></i> Leave Summary</div>
                     @if (detailLoading()) {
@@ -469,10 +485,106 @@
 
         <div class="dm-footer">
             <button class="fm-cancel" (click)="closeDetailModal()">Close</button>
+            @if (isEmployee(detailModal()!)) {
+            <button class="assign-save" (click)="openAssignModal(detailModal()!); closeDetailModal()">
+                <i class="fas fa-link"></i> {{ detailModal()!.managerId ? 'Reassign Manager' : 'Assign Manager' }}
+            </button>
+            }
             <button class="fm-save" (click)="openEditModal(detailModal()!); closeDetailModal()">
                 <i class="fas fa-pen"></i> Edit Employee
             </button>
         </div>
+    </div>
+</div>
+}
+
+<!-- ══ ASSIGN MANAGER MODAL ══ -->
+@if (assignModal()) {
+<div class="modal-overlay" (click)="closeAssignModal()">
+    <div class="assign-modal-box" (click)="$event.stopPropagation()">
+
+        <div class="fm-header">
+            <div class="fm-icon"><i class="fas fa-link"></i></div>
+            <div>
+                <div class="fm-title">
+                    {{ assignModal()!.managerId ? 'Reassign Manager' : 'Assign Manager' }}
+                </div>
+                <div class="fm-sub">
+                    {{ assignModal()!.managerId ? 'Change the reporting manager' : 'Link a manager to this employee' }}
+                </div>
+            </div>
+            <button class="fm-close" (click)="closeAssignModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="assign-body">
+
+            <div class="assign-emp-card">
+                <div class="assign-emp-av" [style.background]="getColor(assignModal()!.id)">
+                    {{ getInitials(assignModal()!.userName) }}
+                </div>
+                <div class="assign-emp-info">
+                    <div class="assign-emp-name">{{ assignModal()!.userName }}</div>
+                    <div class="assign-emp-dept">{{ assignModal()!.department || 'No Department' }}</div>
+                </div>
+                <span class="assign-emp-role-badge">
+                    <i class="fas fa-user"></i> Employee
+                </span>
+            </div>
+
+            @if (assignModal()!.managerId && assignModal()!.managerName) {
+            <div class="assign-current-mgr">
+                <div class="assign-current-mgr-icon">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div>
+                    <div class="assign-current-mgr-label">Current Manager</div>
+                    <div class="assign-current-mgr-name">{{ assignModal()!.managerName }}</div>
+                </div>
+            </div>
+            } @else {
+            <div class="assign-no-mgr-banner">
+                <div class="assign-no-mgr-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="assign-no-mgr-text">No manager assigned yet — select one below</div>
+            </div>
+            }
+
+            <div class="assign-select-wrap">
+                <label class="assign-select-label">
+                    <i class="fas fa-user-tie"></i>
+                    Select Manager <span class="req">*</span>
+                </label>
+                <select class="assign-select" [(ngModel)]="selectedManagerId">
+                    <option value="">— Choose a manager —</option>
+                    @for (m of allManagers(); track m.id) {
+                    <option [value]="m.id">{{ m.userName }}</option>
+                    }
+                </select>
+            </div>
+
+            @if (assignError()) {
+            <div class="fm-error">
+                <i class="fas fa-exclamation-triangle"></i> {{ assignError() }}
+            </div>
+            }
+
+        </div>
+
+        <div class="assign-footer">
+            <button class="fm-cancel" (click)="closeAssignModal()">Cancel</button>
+            <button class="assign-btn-save" (click)="executeAssign()" [disabled]="assignSaving()">
+                @if (assignSaving()) {
+                <span class="mini-spin white-spin"></span> Saving...
+                } @else {
+                <i class="fas fa-{{ assignModal()!.managerId ? 'exchange-alt' : 'link' }}"></i>
+                {{ assignModal()!.managerId ? 'Reassign Manager' : 'Assign Manager' }}
+                }
+            </button>
+        </div>
+
     </div>
 </div>
 }

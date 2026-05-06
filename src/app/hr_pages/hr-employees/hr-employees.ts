@@ -1,5 +1,6 @@
 import { Component, computed, signal, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { UserService } from '../../services/user-service/user-service';
 import { AttendanceService } from '../../services/attendance-service';
 import { LeaveService } from '../../services/leave-service/leave-service';
@@ -16,7 +17,7 @@ const DEPARTMENTS = [
 
 @Component({
   selector: 'app-hr-employees',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, FormsModule],
   templateUrl: './hr-employees.html',
   styleUrl: './hr-employees.css',
 })
@@ -24,8 +25,8 @@ export class HrEmployeesPage implements OnInit {
 
   readonly departments = DEPARTMENTS;
   detailLoading = signal(false);
-  // ── Data ──
   allEmployees = signal<any[]>([]);
+  allManagers = signal<any[]>([]);
   allAttendance = signal<any[]>([]);
   allLeaves = signal<any[]>([]);
   isLoading = signal(false);
@@ -34,19 +35,21 @@ export class HrEmployeesPage implements OnInit {
   formError = signal<string | null>(null);
   showPass = false;
 
-  // ── Modals ──
   formModal = signal(false);
   editingEmployee = signal<any | null>(null);
   detailModal = signal<any | null>(null);
   deleteModal = signal<any | null>(null);
+  assignModal = signal<any | null>(null);
+  selectedManagerId: any = '';
+  assignSaving = signal(false);
+  assignError = signal<string | null>(null);
 
-  // ── Filters ──
   searchQ = signal('');
-  roleFilter = signal('all');        // all | 2 | 3
-  deptFilter = signal('all');        // all | dept name
-  statusFilter = signal('all');        // all | active | offline
-  joinFrom = signal('');           // YYYY-MM-DD
-  joinTo = signal('');           // YYYY-MM-DD
+  roleFilter = signal('all');
+  deptFilter = signal('all');
+  statusFilter = signal('all');
+  joinFrom = signal('');
+  joinTo = signal('');
   currentPage = signal(1);
   readonly pageSize = 10;
 
@@ -57,7 +60,6 @@ export class HrEmployeesPage implements OnInit {
     '#8e44ad', '#d68910', '#c0392b', '#16a085', '#2c3e50', '#1e8449',
   ];
 
-  // ── Computed stats (from full list, not filtered) ──
   totalCount = computed(() => this.allEmployees().length);
   empRoleCount = computed(() => this.allEmployees().filter(e => String(e.roleId) === '2' || e.roleName?.toLowerCase() === 'employee').length);
   mgrRoleCount = computed(() => this.allEmployees().filter(e => String(e.roleId) === '3' || e.roleName?.toLowerCase() === 'manager').length);
@@ -71,7 +73,6 @@ export class HrEmployeesPage implements OnInit {
     }).length;
   });
 
-  // ── Filtered + paginated ──
   filteredEmployees = computed(() => {
     const q = this.searchQ().toLowerCase().trim();
     const rf = this.roleFilter();
@@ -81,28 +82,18 @@ export class HrEmployeesPage implements OnInit {
     const to = this.joinTo();
 
     return this.allEmployees().filter(emp => {
-      // Search
       if (q && !(
         (emp.userName || '').toLowerCase().includes(q) ||
         (emp.email || '').toLowerCase().includes(q) ||
         (emp.phoneNumber || '').toLowerCase().includes(q)
       )) return false;
-
-      // Role
       if (rf === '2' && !(String(emp.roleId) === '2' || emp.roleName?.toLowerCase() === 'employee')) return false;
       if (rf === '3' && !(String(emp.roleId) === '3' || emp.roleName?.toLowerCase() === 'manager')) return false;
-
-      // Department
       if (dept !== 'all' && (emp.department || '').toLowerCase() !== dept.toLowerCase()) return false;
-
-      // Status
       if (sf === 'active' && !emp.isActive) return false;
       if (sf === 'offline' && emp.isActive) return false;
-
-      // Join date range
       if (from && emp.createdAt && new Date(emp.createdAt) < new Date(from + 'T00:00:00')) return false;
       if (to && emp.createdAt && new Date(emp.createdAt) > new Date(to + 'T23:59:59')) return false;
-
       return true;
     });
   });
@@ -134,16 +125,14 @@ export class HrEmployeesPage implements OnInit {
     if (!att.length) return 0;
     const now = new Date();
     const present = att.filter(r => r.status === 'Present').length;
-    const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const late = att.filter(r => r.status === 'Late').length;
-
+    const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     return Math.round(((present + late) / totalDays) * 100);
   });
 
   detailPresentDays = computed(() => this.detailMonthAtt().filter(r => r.status === 'Present' || r.status === 'Late').length);
   detailLateDays = computed(() => this.detailMonthAtt().filter(r => r.status === 'Late').length);
   detailAbsentDays = computed(() => this.detailMonthAtt().filter(r => r.status === 'Absent').length);
-
   detailLeaves = computed(() => this.allLeaves().filter(l => l.userId === this.detailModal()?.id));
   detailPendingLeaves = computed(() => this.detailLeaves().filter(l => l.status?.toLowerCase() === 'pending').length);
   detailApprovedLeaves = computed(() => this.detailLeaves().filter(l => APPROVED_SET.has(l.status?.toLowerCase())).length);
@@ -172,6 +161,7 @@ export class HrEmployeesPage implements OnInit {
 
   ngOnInit() {
     this.loadEmployeesManagers();
+    this.loadManagers();
     this.loadAttendance();
     this.loadLeaves();
   }
@@ -181,6 +171,13 @@ export class HrEmployeesPage implements OnInit {
     this.userService.getAllEmployeeManager().subscribe({
       next: (res: any) => { this.allEmployees.set(Array.isArray(res) ? res : res ? [res] : []); this.isLoading.set(false); },
       error: err => { console.error(err); this.isLoading.set(false); }
+    });
+  }
+
+  loadManagers() {
+    this.userService.getAllManager().subscribe({
+      next: (res: any) => this.allManagers.set(Array.isArray(res) ? res : res ? [res] : []),
+      error: err => console.error(err)
     });
   }
 
@@ -201,7 +198,6 @@ export class HrEmployeesPage implements OnInit {
     });
   }
 
-  // ── Department filter — uses API when a dept is selected ──
   onDeptChange(dept: string) {
     this.deptFilter.set(dept);
     this.currentPage.set(1);
@@ -212,7 +208,7 @@ export class HrEmployeesPage implements OnInit {
         error: err => { console.error(err); this.isLoading.set(false); }
       });
     } else {
-      this.loadEmployeesManagers(); // reload full list
+      this.loadEmployeesManagers();
     }
   }
 
@@ -232,7 +228,6 @@ export class HrEmployeesPage implements OnInit {
   onJoinFrom(val: string) { this.joinFrom.set(val); this.currentPage.set(1); }
   onJoinTo(val: string) { this.joinTo.set(val); this.currentPage.set(1); }
 
-  // ── Add / Edit modals ──
   openAddModal() {
     this.editingEmployee.set(null);
     this.formError.set(null);
@@ -279,7 +274,6 @@ export class HrEmployeesPage implements OnInit {
     this.formSaving.set(true);
 
     if (this.editingEmployee()) {
-      // PUT /api/User/UpdateUser
       const payload = {
         id: this.editingEmployee().id,
         userName: v.userName,
@@ -299,7 +293,6 @@ export class HrEmployeesPage implements OnInit {
         error: err => { this.formSaving.set(false); this.formError.set(err?.error?.message || 'Update failed.'); }
       });
     } else {
-      // POST /api/User/AddUser
       const payload = {
         userName: v.userName,
         email: v.email,
@@ -311,7 +304,12 @@ export class HrEmployeesPage implements OnInit {
         address: v.address || '',
       };
       this.userService.addUser(payload).subscribe({
-        next: () => { this.formSaving.set(false); this.closeFormModal(); this.loadEmployeesManagers(); this.toast.success('Employee added successfully.'); },
+        next: () => {
+          this.formSaving.set(false);
+          this.closeFormModal();
+          this.loadEmployeesManagers();
+          this.toast.success('Employee added successfully.');
+        },
         error: err => { this.formSaving.set(false); this.formError.set(err?.error?.message || 'Failed to add employee.'); }
       });
     }
@@ -341,7 +339,57 @@ export class HrEmployeesPage implements OnInit {
     });
   }
 
-  // ── Helpers ──
+  openAssignModal(emp: any) {
+    this.assignModal.set(emp);
+    this.selectedManagerId = emp.managerId || '';
+    this.assignError.set(null);
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeAssignModal() {
+    this.assignModal.set(null);
+    this.selectedManagerId = '';
+    this.assignError.set(null);
+    document.body.style.overflow = '';
+  }
+
+  executeAssign() {
+    const emp = this.assignModal();
+    if (!emp) return;
+    if (!this.selectedManagerId) {
+      this.assignError.set('Please select a manager.');
+      return;
+    }
+    this.assignSaving.set(true);
+    this.userService.assignManager(emp.id, this.selectedManagerId).subscribe({
+      next: () => {
+        const manager = this.allManagers().find(m => m.id == this.selectedManagerId);
+        this.allEmployees.update(list =>
+          list.map(e =>
+            e.id === emp.id
+              ? {
+                ...e,
+                managerId: this.selectedManagerId,
+                managerName: manager?.userName || ''
+              }
+              : e
+          )
+        );
+        this.assignSaving.set(false);
+        this.closeAssignModal();
+        this.toast.success(`Manager assigned to ${emp.userName} successfully.`);
+      },
+      error: err => {
+        this.assignSaving.set(false);
+        this.assignError.set(err?.error?.message || 'Failed to assign manager.');
+      }
+    });
+  }
+
+  isEmployee(emp: any): boolean {
+    return String(emp.roleId) === '2' || emp.roleName?.toLowerCase() === 'employee';
+  }
+
   getInitials(name: string): string {
     if (!name) return '?';
     return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);

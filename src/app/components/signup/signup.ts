@@ -47,11 +47,11 @@ export class Signup {
     this.isLoading = true;
     this.errorMessage.set('');
     const data = this.signupForm.value;
-    console.log("data called:", data);
+   // console.log("data called:", data);
 
     this.userservice.signup(data).subscribe({
       next: (res: any) => {
-        console.log("signup buttom called::", res);
+       // console.log("signup buttom called::", res);
 
         this.errorMessage.set('Account created successfully! Redirecting…');
         this.isLoading = false;

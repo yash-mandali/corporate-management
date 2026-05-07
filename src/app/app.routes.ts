@@ -105,6 +105,13 @@ export const routes: Routes = [
                 data: { roles: ['Manager'] }
             },
             {
+                path: 'managersalarypayroll',
+                loadComponent: () =>
+                    import('./manager_pages/manager-salarypayroll-page/manager-salarypayroll-page').then(m => m.ManagerSalaryPayrollPage),
+                canActivate: [authGuard, roleGuard],
+                data: { roles: ['Manager'] }
+            },
+            {
                 path: 'managerteams',
                 loadComponent: () =>
                     import('./manager_pages/managerteamspage/managerteamspage').then(m => m.Managerteampage),

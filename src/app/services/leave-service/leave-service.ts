@@ -27,9 +27,7 @@ export class LeaveService {
   AutoRejectLeaveApi = `${this.apiurl}/Leave/AutoRejectLeave`;  //auto
   InitilizeApi = `${this.apiurl}/Leave/initializeUsersLeaveBalance`;  //auto
   getUserLeaveBalanceApi = `${this.apiurl}/Leave/getUserLeaveBalance`;  //All
-
-  // /Hr/GetManagerApprovedLeaves
-
+  updateLeaveBalanceApi = `${this.apiurl}/Leave/updateLeaveBalance`;  //Admin    
 
   createNewLeave(data: any) {
     return this.http.post<any>(this.ApplyleaveApi, data);
@@ -97,6 +95,12 @@ export class LeaveService {
 
   getUserLeaveBalance(userId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.getUserLeaveBalanceApi}?userId=${userId}`);
+  }
+  
+  // -------------------Admin----------------
+
+  updateLeaveBalance(LeavetypeId: number, defaultbalance: string) {
+    return this.http.put(`${this.updateLeaveBalanceApi}?leaveTypeId=${LeavetypeId}&defaultBalance=${defaultbalance}`, {});
   }
   
 }

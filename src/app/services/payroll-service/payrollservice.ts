@@ -26,7 +26,6 @@ export class PayrollService {
     return this.http.put<any>(`${this.api}/updateSalaryStructure`, data);
   }
 
-
   deleteSalaryStructure(salaryStructureId: number) {
     return this.http.delete<any>(`${this.api}/deleteSalaryStructure?SalaryStructureId=${salaryStructureId}`);
   }

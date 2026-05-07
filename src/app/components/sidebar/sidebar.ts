@@ -46,6 +46,7 @@ export class Sidebar {
         { label: 'Attendance', route: '/dashboard/managerattendance', icon: 'fas fa-clock' },
         { label: 'Leave', route: '/dashboard/managerleave', icon: 'fas fa-calendar-alt' },
         { label: 'Timesheet', route: '/dashboard/managertimesheet', icon: 'fas fa-tasks' },
+        { label: 'Salary & Payroll', route: '/dashboard/managersalarypayroll', icon: 'fas fa-coins' },
         { label: 'Performance', route: '/dashboard/teamperformance', icon: 'fas fa-arrow-trend-up' },
       ],
       HR: [

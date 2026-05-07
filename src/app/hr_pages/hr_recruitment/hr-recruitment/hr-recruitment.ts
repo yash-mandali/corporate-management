@@ -494,18 +494,16 @@ export class HrRecruitment implements OnInit {
     return m[stage] ?? 'circle';
   }
 
-  // ── Status flow guards ──
-  // Draft → Publish (first time only)
   canPublish(s: string)  { return s === 'Draft'; }
-  // OnHold → Resume/Open (calls same publishJob API — SP allows Draft|OnHold)
+
   canResume(s: string)   { return s === 'OnHold'; }
-  // Published/Open → OnHold
+
   canOnHold(s: string)   { return s === 'Published' || s === 'Open'; }
-  // Published/Open/OnHold → Closed
+  
   canClose(s: string)    { return s === 'Published' || s === 'Open' || s === 'OnHold'; }
-  // Only Draft jobs can be edited (SP enforced)
+
   canEdit(s: string)     { return s === 'Draft'; }
-  // Published or Open = both treated as active (add applicant, etc.)
+
   isActiveJob(s: string) { return s === 'Published' || s === 'Open'; }
 
   getInitials(name: string): string {

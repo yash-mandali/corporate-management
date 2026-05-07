@@ -1,6 +1,6 @@
 import { Component, computed, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DatePipe, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 import { PayrollService } from '../../services/payroll-service/payrollservice';
 import { RecruitmentService } from '../../services/recruitment-service/recruitment-service';
@@ -9,50 +9,64 @@ import { ToastService } from '../../services/toast-service/toast';
 import { Authservice } from '../../services/Auth-service/authservice';
 
 @Component({
-  selector: 'app-emp-portal',
+  selector: 'app-manager-salarypayroll-page',
   imports: [FormsModule, CommonModule],
-  templateUrl: './payroll-recruitment-page.html',
-  styleUrl: './payroll-recruitment-page.css',
+  templateUrl: './manager-salarypayroll-page.html',
+  styleUrl: './manager-salarypayroll-page.css',
 })
-export class PayrollRecruitmentPage implements OnInit {
+export class ManagerSalaryPayrollPage implements OnInit {
 
-  currentUserId = signal<any>(0); 
+  currentUserId = signal<any>(0);
+  teamMemberIds = signal<number[]>([15,16,21,43]);
+
   Math = Math;
 
-  // ── Tab ──
+  // ── Tabs ──
   activeTab = signal<'payroll' | 'jobs' | 'applied'>('payroll');
   payrollView = signal<'list' | 'card'>('list');
   jobView = signal<'list' | 'card'>('list');
 
+  // ── Payroll scope: own vs team ──
+  payrollScope = signal<'own' | 'team'>('own');
+
   // ── Loading ──
   payrollLoading = signal(false);
   jobsLoading = signal(false);
-  applyLoading = signal<number | null>(null);
   appliedJobsLoading = signal(false);
+  applyLoading = signal<number | null>(null);
 
   // ── Raw data ──
+  /** Manager's own payrolls */
   myPayrolls = signal<any[]>([]);
+  /** All team members' payrolls — keyed by userId for easy lookup */
+  teamPayrollsRaw = signal<any[]>([]);
+  /** Employee name lookup map: userId → name (populated from UserService) */
+  employeeMap = signal<Map<number, string>>(new Map());
+
   allJobs = signal<any[]>([]);
-  myApplications = signal<any[]>([]);
+  /** All applications — own + team (augmented with ownerType) */
+  allApplications = signal<any[]>([]);
 
   // ── Payroll filters ──
   payrollStatusFilter = signal<'all' | 'Generated' | 'Paid'>('all');
   payrollYear = signal<number>(new Date().getFullYear());
-  payrollMonth = signal<number>(0); // 0 = all
+  payrollMonth = signal<number>(0);
   payrollSearch = signal('');
+  payrollMemberFilter = signal<number | 'all'>('all'); // 0 = all team members
 
-  // ── Job filters ──
+  // ── Job / applied filters ──
   jobSearch = signal('');
   jobDeptFilter = signal('all');
   jobTypeFilter = signal('all');
-  jobMonthFilter = signal<number>(0);  // 0 = all
-  jobYearFilter = signal<number>(0);   // 0 = all
+  jobMonthFilter = signal<number>(0);
+  jobYearFilter = signal<number>(0);
 
-  // ── Applied Jobs filters ──
   appliedSearch = signal('');
   appliedStatusFilter = signal('all');
   appliedMonthFilter = signal<number>(0);
   appliedYearFilter = signal<number>(0);
+  /** "all" = own + team, "own" = only manager, "team" = only team members */
+  appliedScopeFilter = signal<'all' | 'own' | 'team'>('all');
 
   // ── Modals ──
   payslipModal = signal<any | null>(null);
@@ -86,31 +100,45 @@ export class PayrollRecruitmentPage implements OnInit {
   ];
 
   readonly empTypes = ['Full-Time', 'Part-Time', 'Contract', 'Internship', 'Freelance'];
-
   readonly applicationStatuses = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired', 'Rejected'];
 
-  // ── Computed: payroll ──
+  // ── Computed: payrolls to display based on scope ──
+  activePayrolls = computed(() => {
+    if (this.payrollScope() === 'own') return this.myPayrolls();
+    return this.teamPayrollsRaw();
+  });
+
+  /** Team members for the filter dropdown */
+  teamMemberOptions = computed(() => {
+    const map = this.employeeMap();
+    return this.teamMemberIds().map(id => ({ id, name: map.get(id) ?? `EMP-${id}` }));
+  });
+
   filteredPayrolls = computed(() => {
     const sf = this.payrollStatusFilter();
     const yr = this.payrollYear();
     const mo = this.payrollMonth();
     const q = this.payrollSearch().toLowerCase().trim();
-    return this.myPayrolls().filter(p => {
+    const mf = this.payrollMemberFilter();
+
+    return this.activePayrolls().filter(p => {
       const matchStatus = sf === 'all' || p.status === sf;
       const matchYear = !yr || p.year === yr;
       const matchMonth = !mo || p.month === mo;
       const monthLabel = this.getMonthName(p.month).toLowerCase();
-      const matchQ = !q || monthLabel.includes(q) || String(p.year).includes(q);
-      return matchStatus && matchYear && matchMonth && matchQ;
+      const empName = (this.employeeMap().get(p.userId) ?? '').toLowerCase();
+      const matchQ = !q || monthLabel.includes(q) || String(p.year).includes(q) || empName.includes(q);
+      const matchMember = this.payrollScope() === 'own' || mf === 'all' || p.userId === mf;
+      return matchStatus && matchYear && matchMonth && matchQ && matchMember;
     });
   });
 
   totalEarned = computed(() => this.myPayrolls().filter(p => p.status === 'Paid').reduce((s, p) => s + (p.netSalary ?? 0), 0));
-  totalPending = computed(() => this.myPayrolls().filter(p => p.status !== 'Paid').reduce((s, p) => s + (p.netSalary ?? 0), 0));
-  paidCount = computed(() => this.myPayrolls().filter(p => p.status === 'Paid').length);
-  pendingCount = computed(() => this.myPayrolls().filter(p => p.status !== 'Paid').length);
+  paidCount = computed(() => this.activePayrolls().filter(p => p.status === 'Paid').length);
+  pendingCount = computed(() => this.activePayrolls().filter(p => p.status !== 'Paid').length);
+  totalTeamNet = computed(() => this.teamPayrollsRaw().filter(p => p.status === 'Paid').reduce((s, p) => s + (p.netSalary ?? 0), 0));
 
-  // Jobs: show all except Deleted
+  // ── Jobs ──
   visibleJobs = computed(() =>
     this.allJobs().filter(j => j.status !== 'Deleted' && j.status !== 'deleted')
   );
@@ -132,46 +160,72 @@ export class PayrollRecruitmentPage implements OnInit {
     });
   });
 
-  appliedJobIds = computed(() =>
-    new Set(this.myApplications().map((a: any) => Number(a.jobId)))
-  );
+  /** Own applied job IDs (for apply button state) */
+  appliedJobIds = computed(() => new Set(
+    this.allApplications()
+      .filter((a: any) => a.userId === this.currentUserId())
+      .map((a: any) => a.jobId ?? a.candidateId)
+  ));
 
-  // For "Applied Jobs" tab
   filteredApplied = computed(() => {
     const q = this.appliedSearch().toLowerCase().trim();
     const sf = this.appliedStatusFilter();
     const mo = this.appliedMonthFilter();
     const yr = this.appliedYearFilter();
-    return this.myApplications().filter((a: any) => {
-      const matchQ = !q || a.jobTitle?.toLowerCase().includes(q) || a.department?.toLowerCase().includes(q);
+    const scope = this.appliedScopeFilter();
+
+    return this.allApplications().filter((a: any) => {
+      const matchQ = !q || a.jobTitle?.toLowerCase().includes(q) || a.department?.toLowerCase().includes(q) || a.applicantName?.toLowerCase().includes(q);
       const matchS = sf === 'all' || a.applicationStatus === sf;
       const d = new Date(a.appliedDate ?? '');
       const matchMo = !mo || d.getMonth() + 1 === mo;
       const matchYr = !yr || d.getFullYear() === yr;
-      return matchQ && matchS && matchMo && matchYr;
+      const matchScope =
+        scope === 'all' ||
+        (scope === 'own' && a.userId === this.currentUserId()) ||
+        (scope === 'team' && a.userId !== this.currentUserId());
+      return matchQ && matchS && matchMo && matchYr && matchScope;
     });
   });
+
+  ownApplicationsCount = computed(() => this.allApplications().filter(a => a.userId === this.currentUserId()).length);
+  teamApplicationsCount = computed(() => this.allApplications().filter(a => a.userId !== this.currentUserId()).length);
 
   constructor(
     private payrollService: PayrollService,
     private recruitService: RecruitmentService,
     private userService: UserService,
     private toast: ToastService,
-    private auth:Authservice
+    private auth: Authservice,
   ) { }
 
   ngOnInit() {
     const id = this.auth.getUserId();
     if (id) {
       this.currentUserId.set(id);
+      this.loadEmployeeNames();
       this.loadMyPayrolls();
+      this.loadTeamPayrolls();
       this.loadJobs();
-      this.loadMyApplications();
-}
-   
+      this.loadAllApplications();
+    }
+    
   }
 
-  // ── Load payrolls ──
+  // ── Load employee name map ──
+  loadEmployeeNames() {
+    this.userService.getAllUser()?.subscribe({
+      next: (res: any) => {
+        const users: any[] = Array.isArray(res) ? res : res?.data ?? [];
+        const map = new Map<number, string>();
+        users.forEach(u => map.set(u.id ?? u.userId, u.userName ?? u.name ?? `EMP-${u.id}`));
+        this.employeeMap.set(map);
+      },
+      error: () => { /* silently skip — names degrade to EMP-{id} */ }
+    });
+  }
+
+  // ── Load own payrolls ──
   loadMyPayrolls() {
     this.payrollLoading.set(true);
     this.payrollService.getPayrollByUserId(this.currentUserId()).subscribe({
@@ -182,6 +236,32 @@ export class PayrollRecruitmentPage implements OnInit {
         this.payrollLoading.set(false);
       },
       error: err => { console.error(err); this.payrollLoading.set(false); }
+    });
+  }
+
+  loadTeamPayrolls() {
+    const ids = this.teamMemberIds();
+    if (!ids.length) return;
+
+    let completed = 0;
+    const results: any[] = [];
+
+    ids.forEach(uid => {
+      this.payrollService.getPayrollByUserId(uid).subscribe({
+        next: (res: any) => {
+          const raw = res?.data ?? res;
+          const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
+          const filtered = list.filter((p: any) => p.status === 'Generated' || p.status === 'Paid');
+          results.push(...filtered);
+        },
+        error: () => { /* member may have no payroll */ },
+        complete: () => {
+          completed++;
+          if (completed === ids.length) {
+            this.teamPayrollsRaw.set(results);
+          }
+        }
+      });
     });
   }
 
@@ -198,46 +278,47 @@ export class PayrollRecruitmentPage implements OnInit {
     });
   }
 
-  loadMyApplications() {
+  // ── Load all applications: own + every team member ──
+  loadAllApplications() {
     this.appliedJobsLoading.set(true);
     this.recruitService.getAllJobs().subscribe({
       next: (res: any) => {
         const jobs: any[] = Array.isArray(res) ? res : res?.data ?? [];
-        const visibleJobs = jobs.filter(j => j.status !== 'Deleted' && j.status !== 'deleted');
-        if (visibleJobs.length === 0) { this.appliedJobsLoading.set(false); return; }
+        const visible = jobs.filter(j => j.status !== 'Deleted' && j.status !== 'deleted');
+        if (!visible.length) { this.appliedJobsLoading.set(false); return; }
 
         let completed = 0;
+        const total = visible.length;
         const results: any[] = [];
 
-        visibleJobs.forEach(job => {
+        visible.forEach(job => {
           this.recruitService.getCandidatesByJobId(job.jobId).subscribe({
             next: (cRes: any) => {
-              const candidates: any[] = cRes?.data ?? cRes ?? [];
-              const mine = candidates.filter((c: any) => Number(c.userId) === Number(this.currentUserId()));
-              mine.forEach(c => results.push({
-                ...c,
-                ...job,
-                applicationId: c.applicationId,
-                applicationStatus: c.applicationStatus,
-                appliedDate: c.appliedDate,
-                resumeUrl: c.resumeUrl,
-                userId: c.userId,
-                jobId: job.jobId,
-                jobTitle: job.title,
-                department: job.department,
-                location: job.location,
-                employment_type: job.employment_type,
-              }));
-              completed++;
-              if (completed === visibleJobs.length) {
-                this.myApplications.set(results);
-                this.appliedJobsLoading.set(false);
-              }
+              const cands: any[] = Array.isArray(cRes) ? cRes : cRes?.data ?? [];
+              const relevantIds = new Set(
+                [this.currentUserId(), ...this.teamMemberIds()].map(id => Number(id))
+              );
+
+              cands
+                .filter((c: any) => relevantIds.has(Number(c.userId || c.user_id)))
+                .forEach((c: any) => {
+                  results.push({
+                    ...c,
+                    jobId: c.jobId ?? job.jobId,
+                    jobTitle: c.jobTitle ?? job.title,
+                    department: c.department ?? job.department,
+                    location: c.location ?? job.location,
+                    employment_type: c.employment_type ?? job.employment_type,
+                    applicantName: this.employeeMap().get(c.userId) ?? `EMP-${c.userId}`,
+                    isOwnApplication: c.userId === this.currentUserId(),
+                  });
+                });
             },
-            error: () => {
+            error: () => { },
+            complete: () => {
               completed++;
-              if (completed === visibleJobs.length) {
-                this.myApplications.set(results);
+              if (completed === total) {
+                this.allApplications.set(results);
                 this.appliedJobsLoading.set(false);
               }
             }
@@ -248,7 +329,15 @@ export class PayrollRecruitmentPage implements OnInit {
     });
   }
 
-  // ── Can user apply? ──
+  // ── Scope toggle ──
+  setPayrollScope(scope: 'own' | 'team') {
+    this.payrollScope.set(scope);
+    this.payrollMemberFilter.set('all');
+    this.payrollStatusFilter.set('all');
+    this.payrollSearch.set('');
+  }
+
+  // ── Can apply? ──
   canApplyJob(job: any): boolean {
     return job.status === 'Published' || job.status === 'Open';
   }
@@ -291,9 +380,12 @@ export class PayrollRecruitmentPage implements OnInit {
   printPayslip() { window.print(); }
 
   downloadPayslip(p: any) {
+    const empName = this.employeeMap().get(p.userId) ?? `EMP-${p.userId}`;
     const rows = [
       ['SALARY SLIP', this.getMonthName(p.month) + ' ' + p.year], [],
-      ['Employee ID', `EMP-${p.userId}`], ['Month', this.getMonthName(p.month)],
+      ['Employee', empName],
+      ['Employee ID', `EMP-${p.userId}`],
+      ['Month', this.getMonthName(p.month)],
       ['Year', p.year], ['Status', p.status], [],
       ['EARNINGS', '', 'DEDUCTIONS', ''],
       ['Basic Salary', p.basicSalary, 'PF (12%)', p.pf],
@@ -305,7 +397,7 @@ export class PayrollRecruitmentPage implements OnInit {
     const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-    a.download = `payslip-${this.getMonthName(p.month)}-${p.year}.csv`;
+    a.download = `payslip-${empName.replace(/ /g, '-')}-${this.getMonthName(p.month)}-${p.year}.csv`;
     a.click();
   }
 
@@ -317,7 +409,7 @@ export class PayrollRecruitmentPage implements OnInit {
   }
   closeJobDetail() { this.jobDetailModal.set(null); document.body.style.overflow = ''; }
 
-  // ── Apply modal ──
+  // ── Apply modal (own applications only) ──
   openApplyModal(job: any) {
     if (this.appliedJobIds().has(job.jobId)) {
       this.toast.error('You have already applied for this job.');
@@ -329,6 +421,7 @@ export class PayrollRecruitmentPage implements OnInit {
     this.applySuccess.set(false);
     document.body.style.overflow = 'hidden';
   }
+
   closeApplyModal() {
     this.applyModal.set(null);
     this.resumeFile.set(null);
@@ -364,8 +457,7 @@ export class PayrollRecruitmentPage implements OnInit {
       next: () => {
         this.applySuccess.set(true);
         this.applyLoading.set(null);
-        // Immediately update local state so it reflects without refresh
-        const newApp = {
+        const newApp: any = {
           jobId: job.jobId,
           jobTitle: job.title,
           department: job.department,
@@ -374,8 +466,10 @@ export class PayrollRecruitmentPage implements OnInit {
           applicationStatus: 'Applied',
           appliedDate: new Date().toISOString(),
           userId: this.currentUserId(),
+          applicantName: this.employeeMap().get(this.currentUserId()) ?? `EMP-${this.currentUserId()}`,
+          isOwnApplication: true,
         };
-        this.myApplications.update(list => [...list, newApp]);
+        this.allApplications.update(list => [...list, newApp]);
         setTimeout(() => this.closeApplyModal(), 1800);
         this.toast.success(`Applied for "${job.title}" successfully!`);
       },
@@ -387,6 +481,10 @@ export class PayrollRecruitmentPage implements OnInit {
   }
 
   // ── Helpers ──
+  getEmployeeName(userId: number): string {
+    return this.employeeMap().get(userId) ?? `EMP-${userId}`;
+  }
+
   getMonthName(month: number): string {
     return new Date(2000, month - 1, 1).toLocaleString('en-IN', { month: 'long' });
   }

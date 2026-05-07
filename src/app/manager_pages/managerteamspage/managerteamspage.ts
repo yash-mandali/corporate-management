@@ -69,8 +69,6 @@ export class Managerteampage implements OnInit {
       //console.log("todayRec",todayRec);
       
       const isActive = u.isActive
-     
-      
 
       // Monthly attendance
       const userMonthAtt = monthAtt.filter(r => r.userId === u.id && r.status !== 'Weekend');

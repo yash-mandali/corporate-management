@@ -36,27 +36,23 @@ export class HrLeavePage implements OnInit {
   balanceSearch = signal('');
   readonly pageSize = 10;
 
-  // ── Colors ──
   private colorPool = [
     '#09637e', '#088395', '#27ae60', '#2980b9',
     '#8e44ad', '#d68910', '#c0392b', '#16a085', '#2c3e50', '#1e8449',
   ];
 
-  // ── Computed stats ──
   managerapprovedCount = computed(() => this.allLeaves().filter(l => l.status?.toLowerCase() === 'managerapproved').length);
   pendingCount = computed(() => this.allLeaves().filter(l => l.status?.toLowerCase() === 'managerapproved').length);
   approvedCount = computed(() => this.allLeaves().filter(l => APPROVED_SET.has(l.status?.toLowerCase())).length);
   rejectedCount = computed(() => this.allLeaves().filter(l => REJECTED_SET.has(l.status?.toLowerCase())).length);
   withdrawnCount = computed(() => this.allLeaves().filter(l => l.status?.toLowerCase() === 'withdrawn').length);
 
-  // ── Pending leaves for approvals tab ──
   pendingLeaves = computed(() =>
     this.allLeaves()
       .filter(l => l.status?.toLowerCase() === 'managerapproved')
       .sort((a, b) => new Date(b.appliedOn).getTime() - new Date(a.appliedOn).getTime())
   );
 
-  // ── History tab ──
   filteredHistory = computed(() => {
     const q = this.searchQ().toLowerCase().trim();
     const sf = this.histFilter();
@@ -80,7 +76,6 @@ export class HrLeavePage implements OnInit {
     return this.filteredHistory().slice(s, s + this.pageSize);
   });
 
-  // ── Balance tab: real API data per employee ──
   filteredBalances = computed(() => {
     const q = this.balanceSearch().toLowerCase().trim();
     const balancesMap = this.employeeLeaveBalances();
@@ -137,7 +132,6 @@ export class HrLeavePage implements OnInit {
     });
   }
 
-  // ── Load real leave balances for every employee ──
   loadAllEmployeeLeaveBalances() {
     const employees = this.allEmployees();
     if (!employees.length) return;
@@ -153,7 +147,7 @@ export class HrLeavePage implements OnInit {
           completed++;
           if (completed === employees.length) {
             this.employeeLeaveBalances.set(new Map(map));
-            this.balanceLoading.set(false);
+            this.balanceLoading.set(false); 
           }
         },
         error: () => {
@@ -168,7 +162,6 @@ export class HrLeavePage implements OnInit {
     });
   }
 
-  // ── Actions ──
   approveLeave(leaveRequestId: any) {
     this.actionLoading.set(leaveRequestId);
     this.leaveService.HrApproveleave(leaveRequestId).subscribe({
@@ -203,7 +196,6 @@ export class HrLeavePage implements OnInit {
     });
   }
 
-  // ── Filter helpers ──
   onSearch(val: string) {
     this.searchQ.set(val);
     this.histPage.set(1);
@@ -214,7 +206,6 @@ export class HrLeavePage implements OnInit {
     this.histPage.set(1);
   }
 
-  // ── Leave type helpers ──
   getLeaveTypeName(typeId: number): string {
     switch (typeId) {
       case 1: return 'Annual';
@@ -235,7 +226,6 @@ export class HrLeavePage implements OnInit {
     }
   }
 
-  // ── Leave type class for chips ──
   typeClass(type: string): string {
     const t = (type || '').toLowerCase();
     if (t.includes('annual')) return 'type-annual';
@@ -245,13 +235,11 @@ export class HrLeavePage implements OnInit {
     return 'type-annual';
   }
 
-  // ── Bar pct for balance ──
   barPct(used: number, total: number): number {
     if (!total) return 0;
     return Math.min(100, Math.round(((used || 0) / total) * 100));
   }
 
-  // ── Helpers ──
   getInitials(name: string): string {
     if (!name) return '?';
     return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);

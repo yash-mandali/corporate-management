@@ -1753,6 +1753,7 @@ tbody td {
 .fp-search input {
     border: none;
     outline: none;
+    border-radius: 0px;
     background: transparent;
     font-family: 'Nunito', sans-serif;
     font-size: 13px;

@@ -10,12 +10,12 @@ import { AttendanceService } from '../../services/attendance-service';
 import { DatePipe } from '@angular/common';
 
 @Component({
-  selector: 'app-hr-payroll',
-  imports: [FormsModule,DatePipe],
-  templateUrl: './hr-payroll.html',
-  styleUrl: './hr-payroll.css',
+  selector: 'app-admin-payroll',
+  imports: [FormsModule],
+  templateUrl: './admin-payroll-page.html',
+  styleUrl: './admin-payroll-page.css',
 })
-export class HrPayroll implements OnInit {
+export class AdminPayrollPage implements OnInit {
 
   // ── Raw API data ──
   allEmployees = signal<any[]>([]);
@@ -31,7 +31,6 @@ export class HrPayroll implements OnInit {
   actionLoading = signal<any>(null);
 
   // ── Month navigation ──
-  // Default: previous month (payroll is generated for last month)
   currentYear = signal(this.getDefaultYear());
   currentMonth = signal(this.getDefaultMonth());
 
@@ -41,8 +40,12 @@ export class HrPayroll implements OnInit {
   // ── Filters ──
   searchQ = signal('');
   statusFilter = signal('all');
+  // ADMIN-ONLY: role filter — 'all' | 'employee' | 'manager' | 'hr'
+  roleFilter = signal<'all' | 'employee' | 'manager' | 'hr'>('all');
   slipSearch = signal('');
+  slipRoleFilter = signal<'all' | 'employee' | 'manager' | 'hr'>('all');
   setupSearch = signal('');
+  setupRoleFilter = signal<'all' | 'employee' | 'manager' | 'hr'>('all');
 
   // ── Salary setup: per-employee edit mode + edits ──
   editMode = signal<Record<number, boolean>>({});
@@ -57,8 +60,8 @@ export class HrPayroll implements OnInit {
   markPaidConfirmModal = signal<any | null>(null);
 
   // ── Generate confirmation modals ──
-  generateConfirmModal = signal<any | null>(null);  // single employee row
-  generateAllConfirmModal = signal(false);           // generate all
+  generateConfirmModal = signal<any | null>(null);
+  generateAllConfirmModal = signal(false);
 
   readonly todayStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -67,10 +70,9 @@ export class HrPayroll implements OnInit {
     '#8e44ad', '#d68910', '#c0392b', '#16a085', '#2c3e50', '#1e8449',
   ];
 
-  // ── Default to PREVIOUS month ──
   private getDefaultMonth(): number {
     const now = new Date();
-    return now.getMonth() === 0 ? 12 : now.getMonth(); // getMonth() is 0-indexed, so getMonth() gives previous month
+    return now.getMonth() === 0 ? 12 : now.getMonth();
   }
 
   private getDefaultYear(): number {
@@ -78,39 +80,15 @@ export class HrPayroll implements OnInit {
     return now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
   }
 
-  isPayrollLocked = computed(() => {
-    const now = new Date();
-    const today = now.getDate();
-    const currentRealMonth = now.getMonth() + 1; // 1-indexed
-    const currentRealYear = now.getFullYear();
+  // ── Admin: no lock restriction — admin can always generate ──
+  isPayrollLocked = computed(() => false as boolean | 'future');
 
-    // The "allowed generation month" for the selected payroll month is the next month
-    const allowedMonth = this.currentMonth() === 12 ? 1 : this.currentMonth() + 1;
-    const allowedYear = this.currentMonth() === 12 ? this.currentYear() + 1 : this.currentYear();
-
-    // If we are in the allowed month and within first 10 days → not locked
-    if (currentRealYear === allowedYear && currentRealMonth === allowedMonth && today <= 10) {
-      return false;
-    }
-    // If the generation window hasn't opened yet (allowed month is in the future) → not locked but warn
-    if (
-      allowedYear > currentRealYear ||
-      (allowedYear === currentRealYear && allowedMonth > currentRealMonth)
-    ) {
-      return 'future'; // month not yet finished
-    }
-    // Otherwise locked
-    return true;
-  });
-
-  // ── Computed labels ──
   currentMonthLabel = computed(() =>
     new Date(this.currentYear(), this.currentMonth() - 1, 1)
       .toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
   );
 
-  // Navigation: cannot go beyond previous month (payroll for current month not allowed)
-  isPrevMonthDisabled = computed(() => false); // can always go further back
+  isPrevMonthDisabled = computed(() => false);
   isNextMonthDisabled = computed(() => {
     const now = new Date();
     const prevMonth = now.getMonth() === 0 ? 12 : now.getMonth();
@@ -131,6 +109,15 @@ export class HrPayroll implements OnInit {
     return m;
   });
 
+  // ── Helper: normalise role name to filter key ──
+   normaliseRole(roleName: string): 'employee' | 'manager' | 'hr' | 'other' {
+    const r = (roleName ?? '').toLowerCase();
+    if (r.includes('hr')) return 'hr';
+    if (r.includes('manager')) return 'manager';
+    if (r.includes('employee')) return 'employee';
+    return 'other';
+  }
+
   // ── Merged rows ──
   allRows = computed(() => {
     return this.allEmployees().map(emp => {
@@ -141,8 +128,6 @@ export class HrPayroll implements OnInit {
       const hra = struct?.hra ?? 0;
       const pf = payroll?.pf ?? struct?.pf ?? 0;
       const otherAllowance = struct?.otherAllowance ?? 0;
-
-      // Use allowances from payroll API response directly
       const allowances = payroll?.allowances ?? (hra + otherAllowance);
       const gross = payroll?.grossSalary ?? (basicSalary + allowances);
       const taxDeduction = payroll?.taxDeduction ?? 0;
@@ -150,17 +135,14 @@ export class HrPayroll implements OnInit {
       const totalDeductions = payroll?.totalDeductions ?? (pf + taxDeduction + leaveDeduction);
       const netSalary = payroll?.netSalary ?? (gross - totalDeductions);
       const unpaidLeaveDays = payroll?.unpaidLeaveDays ?? 0;
-
       const hasPayroll = !!payroll;
 
-      // Status logic with lock
+      // Admin: no lock — status determined purely by data
       let status: string;
       if (payroll?.status === 'Paid') {
         status = 'Paid';
       } else if (payroll?.status) {
         status = payroll.status;
-      } else if (this.isPayrollLocked() === true) {
-        status = 'Locked';
       } else if (struct) {
         status = 'Ready';
       } else {
@@ -173,6 +155,7 @@ export class HrPayroll implements OnInit {
         salaryStructureId: struct?.salaryStructureId ?? null,
         userName: emp.userName,
         roleName: emp.roleName,
+        roleKey: this.normaliseRole(emp.roleName),
         hasSalaryStruct: !!struct,
         hasPayroll,
         basicSalary,
@@ -198,29 +181,43 @@ export class HrPayroll implements OnInit {
   filteredRows = computed(() => {
     const q = this.searchQ().toLowerCase().trim();
     const sf = this.statusFilter();
+    const rf = this.roleFilter();
     return this.allRows().filter(r =>
       (!q || r.userName.toLowerCase().includes(q)) &&
-      (sf === 'all' || r.status.toLowerCase() === sf.toLowerCase())
+      (sf === 'all' || r.status.toLowerCase() === sf.toLowerCase()) &&
+      (rf === 'all' || r.roleKey === rf)
     );
   });
 
-  // ── Stats ──
+  // ── Stats (across ALL roles — admin sees full picture) ──
   generatedCount = computed(() => this.allRows().filter(r => r.hasPayroll).length);
   paidCount = computed(() => this.allRows().filter(r => r.status === 'Paid').length);
   totalGross = computed(() => this.allRows().filter(r => r.hasPayroll).reduce((s, r) => s + r.gross, 0));
   totalNet = computed(() => this.allRows().filter(r => r.hasPayroll).reduce((s, r) => s + r.netSalary, 0));
   withSalaryCount = computed(() => this.allRows().filter(r => r.hasSalaryStruct).length);
 
+  // ADMIN-ONLY: per-role counts for stat cards
+  employeeCount = computed(() => this.allRows().filter(r => r.roleKey === 'employee').length);
+  managerCount = computed(() => this.allRows().filter(r => r.roleKey === 'manager').length);
+  hrCount = computed(() => this.allRows().filter(r => r.roleKey === 'hr').length);
+
   filteredSlips = computed(() => {
     const q = this.slipSearch().toLowerCase().trim();
+    const rf = this.slipRoleFilter();
     return this.allRows().filter(r =>
-      r.hasPayroll && (!q || r.userName.toLowerCase().includes(q))
+      r.hasPayroll &&
+      (!q || r.userName.toLowerCase().includes(q)) &&
+      (rf === 'all' || r.roleKey === rf)
     );
   });
 
   filteredSetupRows = computed(() => {
     const q = this.setupSearch().toLowerCase().trim();
-    return this.allEmployees().filter(e => !q || e.userName.toLowerCase().includes(q));
+    const rf = this.setupRoleFilter();
+    return this.allEmployees().filter(e =>
+      (!q || e.userName.toLowerCase().includes(q)) &&
+      (rf === 'all' || this.normaliseRole(e.roleName) === rf)
+    );
   });
 
   constructor(
@@ -233,7 +230,7 @@ export class HrPayroll implements OnInit {
 
   ngOnInit() {
     this.isLoading.set(true);
-    this.userService.getAllEmployeeManager().subscribe({
+    this.userService.getAllEmployeeManagerHr().subscribe({
       next: (res: any) => {
         this.allEmployees.set(Array.isArray(res) ? res : res ? [res] : []);
         this.isLoading.set(false);
@@ -268,7 +265,6 @@ export class HrPayroll implements OnInit {
     });
   }
 
-  // ── Month navigation (max = previous month) ──
   prevMonth() {
     if (this.currentMonth() === 1) {
       this.currentMonth.set(12);
@@ -290,49 +286,21 @@ export class HrPayroll implements OnInit {
     this.loadMonthPayroll();
   }
 
-  // ── Lock banner label ──
+  // ── Admin: lock banner always "open" ──
   getLockStatusLabel(): string {
-    const locked = this.isPayrollLocked();
-    if (locked === true) {
-      const allowedMonth = this.currentMonth() === 12 ? 1 : this.currentMonth() + 1;
-      const allowedYear = this.currentMonth() === 12 ? this.currentYear() + 1 : this.currentYear();
-      const monthName = new Date(allowedYear, allowedMonth - 1, 1)
-        .toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
-      return `Payroll generation window closed. ${this.currentMonthLabel()} payroll could only be generated in first 10 days of ${monthName}.`;
-    }
-    if (locked === 'future') {
-      const allowedMonth = this.currentMonth() === 12 ? 1 : this.currentMonth() + 1;
-      const allowedYear = this.currentMonth() === 12 ? this.currentYear() + 1 : this.currentYear();
-      const monthName = new Date(allowedYear, allowedMonth - 1, 1)
-        .toLocaleDateString('en-IN', { month: 'long' });
-      return `${this.currentMonthLabel()} is not yet complete. Payroll can be generated from 1–10 ${monthName}.`;
-    }
-    const allowedMonth = this.currentMonth() === 12 ? 1 : this.currentMonth() + 1;
-    const allowedYear = this.currentMonth() === 12 ? this.currentYear() + 1 : this.currentYear();
-    const now = new Date();
-    const daysLeft = 10 - now.getDate();
-    const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
-    // console.log(currentMonthName);
-    return `Generation window open. ${daysLeft} day(s) remaining (closes on 10th ${currentMonthName}).`;
+    return `Admin override active. Payroll can be generated for any month at any time.`;
   }
 
   getLockClass(): string {
-    const locked = this.isPayrollLocked();
-    if (locked === true) return 'lock-closed';
-    if (locked === 'future') return 'lock-future';
     return 'lock-open';
   }
 
   canGenerate(): boolean {
-    return this.isPayrollLocked() === false;
+    return true; // Admin has no lock restriction
   }
 
-  // ── Generate single: show confirm first ──
+  // ── Generate single ──
   openGenerateConfirm(row: any) {
-    if (!this.canGenerate()) {
-      this.toast.error('Payroll generation window is closed for this month.');
-      return;
-    }
     this.generateConfirmModal.set(row);
     document.body.style.overflow = 'hidden';
   }
@@ -349,12 +317,8 @@ export class HrPayroll implements OnInit {
     this.openTaxModal(row);
   }
 
-  // ── Generate all: show confirm first ──
+  // ── Generate all ──
   openGenerateAllConfirm() {
-    if (!this.canGenerate()) {
-      this.toast.error('Payroll generation window is closed for this month.');
-      return;
-    }
     this.generateAllConfirmModal.set(true);
     document.body.style.overflow = 'hidden';
   }
@@ -369,12 +333,27 @@ export class HrPayroll implements OnInit {
     this.executeGenerateAll();
   }
 
+  generateAll() {
+    this.openGenerateAllConfirm();
+  }
+
+  private executeGenerateAll() {
+    this.generatingAll.set(true);
+    this.payrollService.generateAllPayroll(this.currentMonth(), this.currentYear()).subscribe({
+      next: () => {
+        this.loadMonthPayroll();
+        this.generatingAll.set(false);
+        this.toast.success('All payrolls generated successfully.');
+      },
+      error: err => {
+        this.toast.error(err?.error?.message || 'Failed to generate all payrolls.');
+        this.generatingAll.set(false);
+      }
+    });
+  }
+
   // ── Tax modal ──
   openTaxModal(row: any) {
-    if (!this.canGenerate()) {
-      this.toast.error('Payroll generation window is closed for this month.');
-      return;
-    }
     this.taxAmount.set(0);
     this.taxModal.set(row);
     document.body.style.overflow = 'hidden';
@@ -414,32 +393,11 @@ export class HrPayroll implements OnInit {
     });
   }
 
-  // ── Generate all ──
-  generateAll() {
-    this.openGenerateAllConfirm();
-  }
-
-  private executeGenerateAll() {
-    this.generatingAll.set(true);
-    this.payrollService.generateAllPayroll(this.currentMonth(), this.currentYear()).subscribe({
-      next: () => {
-        this.loadMonthPayroll();
-        this.generatingAll.set(false);
-        this.toast.success('All payrolls generated successfully.');
-      },
-      error: err => {
-        this.toast.error(err?.error?.message || 'Failed to generate all payrolls.');
-        this.generatingAll.set(false);
-      }
-    });
-  }
-
-  // ── Payroll Detail Modal — fetches leave + attendance data ──
+  // ── Payroll Detail Modal ──
   openPayrollDetail(row: any) {
     this.payrollDetailModal.set(row);
     document.body.style.overflow = 'hidden';
 
-    // Fetch all three APIs in parallel
     forkJoin({
       myLeaves: this.leaveService.getMyleaveList(row.empId).pipe(catchError(() => of([]))),
       leaveBalance: this.leaveService.getUserLeaveBalance(row.empId).pipe(catchError(() => of([]))),
@@ -452,24 +410,15 @@ export class HrPayroll implements OnInit {
       const payrollYear = this.currentYear();
       const payrollMonth = this.currentMonth();
 
-      // ── Leave summary — filter by payroll month ──
-
-      // Total leaves taken = count of leave requests that fall in the payroll month
       const monthLeaves = leaveList.filter((l: any) => {
         const from = new Date(l.fromDate);
         return from.getFullYear() === payrollYear && (from.getMonth() + 1) === payrollMonth;
       });
       const totalLeaves = monthLeaves.length;
-
-      // Approved leaves (used) in payroll month = sum of totalDays for Approved leaves in that month
       const approvedLeaves = monthLeaves
         .filter((l: any) => l.status === 'Approved')
         .reduce((s: number, l: any) => s + (l.totalDays ?? 0), 0);
-
-      // Remaining leave balance = sum of remainingLeaveBalance (yearly, from balance API)
       const leaveBalance2 = balanceList.reduce((s: number, l: any) => s + (l.remainingLeaveBalance ?? 0), 0);
-
-      // Unpaid leaves = from payroll API response (already in row)
       const unpaidLeaves = row.unpaidLeaveDays ?? 0;
 
       const monthAttendance = attendanceList.filter((a: any) => {
@@ -478,8 +427,6 @@ export class HrPayroll implements OnInit {
       });
 
       const daysPresent = monthAttendance.length;
-
-      // Working days = total days in month minus Saturdays & Sundays
       const totalDaysInMonth = new Date(payrollYear, payrollMonth, 0).getDate();
       let weekendCount = 0;
       for (let d = 1; d <= totalDaysInMonth; d++) {
@@ -640,7 +587,7 @@ export class HrPayroll implements OnInit {
           this.loadSalaryStructures();
           this.cancelEditMode(empId);
           this.actionLoading.set(null);
-          this.toast.success(`Salary updated for ${struct.userName ?? 'employee'}.`);
+          this.toast.success(`Salary updated for ${struct.userName ?? 'user'}.`);
         },
         error: err => {
           this.toast.error(err?.error?.message || 'Update failed.');
@@ -727,7 +674,7 @@ export class HrPayroll implements OnInit {
     const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-    a.download = `payroll-${this.currentYear()}-${this.currentMonth()}.csv`;
+    a.download = `admin-payroll-${this.currentYear()}-${this.currentMonth()}.csv`;
     a.click();
   }
 
@@ -748,5 +695,12 @@ export class HrPayroll implements OnInit {
     const d = new Date(ds);
     if (isNaN(d.getTime()) || d.getFullYear() < 2000) return '—';
     return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  // ── Admin: role badge colour helper ──
+  getRoleBadgeClass(roleKey: string): string {
+    if (roleKey === 'hr') return 'role-hr';
+    if (roleKey === 'manager') return 'role-manager';
+    return 'role-employee';
   }
 }

@@ -40,7 +40,7 @@ export class RecruitmentService {
     return this.http.post<any>(`${this.apiurl}/OnHold?jobId=${jobId}`, { jobId });
   }
   
- //not used
+ //not used 
   openJob(jobId: any) {
     return this.http.post<any>(`${this.apiurl}/openJob?jobId=${jobId}`, { jobId });
   }

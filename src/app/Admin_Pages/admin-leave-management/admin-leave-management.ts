@@ -163,6 +163,7 @@ export class AdminLeaveManagement implements OnInit {
     this.leaveService.getAllLeaves().subscribe({
       next: (data) => {
         this.allLeaves.set(data || []);
+        console.log("loadallleaves called:", data);
         this.isLoading.set(false);
       },
       error: () => {

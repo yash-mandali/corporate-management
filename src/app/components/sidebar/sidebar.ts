@@ -62,6 +62,7 @@ export class Sidebar {
         { label: 'Attendance', route: '/dashboard/attendancemanagement', icon: 'fas fa-clock' },
         { label: 'Leave Management', route: '/dashboard/leavemanagement', icon: 'fas fa-calendar-alt' },
         { label: 'User Management', route: '/dashboard/usermanagement', icon: 'fas fa-users' },
+        { label: 'Payroll Management', route: '/dashboard/payrollmanagement', icon: 'fas fa-coins' },
       ],
     };
 

@@ -1,7 +1,6 @@
 <main class="main">
     <div class="content">
 
-        <!-- Toast -->
         @if (toastMessage()) {
         <div class="alm-toast" [class.toast-success]="toastMessage()!.type === 'success'"
             [class.toast-error]="toastMessage()!.type === 'error'">
@@ -10,7 +9,6 @@
         </div>
         }
 
-        <!-- PAGE HEADER -->
         <div class="page-header">
             <div class="ph-left">
                 <div class="ph-icon"><i class="fas fa-calendar-check"></i></div>
@@ -39,7 +37,6 @@
             </div>
         </div>
 
-        <!-- STAT CARDS -->
         <div class="stat-row">
             <div class="stat-card total-c">
                 <div class="sc-icon"><i class="fas fa-calendar-alt"></i></div>
@@ -78,11 +75,9 @@
             </div>
         </div>
 
-        <!-- ════ TAB: REQUESTS ════ -->
         @if (activeTab() === 'requests') {
         <div class="tab-content">
 
-            <!-- Filter Toolbar -->
             <div class="history-toolbar">
                 <div class="ht-search">
                     <i class="fas fa-search"></i>
@@ -105,8 +100,6 @@
             <div class="page-loading"><i class="fas fa-spinner fa-spin"></i> Loading leaves...</div>
             } @else {
             <div class="history-table-card">
-
-                <!-- ── DESKTOP TABLE (hidden on mobile via CSS) ── -->
                 <div class="tbl-scroll">
                     <table>
                         <thead>
@@ -173,11 +166,9 @@
                     </table>
                 </div>
 
-                <!-- ── MOBILE CARD LIST (hidden on desktop via CSS) ── -->
                 <div class="mobile-leave-list">
                     @for (leave of pagedLeaves(); track leave.leaveRequestId) {
                     <div class="mlc">
-                        <!-- Top row: avatar + name + type badge -->
                         <div class="mlc-top">
                             <div class="mlc-av" [style.background]="getColor(leave.userId)">
                                 {{ getInitials(leave.userName) }}
@@ -192,7 +183,6 @@
                             </div>
                         </div>
 
-                        <!-- Date row -->
                         <div class="mlc-dates">
                             <div class="mlc-date-block">
                                 <div class="mlcd-label">From</div>
@@ -206,7 +196,6 @@
                             <div class="mlc-days-pill">{{ leave.totalDays }}d</div>
                         </div>
 
-                        <!-- Bottom row: session + status + actions -->
                         <div class="mlc-bottom">
                             <div class="mlc-session">
                                 <span class="status-pill sp-{{ getStatusKey(leave.status) }}">
@@ -240,7 +229,6 @@
                     }
                 </div>
 
-                <!-- Pagination (shared) -->
                 @if (histTotalPages() > 1) {
                 <div class="pagination">
                     <button class="pg-btn" (click)="histPage.set(1)" [disabled]="histPage() === 1">
@@ -269,7 +257,6 @@
         </div>
         }
 
-        <!-- ════ TAB: BALANCE ════ -->
         @if (activeTab() === 'balance') {
         <div class="tab-content">
             <div class="balance-toolbar">
@@ -341,7 +328,6 @@
     </div>
 </main>
 
-<!-- ════ LEAVE DETAIL MODAL ════ -->
 @if (showDetailModal() && selectedLeave()) {
 <div class="modal-overlay" (click)="closeDetail()">
     <div class="detail-modal" (click)="$event.stopPropagation()">
@@ -450,7 +436,6 @@
 </div>
 }
 
-<!-- ════ CONFIRM MODAL ════ -->
 @if (showConfirmModal()) {
 <div class="modal-overlay" (click)="cancelConfirm()">
     <div class="delete-modal" (click)="$event.stopPropagation()">
@@ -486,7 +471,6 @@
 </div>
 }
 
-<!-- ════ EMPLOYEE BALANCE DETAIL MODAL ════ -->
 @if (showBalanceModal() && selectedEmployeeBalance()) {
 <div class="modal-overlay" (click)="closeBalanceDetail()">
     <div class="detail-modal" (click)="$event.stopPropagation()">

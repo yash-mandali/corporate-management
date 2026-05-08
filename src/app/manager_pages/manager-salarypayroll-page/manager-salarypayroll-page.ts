@@ -17,44 +17,37 @@ import { Authservice } from '../../services/Auth-service/authservice';
 export class ManagerSalaryPayrollPage implements OnInit {
 
   currentUserId = signal<any>(0);
-  teamMemberIds = signal<number[]>([15,16,21,43]);
+  teamMemberIds = signal<number[]>([]);
 
   Math = Math;
 
-  // ── Tabs ──
   activeTab = signal<'payroll' | 'jobs' | 'applied'>('payroll');
   payrollView = signal<'list' | 'card'>('list');
   jobView = signal<'list' | 'card'>('list');
 
-  // ── Payroll scope: own vs team ──
   payrollScope = signal<'own' | 'team'>('own');
 
-  // ── Loading ──
   payrollLoading = signal(false);
   jobsLoading = signal(false);
   appliedJobsLoading = signal(false);
   applyLoading = signal<number | null>(null);
 
-  // ── Raw data ──
-  /** Manager's own payrolls */
   myPayrolls = signal<any[]>([]);
-  /** All team members' payrolls — keyed by userId for easy lookup */
+
   teamPayrollsRaw = signal<any[]>([]);
-  /** Employee name lookup map: userId → name (populated from UserService) */
+
   employeeMap = signal<Map<number, string>>(new Map());
 
   allJobs = signal<any[]>([]);
-  /** All applications — own + team (augmented with ownerType) */
+
   allApplications = signal<any[]>([]);
 
-  // ── Payroll filters ──
   payrollStatusFilter = signal<'all' | 'Generated' | 'Paid'>('all');
   payrollYear = signal<number>(new Date().getFullYear());
   payrollMonth = signal<number>(0);
   payrollSearch = signal('');
   payrollMemberFilter = signal<number | 'all'>('all'); // 0 = all team members
 
-  // ── Job / applied filters ──
   jobSearch = signal('');
   jobDeptFilter = signal('all');
   jobTypeFilter = signal('all');
@@ -65,7 +58,6 @@ export class ManagerSalaryPayrollPage implements OnInit {
   appliedStatusFilter = signal('all');
   appliedMonthFilter = signal<number>(0);
   appliedYearFilter = signal<number>(0);
-  /** "all" = own + team, "own" = only manager, "team" = only team members */
   appliedScopeFilter = signal<'all' | 'own' | 'team'>('all');
 
   // ── Modals ──
@@ -102,13 +94,11 @@ export class ManagerSalaryPayrollPage implements OnInit {
   readonly empTypes = ['Full-Time', 'Part-Time', 'Contract', 'Internship', 'Freelance'];
   readonly applicationStatuses = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired', 'Rejected'];
 
-  // ── Computed: payrolls to display based on scope ──
   activePayrolls = computed(() => {
     if (this.payrollScope() === 'own') return this.myPayrolls();
     return this.teamPayrollsRaw();
   });
 
-  /** Team members for the filter dropdown */
   teamMemberOptions = computed(() => {
     const map = this.employeeMap();
     return this.teamMemberIds().map(id => ({ id, name: map.get(id) ?? `EMP-${id}` }));
@@ -160,11 +150,10 @@ export class ManagerSalaryPayrollPage implements OnInit {
     });
   });
 
-  /** Own applied job IDs (for apply button state) */
   appliedJobIds = computed(() => new Set(
     this.allApplications()
-      .filter((a: any) => a.userId === this.currentUserId())
-      .map((a: any) => a.jobId ?? a.candidateId)
+      .filter((a: any) => Number(a.userId) === Number(this.currentUserId()))
+      .map((a: any) => Number(a.jobId))
   ));
 
   filteredApplied = computed(() => {
@@ -180,16 +169,19 @@ export class ManagerSalaryPayrollPage implements OnInit {
       const d = new Date(a.appliedDate ?? '');
       const matchMo = !mo || d.getMonth() + 1 === mo;
       const matchYr = !yr || d.getFullYear() === yr;
+      const currentId = Number(this.currentUserId());
+      const appUserId = Number(a.userId);
+
       const matchScope =
         scope === 'all' ||
-        (scope === 'own' && a.userId === this.currentUserId()) ||
-        (scope === 'team' && a.userId !== this.currentUserId());
+        (scope === 'own' && appUserId === currentId) ||
+        (scope === 'team' && appUserId !== currentId);
       return matchQ && matchS && matchMo && matchYr && matchScope;
     });
   });
 
-  ownApplicationsCount = computed(() => this.allApplications().filter(a => a.userId === this.currentUserId()).length);
-  teamApplicationsCount = computed(() => this.allApplications().filter(a => a.userId !== this.currentUserId()).length);
+  ownApplicationsCount = computed(() => this.allApplications().filter(a => Number(a.userId) === Number(this.currentUserId())).length);
+  teamApplicationsCount = computed(() => this.allApplications().filter(a => Number(a.userId) !== Number(this.currentUserId())).length);
 
   constructor(
     private payrollService: PayrollService,
@@ -203,13 +195,26 @@ export class ManagerSalaryPayrollPage implements OnInit {
     const id = this.auth.getUserId();
     if (id) {
       this.currentUserId.set(id);
+      this.getManagerTeamMembers();
       this.loadEmployeeNames();
       this.loadMyPayrolls();
       this.loadTeamPayrolls();
       this.loadJobs();
       this.loadAllApplications();
     }
-    
+  }
+
+  getManagerTeamMembers() {
+    this.userService.getManagerTeam(this.currentUserId()).subscribe({
+      next: (res: any) => {
+        const members: any[] = Array.isArray(res) ? res : res?.data ?? [];
+        const ids = members.map(m => m.id ?? m.userId).filter((id: any) => id !== this.currentUserId());
+        console.log("get managerteammembers called::",ids);     
+        this.teamMemberIds.set(ids);
+        this.loadTeamPayrolls();
+      },
+      error: err => { console.error('Failed to load team members:', err); }
+    });
   }
 
   // ── Load employee name map ──
@@ -224,8 +229,7 @@ export class ManagerSalaryPayrollPage implements OnInit {
       error: () => { /* silently skip — names degrade to EMP-{id} */ }
     });
   }
-
-  // ── Load own payrolls ──
+  
   loadMyPayrolls() {
     this.payrollLoading.set(true);
     this.payrollService.getPayrollByUserId(this.currentUserId()).subscribe({
@@ -241,6 +245,8 @@ export class ManagerSalaryPayrollPage implements OnInit {
 
   loadTeamPayrolls() {
     const ids = this.teamMemberIds();
+    console.log("load teampayroll called ",ids);
+    
     if (!ids.length) return;
 
     let completed = 0;
@@ -271,6 +277,8 @@ export class ManagerSalaryPayrollPage implements OnInit {
     this.recruitService.getAllJobs().subscribe({
       next: (res: any) => {
         const list = Array.isArray(res) ? res : res?.data ?? [];
+        console.log("Loaded Jobs:", list);
+
         this.allJobs.set(list);
         this.jobsLoading.set(false);
       },
@@ -310,7 +318,7 @@ export class ManagerSalaryPayrollPage implements OnInit {
                     location: c.location ?? job.location,
                     employment_type: c.employment_type ?? job.employment_type,
                     applicantName: this.employeeMap().get(c.userId) ?? `EMP-${c.userId}`,
-                    isOwnApplication: c.userId === this.currentUserId(),
+                    isOwnApplication: Number(c.userId) === Number(this.currentUserId()),
                   });
                 });
             },
@@ -465,7 +473,7 @@ export class ManagerSalaryPayrollPage implements OnInit {
           employment_type: job.employment_type,
           applicationStatus: 'Applied',
           appliedDate: new Date().toISOString(),
-          userId: this.currentUserId(),
+          userId: Number(this.currentUserId()),
           applicantName: this.employeeMap().get(this.currentUserId()) ?? `EMP-${this.currentUserId()}`,
           isOwnApplication: true,
         };

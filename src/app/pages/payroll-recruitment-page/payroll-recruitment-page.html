@@ -147,7 +147,8 @@
                         <tr (click)="openPayslip(p)">
                             <td>
                                 <div class="period-cell">
-                                    <span class="period-chip">{{ getMonthName(p.month).slice(0,3).toUpperCase() }}</span>
+                                    <span class="period-chip">{{ getMonthName(p.month).slice(0,3).toUpperCase()
+                                        }}</span>
                                     <div>
                                         <div class="table-strong">{{ getMonthName(p.month) }} {{ p.year }}</div>
                                         <div class="table-muted">Payroll</div>
@@ -203,7 +204,8 @@
                     <div class="pc-net-panel">
                         <div>
                             <div class="pc-net-label">Net Salary</div>
-                            <div class="pc-net-help">{{ p.status === 'Paid' ? 'Credited amount' : 'Awaiting payment' }}</div>
+                            <div class="pc-net-help">{{ p.status === 'Paid' ? 'Credited amount' : 'Awaiting payment' }}
+                            </div>
                         </div>
                         <div class="pc-net-value">
                             ₹{{ formatAmt(p.netSalary) }}
@@ -238,7 +240,8 @@
                     <div class="pc-footer">
                         <span class="pc-meta"><i class="fas fa-file-invoice-dollar"></i> View payslip</span>
                         @if (p.paidDate) {
-                        <span class="pc-meta paid-green"><i class="fas fa-check-circle"></i> Paid {{ formatDate(p.paidDate)
+                        <span class="pc-meta paid-green"><i class="fas fa-check-circle"></i> Paid {{
+                            formatDate(p.paidDate)
                             }}</span>
                         }
                         <button class="pc-dl-btn" (click)="$event.stopPropagation(); downloadPayslip(p)"
@@ -368,7 +371,8 @@
                                     </div>
                                     <div>
                                         <div class="table-strong">{{ job.title }}</div>
-                                        <div class="table-muted">Posted {{ formatDate(job.created_at ?? job.createdAt) }}</div>
+                                        <div class="table-muted">Posted {{ formatDate(job.created_at ?? job.createdAt)
+                                            }}</div>
                                     </div>
                                 </div>
                             </td>
@@ -377,7 +381,8 @@
                             <td>{{ job.employment_type }}</td>
                             <td>{{ job.experience_required }}</td>
                             <td>{{ job.vacancies }} slot(s)</td>
-                            <td class="amount-cell primary">{{ formatSalary(job.salary_min, job.salary_max, job.currency) }}</td>
+                            <td class="amount-cell primary">{{ formatSalary(job.salary_min, job.salary_max,
+                                job.currency) }}</td>
                             <td [class.danger]="isDeadlinePast(job.application_deadline)">
                                 {{ formatDate(job.application_deadline) }}
                             </td>
@@ -645,13 +650,11 @@
                 </table>
             </div>
         </div>
-    }
-    }
-
+        }
+        }
     </div>
 </main>
 
-<!-- ══ PAYSLIP MODAL ══ -->
 @if (payslipModal()) {
 <div class="modal-overlay" (click)="closePayslip()">
     <div class="payslip-modal" (click)="$event.stopPropagation()" id="payslip-print">
@@ -737,7 +740,6 @@
 </div>
 }
 
-<!-- ══ JOB DETAIL MODAL ══ -->
 @if (jobDetailModal()) {
 <div class="modal-overlay" (click)="closeJobDetail()">
     <div class="job-detail-modal" (click)="$event.stopPropagation()">
@@ -826,7 +828,6 @@
 </div>
 }
 
-<!-- ══ APPLY MODAL ══ -->
 @if (applyModal()) {
 <div class="modal-overlay" (click)="closeApplyModal()">
     <div class="apply-modal" (click)="$event.stopPropagation()">

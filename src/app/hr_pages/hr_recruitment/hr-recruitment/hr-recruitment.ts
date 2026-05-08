@@ -37,47 +37,47 @@ export class HrRecruitment implements OnInit {
   stageOverrides = signal<Record<number, CandStage>>({});
 
   // ── Loading ──
-  isLoading        = signal(false);
-  actionLoading    = signal<any>(null);
-  formSaving       = signal(false);
-  formError        = signal<string | null>(null);
-  resumeFile       = signal<File | null>(null);
-  resumeUploading  = signal(false);
+  isLoading = signal(false);
+  actionLoading = signal<any>(null);
+  formSaving = signal(false);
+  formError = signal<string | null>(null);
+  resumeFile = signal<File | null>(null);
+  resumeUploading = signal(false);
   resumeUploadedUrl = signal<string>('');
 
   // ── Tabs ──
   activeTab = signal<'jobs' | 'pipeline' | 'candidates'>('jobs');
 
   // ── Job filters ──
-  jobSearch       = signal('');
+  jobSearch = signal('');
   jobStatusFilter = signal('all');
-  jobDeptFilter   = signal('all');
+  jobDeptFilter = signal('all');
 
   // ── Candidate filters ──
-  candSearch      = signal('');
-  candJobFilter   = signal<number | 'all'>('all');
+  candSearch = signal('');
+  candJobFilter = signal<number | 'all'>('all');
   candStageFilter = signal<CandStage | 'all'>('all');
 
   // ── Pipeline filters ──
   pipelineJobFilter = signal<number | 'all'>('all');
-  pipelineSearch    = signal('');
+  pipelineSearch = signal('');
 
   // ── Modals ──
-  jobFormModal     = signal(false);
-  editingJob       = signal<any | null>(null);
-  jobDetailModal   = signal<any | null>(null);
-  jobDetailCands   = signal<any[]>([]);
+  jobFormModal = signal(false);
+  editingJob = signal<any | null>(null);
+  jobDetailModal = signal<any | null>(null);
+  jobDetailCands = signal<any[]>([]);
   jobDetailLoading = signal(false);
-  candFormModal    = signal(false);
-  candDetailModal  = signal<any | null>(null);
-  deleteModal      = signal<{ id: number; name: string } | null>(null);
+  candFormModal = signal(false);
+  candDetailModal = signal<any | null>(null);
+  deleteModal = signal<{ id: number; name: string } | null>(null);
   // ── 'resume' added to union — calls publishJob API (SP allows Draft|OnHold → Published)
-  statusModal      = signal<{ job: any; action: 'publish' | 'onhold' | 'close' | 'resume' } | null>(null);
-  stageModal       = signal<{ cand: any; currentStage: CandStage } | null>(null);
+  statusModal = signal<{ job: any; action: 'publish' | 'onhold' | 'close' | 'resume' } | null>(null);
+  stageModal = signal<{ cand: any; currentStage: CandStage } | null>(null);
 
   // ── Drag ──
   draggingId = signal<number | null>(null);
-  dragOver   = signal<CandStage | null>(null);
+  dragOver = signal<CandStage | null>(null);
 
   jobForm: FormGroup;
   candForm: FormGroup;
@@ -90,10 +90,10 @@ export class HrRecruitment implements OnInit {
 
   // ── Stats ──
   activeCount = computed(() => this.allJobs().filter(j => j.status === 'Published' || j.status === 'Open').length);
-  draftCount  = computed(() => this.allJobs().filter(j => j.status === 'Draft').length);
+  draftCount = computed(() => this.allJobs().filter(j => j.status === 'Draft').length);
   onHoldCount = computed(() => this.allJobs().filter(j => j.status === 'OnHold').length);
-  totalCands  = computed(() => Object.values(this.candidatesMap()).flat().length);
-  hiredCount  = computed(() => this.allCandidatesFlat().filter(c => c.stage === 'Hired').length);
+  totalCands = computed(() => Object.values(this.candidatesMap()).flat().length);
+  hiredCount = computed(() => this.allCandidatesFlat().filter(c => c.stage === 'Hired').length);
 
   allCandidatesFlat = computed(() =>
     Object.values(this.candidatesMap()).flat().map(c => ({
@@ -103,22 +103,23 @@ export class HrRecruitment implements OnInit {
   );
 
   filteredJobs = computed(() => {
-    const q  = this.jobSearch().toLowerCase().trim();
+    const q = this.jobSearch().toLowerCase().trim();
     const sf = this.jobStatusFilter();
     const df = this.jobDeptFilter();
     return this.allJobs().filter(j => {
-      const st     = (j.status || '').toLowerCase();
+      const st = (j.status || '').toLowerCase();
       const matchQ = !q || j.title?.toLowerCase().includes(q) || j.department?.toLowerCase().includes(q);
-      const matchS = sf === 'all'
-        || (sf === 'published' && (st === 'published' || st === 'open'))
-        || sf === st;
+      const matchS =
+        (sf === 'all' && st !== 'closed') ||
+        (sf === 'published' && (st === 'published' || st === 'open')) ||
+        sf === st;
       const matchD = df === 'all' || j.department === df;
       return matchQ && matchS && matchD;
     });
   });
 
   candidatesByStage = computed(() => {
-    const q  = this.pipelineSearch().toLowerCase().trim();
+    const q = this.pipelineSearch().toLowerCase().trim();
     const jf = this.pipelineJobFilter();
     const filtered = this.allCandidatesFlat().filter(c =>
       (!q || c.fullName?.toLowerCase().includes(q) || c.email?.toLowerCase().includes(q)) &&
@@ -131,7 +132,7 @@ export class HrRecruitment implements OnInit {
   });
 
   filteredCandidates = computed(() => {
-    const q  = this.candSearch().toLowerCase().trim();
+    const q = this.candSearch().toLowerCase().trim();
     const jf = this.candJobFilter();
     const sf = this.candStageFilter();
     return this.allCandidatesFlat().filter(c =>
@@ -148,25 +149,25 @@ export class HrRecruitment implements OnInit {
     private toast: ToastService
   ) {
     this.jobForm = this.fb.group({
-      title:               ['', Validators.required],
-      description:         ['', Validators.required],
-      department:          ['', Validators.required],
-      location:            ['', Validators.required],
-      employment_type:     ['Full-Time', Validators.required],
+      title: ['', Validators.required],
+      description: ['', Validators.required],
+      department: ['', Validators.required],
+      location: ['', Validators.required],
+      employment_type: ['Full-Time', Validators.required],
       experience_required: ['', Validators.required],
-      vacancies:           [1, [Validators.required, Validators.min(1)]],
-      required_skills:     [''],
-      qualifications:      [''],
-      responsibilities:    [''],
-      salary_min:          [0, [Validators.required, Validators.min(0)]],
-      salary_max:          [0, [Validators.required, Validators.min(0)]],
-      currency:            ['INR'],
-      publish_date:        [''],
-      application_deadline:[''],
+      vacancies: [1, [Validators.required, Validators.min(1)]],
+      required_skills: [''],
+      qualifications: [''],
+      responsibilities: [''],
+      salary_min: [0, [Validators.required, Validators.min(0)]],
+      salary_max: [0, [Validators.required, Validators.min(0)]],
+      currency: ['INR'],
+      publish_date: [''],
+      application_deadline: [''],
     });
     this.candForm = this.fb.group({
-      jobId:     ['', Validators.required],
-      userId:    ['', Validators.required],
+      jobId: ['', Validators.required],
+      userId: ['', Validators.required],
       resumeUrl: [''],
     });
   }
@@ -197,7 +198,7 @@ export class HrRecruitment implements OnInit {
         const list = Array.isArray(res) ? res : res?.data ?? [];
         this.candidatesMap.update(m => ({ ...m, [jobId]: list.map((c: any) => ({ ...c, jobId })) }));
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -278,9 +279,9 @@ export class HrRecruitment implements OnInit {
 
     // 'resume' uses same publishJob API — SP allows Draft|OnHold → Published/Open
     const call$ = m.action === 'publish' ? this.recruitService.publishJob(jobId)
-      : m.action === 'resume'  ? this.recruitService.publishJob(jobId)
-      : m.action === 'onhold'  ? this.recruitService.onHoldJob(jobId)
-      : this.recruitService.closeJob(jobId);
+      : m.action === 'resume' ? this.recruitService.publishJob(jobId)
+        : m.action === 'onhold' ? this.recruitService.onHoldJob(jobId)
+          : this.recruitService.closeJob(jobId);
 
     const msg = { publish: 'published', resume: 'resumed — now Open', onhold: 'put on hold', close: 'closed' };
     call$.subscribe({
@@ -350,7 +351,7 @@ export class HrRecruitment implements OnInit {
   // ── File selection ──
   onResumeFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    const file  = input.files?.[0];
+    const file = input.files?.[0];
     if (!file) return;
     const allowed = ['application/pdf', 'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
@@ -404,7 +405,7 @@ export class HrRecruitment implements OnInit {
 
   // ── Candidate detail ──
   openCandDetail(c: any) { this.candDetailModal.set(c); document.body.style.overflow = 'hidden'; }
-  closeCandDetail()       { this.candDetailModal.set(null); document.body.style.overflow = ''; }
+  closeCandDetail() { this.candDetailModal.set(null); document.body.style.overflow = ''; }
 
   // ── Stage modal ──
   openStageModal(cand: any, event?: Event) {
@@ -442,10 +443,10 @@ export class HrRecruitment implements OnInit {
 
   // ── localStorage ──
   loadStageOverrides() {
-    try { const r = localStorage.getItem(this.STAGE_STORAGE); if (r) this.stageOverrides.set(JSON.parse(r)); } catch {}
+    try { const r = localStorage.getItem(this.STAGE_STORAGE); if (r) this.stageOverrides.set(JSON.parse(r)); } catch { }
   }
   saveStageOverrides() {
-    try { localStorage.setItem(this.STAGE_STORAGE, JSON.stringify(this.stageOverrides())); } catch {}
+    try { localStorage.setItem(this.STAGE_STORAGE, JSON.stringify(this.stageOverrides())); } catch { }
   }
 
   // ── Resume download ──
@@ -494,15 +495,15 @@ export class HrRecruitment implements OnInit {
     return m[stage] ?? 'circle';
   }
 
-  canPublish(s: string)  { return s === 'Draft'; }
+  canPublish(s: string) { return s === 'Draft'; }
 
-  canResume(s: string)   { return s === 'OnHold'; }
+  canResume(s: string) { return s === 'OnHold'; }
 
-  canOnHold(s: string)   { return s === 'Published' || s === 'Open'; }
-  
-  canClose(s: string)    { return s === 'Published' || s === 'Open' || s === 'OnHold'; }
+  canOnHold(s: string) { return s === 'Published' || s === 'Open'; }
 
-  canEdit(s: string)     { return s === 'Draft'; }
+  canClose(s: string) { return s === 'Published' || s === 'Open' || s === 'OnHold'; }
+
+  canEdit(s: string) { return s === 'Draft'; }
 
   isActiveJob(s: string) { return s === 'Published' || s === 'Open'; }
 

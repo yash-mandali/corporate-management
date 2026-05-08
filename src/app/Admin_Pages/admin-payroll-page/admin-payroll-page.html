@@ -4,11 +4,11 @@
         <!-- PAGE HEADER -->
         <div class="page-header">
             <div class="ph-left">
-                <div class="ph-icon"><i class="fas fa-money-bill-wave"></i></div>
+                <div class="ph-icon"><i class="fas fa-shield-alt"></i></div>
                 <div>
-                    <div class="ph-title">Payroll Management</div>
+                    <div class="ph-title">Admin Payroll Management</div>
                     <div class="ph-sub">{{ currentMonthLabel() }} · {{ generatedCount() }} of {{ allEmployees().length
-                        }} generated</div>
+                        }} generated · All roles</div>
                 </div>
             </div>
             <div class="ph-right">
@@ -35,26 +35,38 @@
             </div>
         </div>
 
-        <!-- ══ PAYROLL LOCK STATUS BANNER ══ -->
         @if (activeTab() === 'payroll') {
-        <div class="lock-banner" [class]="getLockClass()">
-            <div class="lb-icon">
-                @if (isPayrollLocked() === true) {
-                <i class="fas fa-lock"></i>
-                } @else if (isPayrollLocked() === 'future') {
-                <i class="fas fa-clock"></i>
-                } @else {
-                <i class="fas fa-lock-open"></i>
-                }
-            </div>
+        <div class="lock-banner lock-open admin-banner">
+            <div class="lb-icon"><i class="fas fa-shield-alt"></i></div>
             <div class="lb-text">{{ getLockStatusLabel() }}</div>
-            @if (isPayrollLocked() === false) {
-            <div class="lb-days">
-                Day {{ todayStr | date:'d' }} of 10
-            </div>
-            }
+            <div class="lb-admin-badge"><i class="fas fa-crown"></i> Admin</div>
         </div>
         }
+
+        <!-- ══ ROLE SUMMARY CARDS ══ -->
+        <div class="role-summary-row">
+            <div class="rs-card rs-all" [class.active]="roleFilter() === 'all'" (click)="roleFilter.set('all')">
+                <i class="fas fa-users"></i>
+                <span class="rs-count">{{ allEmployees().length }}</span>
+                <span class="rs-label">All Users</span>
+            </div>
+            <div class="rs-card rs-emp" [class.active]="roleFilter() === 'employee'"
+                (click)="roleFilter.set('employee')">
+                <i class="fas fa-user"></i>
+                <span class="rs-count">{{ employeeCount() }}</span>
+                <span class="rs-label">Employees</span>
+            </div>
+            <div class="rs-card rs-mgr" [class.active]="roleFilter() === 'manager'" (click)="roleFilter.set('manager')">
+                <i class="fas fa-user-tie"></i>
+                <span class="rs-count">{{ managerCount() }}</span>
+                <span class="rs-label">Managers</span>
+            </div>
+            <div class="rs-card rs-hr" [class.active]="roleFilter() === 'hr'" (click)="roleFilter.set('hr')">
+                <i class="fas fa-user-shield"></i>
+                <span class="rs-count">{{ hrCount() }}</span>
+                <span class="rs-label">HR Staff</span>
+            </div>
+        </div>
 
         <!-- STAT CARDS -->
         <div class="stat-row">
@@ -62,7 +74,7 @@
                 <div class="sc-icon"><i class="fas fa-users"></i></div>
                 <div class="sc-body">
                     <div class="sc-val">{{ allEmployees().length }}</div>
-                    <div class="sc-lbl">Total Employees</div>
+                    <div class="sc-lbl">Total Users</div>
                 </div>
             </div>
             <div class="stat-card sc-setup">
@@ -108,7 +120,7 @@
             <div class="toolbar">
                 <div class="tb-search">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search employee..." [value]="searchQ()"
+                    <input type="text" placeholder="Search by name..." [value]="searchQ()"
                         (input)="searchQ.set($any($event.target).value)">
                 </div>
                 <div class="tb-filters">
@@ -120,14 +132,22 @@
                         (click)="statusFilter.set('paid')">Paid</button>
                     <button class="tf-btn ready-f" [class.active]="statusFilter()==='ready'"
                         (click)="statusFilter.set('ready')">Ready</button>
-                    <button class="tf-btn locked-f" [class.active]="statusFilter()==='locked'"
-                        (click)="statusFilter.set('locked')">Locked</button>
                     <button class="tf-btn no-f" [class.active]="statusFilter()==='no salary'"
                         (click)="statusFilter.set('no salary')">No Salary</button>
                 </div>
-                <button class="btn-generate-all" (click)="generateAll()" [disabled]="generatingAll() || !canGenerate()">
+                <!-- ADMIN ROLE FILTER -->
+                <div class="tb-role-filter">
+                    <button class="rf-btn rf-all" [class.active]="roleFilter()==='all'"
+                        (click)="roleFilter.set('all')"><i class="fas fa-users"></i> All</button>
+                    <button class="rf-btn rf-emp" [class.active]="roleFilter()==='employee'"
+                        (click)="roleFilter.set('employee')"><i class="fas fa-user"></i> Employee</button>
+                    <button class="rf-btn rf-mgr" [class.active]="roleFilter()==='manager'"
+                        (click)="roleFilter.set('manager')"><i class="fas fa-user-tie"></i> Manager</button>
+                    <button class="rf-btn rf-hr" [class.active]="roleFilter()==='hr'" (click)="roleFilter.set('hr')"><i
+                            class="fas fa-user-shield"></i> HR</button>
+                </div>
+                <button class="btn-generate-all" (click)="generateAll()" [disabled]="generatingAll()">
                     @if (generatingAll()) { <span class="mini-spin white-spin"></span> Generating... }
-                    @else if (!canGenerate()) { <i class="fas fa-lock"></i> Locked }
                     @else { <i class="fas fa-bolt"></i> Generate All }
                 </button>
                 <button class="btn-export" (click)="exportPayrollCSV()">
@@ -143,7 +163,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Employee</th>
+                                <th>User</th>
                                 <th>Role</th>
                                 <th>Basic Salary</th>
                                 <th>Allowances</th>
@@ -160,7 +180,7 @@
                         <tbody>
                             @for (r of filteredRows(); track r.empId) {
                             <tr [class.tr-generated]="r.hasPayroll && r.status !== 'Paid'"
-                                [class.tr-paid]="r.status === 'Paid'" [class.tr-locked]="r.status === 'Locked'">
+                                [class.tr-paid]="r.status === 'Paid'">
                                 <td class="td-emp">
                                     <div class="emp-cell">
                                         <div class="emp-av" [style.background]="getColor(r.empId)">{{
@@ -171,7 +191,10 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="td-muted">{{ r.roleName }}</td>
+                                <td>
+                                    <span class="role-badge" [class]="getRoleBadgeClass(r.roleKey)">{{ r.roleName
+                                        }}</span>
+                                </td>
                                 <td class="td-amt">₹{{ formatAmt(r.basicSalary) }}</td>
                                 <td class="td-amt green">₹{{ formatAmt(r.allowances) }}</td>
                                 <td class="td-amt red">₹{{ formatAmt(r.pf) }}</td>
@@ -188,17 +211,13 @@
                                 <td class="td-act" (click)="$event.stopPropagation()">
                                     @if (actionLoading() === r.empId) {
                                     <span class="mini-spin teal-spin"></span>
-                                    } @else if (r.status === 'Locked' && !r.hasPayroll) {
-                                    <span class="warn-tip locked-tip" title="Generation window closed for this month">
-                                        <i class="fas fa-lock"></i>
-                                    </span>
                                     } @else if (!r.hasSalaryStruct) {
                                     <span class="warn-tip" title="Go to Salary Setup first">
                                         <i class="fas fa-exclamation-circle"></i>
                                     </span>
                                     } @else if (!r.hasPayroll) {
                                     <button class="act-btn generate" (click)="openGenerateConfirm(r)"
-                                        title="Generate Payroll" [disabled]="!canGenerate()">
+                                        title="Generate Payroll">
                                         <i class="fas fa-bolt"></i> Generate
                                     </button>
                                     } @else if (r.status === 'Paid') {
@@ -239,17 +258,29 @@
         <!-- ══ TAB: SALARY SLIPS ══ -->
         @if (activeTab() === 'slips') {
         <div class="tab-content">
-            <div class="tb-search slip-search">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search employee..." [value]="slipSearch()"
-                    (input)="slipSearch.set($any($event.target).value)">
+            <div class="slips-toolbar">
+                <div class="tb-search slip-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search by name..." [value]="slipSearch()"
+                        (input)="slipSearch.set($any($event.target).value)">
+                </div>
+                <div class="tb-role-filter">
+                    <button class="rf-btn rf-all" [class.active]="slipRoleFilter()==='all'"
+                        (click)="slipRoleFilter.set('all')"><i class="fas fa-users"></i> All</button>
+                    <button class="rf-btn rf-emp" [class.active]="slipRoleFilter()==='employee'"
+                        (click)="slipRoleFilter.set('employee')"><i class="fas fa-user"></i> Employee</button>
+                    <button class="rf-btn rf-mgr" [class.active]="slipRoleFilter()==='manager'"
+                        (click)="slipRoleFilter.set('manager')"><i class="fas fa-user-tie"></i> Manager</button>
+                    <button class="rf-btn rf-hr" [class.active]="slipRoleFilter()==='hr'"
+                        (click)="slipRoleFilter.set('hr')"><i class="fas fa-user-shield"></i> HR</button>
+                </div>
             </div>
 
             @if (filteredSlips().length === 0) {
             <div class="empty-state">
                 <div class="es-icon"><i class="fas fa-file-invoice-dollar"></i></div>
                 <div class="es-title">No salary slips yet</div>
-                <div class="es-sub">Generate payroll for employees to create salary slips</div>
+                <div class="es-sub">Generate payroll to create salary slips</div>
             </div>
             } @else {
             <div class="slips-grid">
@@ -259,7 +290,9 @@
                         <div class="slip-av" [style.background]="getColor(r.empId)">{{ getInitials(r.userName) }}</div>
                         <div class="slip-info">
                             <div class="slip-name">{{ r.userName }}</div>
-                            <div class="slip-role">{{ r.roleName }}</div>
+                            <div class="slip-role">
+                                <span class="role-badge" [class]="getRoleBadgeClass(r.roleKey)">{{ r.roleName }}</span>
+                            </div>
                         </div>
                         <span class="slip-month">{{ currentMonthLabel() }}</span>
                     </div>
@@ -290,14 +323,24 @@
             <div class="setup-info-bar">
                 <i class="fas fa-info-circle"></i>
                 <span>HRA is auto-calculated as <strong>40% of Basic</strong>. PF is auto-calculated as <strong>12% of
-                        Basic</strong>. Enter Basic Salary and Other Allowance only.</span>
+                        Basic</strong>. Configure salaries for Employees, Managers, and HR staff.</span>
             </div>
 
             <div class="setup-search-row">
                 <div class="tb-search">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search employee..." [value]="setupSearch()"
+                    <input type="text" placeholder="Search by name..." [value]="setupSearch()"
                         (input)="setupSearch.set($any($event.target).value)">
+                </div>
+                <div class="tb-role-filter">
+                    <button class="rf-btn rf-all" [class.active]="setupRoleFilter()==='all'"
+                        (click)="setupRoleFilter.set('all')"><i class="fas fa-users"></i> All</button>
+                    <button class="rf-btn rf-emp" [class.active]="setupRoleFilter()==='employee'"
+                        (click)="setupRoleFilter.set('employee')"><i class="fas fa-user"></i> Employee</button>
+                    <button class="rf-btn rf-mgr" [class.active]="setupRoleFilter()==='manager'"
+                        (click)="setupRoleFilter.set('manager')"><i class="fas fa-user-tie"></i> Manager</button>
+                    <button class="rf-btn rf-hr" [class.active]="setupRoleFilter()==='hr'"
+                        (click)="setupRoleFilter.set('hr')"><i class="fas fa-user-shield"></i> HR</button>
                 </div>
             </div>
 
@@ -312,7 +355,11 @@
                         <div class="emp-av" [style.background]="getColor(emp.id)">{{ getInitials(emp.userName) }}</div>
                         <div>
                             <div class="emp-name">{{ emp.userName }}</div>
-                            <div class="emp-id">{{ emp.roleName }} · EMP-{{ emp.id }}</div>
+                            <div class="emp-id">
+                                <span class="role-badge" [class]="getRoleBadgeClass(normaliseRole(emp.roleName) )">{{
+                                    emp.roleName }}</span>
+                                · EMP-{{ emp.id }}
+                            </div>
                         </div>
                         @if (struct) {
                         <span class="setup-badge configured">Configured</span>
@@ -414,6 +461,8 @@
             <div class="cm-msg">
                 You are about to generate payroll for
                 <strong>{{ generateConfirmModal()!.userName }}</strong>
+                (<span class="role-badge" [class]="getRoleBadgeClass(generateConfirmModal()!.roleKey)">{{
+                    generateConfirmModal()!.roleName }}</span>)
                 for <strong>{{ currentMonthLabel() }}</strong>.
                 <br><br>
                 This will calculate salary based on their configured structure. You can add tax deductions in the next
@@ -441,10 +490,11 @@
         <div class="cm-body">
             <div class="cm-title">Generate All Payrolls?</div>
             <div class="cm-msg">
-                You are about to generate payroll for <strong>all eligible employees</strong>
+                You are about to generate payroll for <strong>all eligible users</strong> (Employees, Managers &amp;
+                HRs)
                 for <strong>{{ currentMonthLabel() }}</strong>.
                 <br><br>
-                Only employees with a configured salary structure who don't already have payroll generated will be
+                Only users with a configured salary structure who don't already have payroll generated will be
                 processed. Tax deductions will default to <strong>₹0</strong>.
             </div>
         </div>
@@ -522,7 +572,7 @@
             } @else {
             <div class="cm-msg">
                 Are you sure you want to delete the salary structure for
-                <strong>{{ deleteConfirmModal()!.row.struct?.userName ?? 'this employee' }}</strong>?
+                <strong>{{ deleteConfirmModal()!.row.struct?.userName ?? 'this user' }}</strong>?
                 This will also affect future payroll generation.
             </div>
             }
@@ -577,8 +627,11 @@
                 </div>
                 <div>
                     <div class="pdm-name">{{ payrollDetailModal()!.userName }}</div>
-                    <div class="pdm-meta">{{ payrollDetailModal()!.roleName }} · EMP-{{ payrollDetailModal()!.empId }} ·
-                        {{ currentMonthLabel() }}</div>
+                    <div class="pdm-meta">
+                        <span class="role-badge" [class]="getRoleBadgeClass(payrollDetailModal()!.roleKey)">{{
+                            payrollDetailModal()!.roleName }}</span>
+                        · EMP-{{ payrollDetailModal()!.empId }} · {{ currentMonthLabel() }}
+                    </div>
                 </div>
                 <span class="s-pill pdm-status"
                     [class]="'sp-' + payrollDetailModal()!.status.toLowerCase().replace(' ','-')">
@@ -597,14 +650,12 @@
                     <i class="fas fa-rupee-sign"></i> Payroll Breakdown
                 </div>
                 <div class="pdm-two-col">
-                    <!-- Earnings -->
                     <div class="pdm-earn-col">
                         <div class="pdm-col-head earnings">Earnings</div>
                         <div class="pdm-item">
                             <span>Basic Salary</span>
                             <span>₹{{ formatAmt(payrollDetailModal()!.basicSalary) }}</span>
                         </div>
-                        <!-- Allowances from payroll API (not broken down) -->
                         <div class="pdm-item">
                             <span>Allowances (HRA + Other)</span>
                             <span>₹{{ formatAmt(payrollDetailModal()!.allowances) }}</span>
@@ -614,7 +665,6 @@
                             <span>₹{{ formatAmt(payrollDetailModal()!.gross) }}</span>
                         </div>
                     </div>
-                    <!-- Deductions -->
                     <div class="pdm-ded-col">
                         <div class="pdm-col-head deductions">Deductions</div>
                         <div class="pdm-item">
@@ -650,7 +700,7 @@
                 @if (!payrollDetailModal()!.leaveInfo) {
                 <div class="leave-loading">
                     <span class="mini-spin teal-spin"></span>
-                    <span>Loading leave & attendance data...</span>
+                    <span>Loading leave &amp; attendance data...</span>
                 </div>
                 } @else {
                 <div class="pdm-leave-grid">
@@ -680,7 +730,6 @@
                     </div>
                 </div>
 
-                <!-- Working days info row -->
                 <div class="pdm-working-days-bar">
                     <i class="fas fa-calendar-week"></i>
                     <span>Working days this month (excl. weekends):

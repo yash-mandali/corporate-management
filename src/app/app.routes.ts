@@ -195,6 +195,13 @@ export const routes: Routes = [
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Admin'] }
             },
+            {
+                path: 'payrollmanagement',
+                loadComponent: () =>
+                    import('./Admin_Pages/admin-payroll-page/admin-payroll-page').then(m => m.AdminPayrollPage),
+                canActivate: [authGuard, roleGuard],
+                data: { roles: ['Admin'] }
+            },
         ]
     },
     {

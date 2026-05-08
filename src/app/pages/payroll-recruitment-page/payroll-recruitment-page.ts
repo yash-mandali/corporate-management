@@ -178,7 +178,9 @@ export class PayrollRecruitmentPage implements OnInit {
       next: (res: any) => {
         const raw = res?.data ?? res;
         const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
+        console.log("loadmypayrooll called:",list);
         this.myPayrolls.set(list.filter((p: any) => p.status === 'Generated' || p.status === 'Paid'));
+        
         this.payrollLoading.set(false);
       },
       error: err => { console.error(err); this.payrollLoading.set(false); }

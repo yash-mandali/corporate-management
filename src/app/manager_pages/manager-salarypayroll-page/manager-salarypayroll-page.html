@@ -412,7 +412,8 @@
                                     </div>
                                     <div>
                                         <div class="table-strong">{{ job.title }}</div>
-                                        <div class="table-muted">Posted {{ formatDate(job.created_at ?? job.createdAt)
+                                        <div class="table-muted">Posted {{ formatDate(job.publish_date ??
+                                            job.created_At)
                                             }}</div>
                                     </div>
                                 </div>
@@ -650,7 +651,7 @@
                                         <div class="table-strong">{{ a.applicantName ?? getEmployeeName(a.userId) }}
                                         </div>
                                         <div class="table-muted">
-                                            @if (a.userId === currentUserId()) {
+                                            @if (+a.userId === +currentUserId()) {
                                             <span class="own-tag">You</span>
                                             } @else {
                                             <span class="team-tag">Team</span>
@@ -669,7 +670,7 @@
                             <td>{{ formatDate(a.appliedDate) }}</td>
                             <td>
                                 <span class="stage-pill" [style.background]="stageBg(a.applicationStatus)"
-                                     [style.color]="stageColor(a.applicationStatus)">
+                                    [style.color]="stageColor(a.applicationStatus)">
                                     {{ a.applicationStatus }}
                                 </span>
                             </td>
@@ -693,17 +694,17 @@
 <!-- ══ PAYSLIP MODAL ══ -->
 @if (payslipModal()) {
 <div class="modal-overlay" (click)="closePayslip()">
-    <div class="payslip-modal" (click)="$event.stopPropagation()">
+    <div class="payslip-modal" (click)="$event.stopPropagation()" id="payslip-print">
         <div class="psm-header">
-            <div class="psm-logo"><i class="fas fa-file-invoice-dollar"></i></div>
-            <div class="psm-hinfo">
-                <div class="psm-title">Salary Payslip</div>
-                <div class="psm-sub">{{ getMonthName(payslipModal()!.month) }} {{ payslipModal()!.year }}</div>
+            <div class="psm-company">
+                <div class="psm-co-icon"><i class="fas fa-building"></i></div>
+                <div>
+                    <div class="psm-co-name">HRMS Company</div>
+                    <div class="psm-co-sub">Payroll Department</div>
+                </div>
             </div>
-            <div class="psm-hstatus">
-                <span class="status-pill" [class]="payslipModal()!.status === 'Paid' ? 'sp-paid' : 'sp-generated'">
-                    <span class="spd"></span>{{ payslipModal()!.status }}
-                </span>
+            <div class="psm-period">
+                SALARY SLIP — {{ getMonthName(payslipModal()!.month) }} {{ payslipModal()!.year }}
             </div>
             <button class="modal-close" (click)="closePayslip()"><i class="fas fa-times"></i></button>
         </div>
@@ -715,6 +716,11 @@
                 <div class="pei-item"><span>Employee ID</span><strong>EMP-{{ payslipModal()!.userId }}</strong></div>
                 <div class="pei-item"><span>Pay Period</span><strong>{{ getMonthName(payslipModal()!.month) }} {{
                         payslipModal()!.year }}</strong></div>
+                <div class="pei-item">
+                    <span>Status</span>
+                    <strong [style.color]="payslipModal()!.status === 'Paid' ? '#27ae60' : '#2980b9'">{{
+                        payslipModal()!.status }}</strong>
+                </div>
                 <div class="pei-item"><span>Generated On</span><strong>{{ formatDate(payslipModal()!.generatedDate)
                         }}</strong></div>
                 @if (payslipModal()!.paidDate) {
@@ -724,39 +730,43 @@
             </div>
 
             <div class="psm-table">
-                <div class="psm-col earnings">
-                    <div class="psm-col-head"><i class="fas fa-arrow-up"></i> Earnings</div>
-                    <div class="psm-row"><span>Basic Salary</span><strong>₹{{ formatAmt(payslipModal()!.basicSalary)
-                            }}</strong></div>
-                    <div class="psm-row"><span>Allowances</span><strong>₹{{ formatAmt(payslipModal()!.allowances)
-                            }}</strong></div>
-                    <div class="psm-total"><span>Total Earnings</span><strong>₹{{ formatAmt(payslipModal()!.grossSalary)
-                            }}</strong></div>
+                <div class="psm-col earnings-col">
+                    <div class="psm-col-head">Earnings</div>
+                    <div class="psm-row"><span>Basic Salary</span><span>₹{{ formatAmt(payslipModal()!.basicSalary)
+                            }}</span></div>
+                    <div class="psm-row"><span>Allowances (HRA + Other)</span><span>₹{{
+                            formatAmt(payslipModal()!.allowances) }}</span></div>
+                    <div class="psm-total"><span>Gross Salary</span><span>₹{{ formatAmt(payslipModal()!.grossSalary)
+                            }}</span></div>
                 </div>
-                <div class="psm-col deductions">
-                    <div class="psm-col-head red-head"><i class="fas fa-arrow-down"></i> Deductions</div>
-                    <div class="psm-row"><span>PF (12%)</span><strong>₹{{ formatAmt(payslipModal()!.pf) }}</strong>
-                    </div>
-                    <div class="psm-row"><span>Tax Deduction</span><strong>₹{{ formatAmt(payslipModal()!.taxDeduction)
-                            }}</strong></div>
-                    <div class="psm-row"><span>Leave Deduction</span><strong>₹{{
-                            formatAmt(payslipModal()!.leaveDeduction) }}</strong></div>
-                    <div class="psm-total"><span>Total Deductions</span><strong class="red-val">₹{{
-                            formatAmt(payslipModal()!.totalDeductions) }}</strong></div>
+                <div class="psm-col deductions-col">
+                    <div class="psm-col-head">Deductions</div>
+                    <div class="psm-row"><span>Provident Fund (12%)</span><span>₹{{ formatAmt(payslipModal()!.pf)
+                            }}</span></div>
+                    <div class="psm-row"><span>Tax Deduction (TDS)</span><span>₹{{
+                            formatAmt(payslipModal()!.taxDeduction) }}</span></div>
+                    <div class="psm-row"><span>Leave Deduction</span><span>₹{{ formatAmt(payslipModal()!.leaveDeduction)
+                            }}</span></div>
+                    @if (payslipModal()!.unpaidLeaveDays) {
+                    <div class="psm-row muted"><span>Unpaid Leave Days</span><span>{{ payslipModal()!.unpaidLeaveDays }}
+                            day(s)</span></div>
+                    }
+                    <div class="psm-total red-total"><span>Total Deductions</span><span>₹{{
+                            formatAmt(payslipModal()!.totalDeductions) }}</span></div>
                 </div>
             </div>
 
             <div class="psm-net-banner">
-                <div class="psm-net-label">Net Salary</div>
-                <div class="psm-net-value">₹{{ formatAmt(payslipModal()!.netSalary) }}</div>
+                <span>Net Salary Payable</span>
+                <strong>₹{{ formatAmt(payslipModal()!.netSalary) }}</strong>
             </div>
         </div>
 
         <div class="psm-footer">
-            <button class="psm-close" (click)="closePayslip()">Close</button>
-            <button class="psm-action" (click)="printPayslip()"><i class="fas fa-print"></i> Print</button>
-            <button class="psm-action dl" (click)="downloadPayslip(payslipModal()!)"><i class="fas fa-download"></i>
+            <button class="psm-print" (click)="printPayslip()"><i class="fas fa-print"></i> Print</button>
+            <button class="psm-dl" (click)="downloadPayslip(payslipModal()!)"><i class="fas fa-download"></i> Download
                 CSV</button>
+            <button class="psm-close" (click)="closePayslip()">Close</button>
         </div>
     </div>
 </div>

@@ -656,7 +656,7 @@ tbody td {
     color: #27ae60;
 }
 
-.sp-draft{
+.sp-draft {
     background: rgba(241, 196, 15, 0.1);
     color: #f1c40f;
 }
@@ -2614,5 +2614,290 @@ tbody td {
 
     .pdm-perf-grid {
         grid-template-columns: 1fr 1fr;
+    }
+}
+
+
+/* ── Admin override banner badge ── */
+.admin-banner {
+    background: rgba(39, 174, 96, 0.07);
+    border-color: rgba(39, 174, 96, 0.25);
+    color: #1e8449;
+}
+
+.admin-banner .lb-icon {
+    background: rgba(39, 174, 96, 0.15);
+    color: #27ae60;
+}
+
+.lb-admin-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: rgba(39, 174, 96, 0.15);
+    color: #1e8449;
+    font-size: 11px;
+    font-weight: 800;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(142, 68, 173, 0.25);
+    letter-spacing: 0.3px;
+}
+
+/* ── Admin page header icon override ── */
+
+/* ── Role Summary Cards ── */
+.role-summary-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.rs-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1.5px solid #d6eaee;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.18s;
+    box-shadow: 0 1px 5px rgba(9, 99, 126, 0.05);
+    user-select: none;
+}
+
+.rs-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(9, 99, 126, 0.1);
+}
+
+.rs-card i {
+    font-size: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    transition: all 0.18s;
+}
+
+.rs-count {
+    font-size: 22px;
+    font-weight: 900;
+    color: #0d2d36;
+    line-height: 1;
+}
+
+.rs-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #5a8a94;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 1px;
+    display: block;
+}
+
+.rs-card .rs-count,
+.rs-card .rs-label {
+    display: block;
+}
+
+/* All card */
+.rs-all i {
+    background: rgba(9, 99, 126, 0.1);
+    color: #09637e;
+}
+
+.rs-all.active {
+    border-color: #09637e;
+    background: rgba(9, 99, 126, 0.04);
+}
+
+.rs-all.active i {
+    background: #09637e;
+    color: #fff;
+}
+
+/* Employee card */
+.rs-emp i {
+    background: rgba(41, 128, 185, 0.1);
+    color: #2980b9;
+}
+
+.rs-emp.active {
+    border-color: #2980b9;
+    background: rgba(41, 128, 185, 0.04);
+}
+
+.rs-emp.active i {
+    background: #2980b9;
+    color: #fff;
+}
+
+/* Manager card */
+.rs-mgr i {
+    background: rgba(39, 174, 96, 0.1);
+    color: #27ae60;
+}
+
+.rs-mgr.active {
+    border-color: #27ae60;
+    background: rgba(39, 174, 96, 0.04);
+}
+
+.rs-mgr.active i {
+    background: #27ae60;
+    color: #fff;
+}
+
+/* HR card */
+.rs-hr i {
+    background: rgba(142, 68, 173, 0.1);
+    color: #8e44ad;
+}
+
+.rs-hr.active {
+    border-color: #8e44ad;
+    background: rgba(142, 68, 173, 0.04);
+}
+
+.rs-hr.active i {
+    background: #8e44ad;
+    color: #fff;
+}
+
+/* ── Role Filter Buttons (toolbar inline) ── */
+.tb-role-filter {
+    display: flex;
+    gap: 3px;
+    background: #fff;
+    border: 1px solid #d6eaee;
+    border-radius: 9px;
+    padding: 3px;
+    flex-shrink: 0;
+}
+
+.rf-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #5a8a94;
+    cursor: pointer;
+    transition: all 0.13s;
+    white-space: nowrap;
+}
+
+.rf-btn:not(.active):hover {
+    background: #ebf4f6;
+}
+
+/* All */
+.rf-btn.rf-all.active {
+    background: #09637e;
+    color: #fff;
+}
+
+/* Employee */
+.rf-btn.rf-emp.active {
+    background: #2980b9;
+    color: #fff;
+}
+
+/* Manager */
+.rf-btn.rf-mgr.active {
+    background: #27ae60;
+    color: #fff;
+}
+
+/* HR */
+.rf-btn.rf-hr.active {
+    background: #8e44ad;
+    color: #fff;
+}
+
+/* ── Slips tab toolbar ── */
+.slips-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ── Role Badges ── */
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+}
+
+.role-employee {
+    background: rgba(41, 128, 185, 0.1);
+    color: #2471a3;
+}
+
+.role-manager {
+    background: rgba(39, 174, 96, 0.1);
+    color: #1e8449;
+}
+
+.role-hr {
+    background: rgba(142, 68, 173, 0.1);
+    color: #6c3483;
+}
+
+/* ── Generate All button admin override (no disabled state for lock) ── */
+.btn-generate-all:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    /* keep original gradient for admin — just slightly dimmed */
+    background: linear-gradient(135deg, #09637e, #088395);
+    box-shadow: none;
+}
+
+/* ── Setup search row with role filter ── */
+.setup-search-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ── Responsive: role summary row ── */
+@media (max-width: 900px) {
+    .role-summary-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .role-summary-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .tb-role-filter {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .rf-btn {
+        flex: 1;
+        justify-content: center;
     }
 }

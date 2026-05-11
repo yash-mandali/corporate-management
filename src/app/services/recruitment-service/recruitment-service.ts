@@ -56,4 +56,8 @@ export class RecruitmentService {
   getCandidatesByJobId(jobId: number) {
     return this.http.get<any>(`${this.apiurl}/getCandidatesByJobId?jobId=${jobId}`);
   }
+
+  updateJobApplicationStatus(applicationId: number, status: string) {
+    return this.http.put<any>(`${this.apiurl}/updateJobApplicationStatus`, { applicationId, status });
+  }
 }

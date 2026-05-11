@@ -286,7 +286,6 @@ export class ManagerSalaryPayrollPage implements OnInit {
     });
   }
 
-  // ── Load all applications: own + every team member ──
   loadAllApplications() {
     this.appliedJobsLoading.set(true);
     this.recruitService.getAllJobs().subscribe({

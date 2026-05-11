@@ -187,7 +187,10 @@
                                 <td class="td-date">{{ formatDate(l.fromDate) }}</td>
                                 <td class="td-date">{{ formatDate(l.toDate) }}</td>
                                 <td class="td-days">{{ l.totalDays }}d</td>
-                                <td class="td-reason">{{ l.reason || '—' }}</td>
+                                @if (l.reason) {
+                                <td class="td-reason">{{ l.reason.length > 25 ? (l.reason | slice:0:25)+ '...' :
+                                    l.reason || '—' }}</td>
+                                }
                                 <td class="td-date muted">{{ formatDate(l.appliedOn) }}</td>
                                 <td>
                                     <span class="status-pill sp-{{ l.status | lowercase }}">

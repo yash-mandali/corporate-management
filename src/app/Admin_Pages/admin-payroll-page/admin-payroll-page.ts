@@ -317,7 +317,6 @@ export class AdminPayrollPage implements OnInit {
     this.openTaxModal(row);
   }
 
-  // ── Generate all ──
   openGenerateAllConfirm() {
     this.generateAllConfirmModal.set(true);
     document.body.style.overflow = 'hidden';

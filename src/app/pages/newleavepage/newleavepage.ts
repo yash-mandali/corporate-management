@@ -6,15 +6,11 @@ import { LeaveService } from '../../services/leave-service/leave-service';
 import { Backbtn } from "../../components/backbtn/backbtn";
 import { ToastService } from '../../services/toast-service/toast';
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-/** Returns today's date as YYYY-MM-DD (local time, no timezone shift) */
 function todayStr(): string {
   const d = new Date();
   return toYMD(d);
 }
 
-/** Format a Date to YYYY-MM-DD */
 function toYMD(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -22,22 +18,17 @@ function toYMD(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-/** Parse YYYY-MM-DD to a local Date (avoids UTC shift) */
 function parseLocal(s: string): Date {
   const [y, m, d] = s.split('-').map(Number);
   return new Date(y, m - 1, d);
 }
 
-/** Returns true if the date string falls on Sat (6) or Sun (0) */
 function isWeekend(s: string): boolean {
   if (!s) return false;
   const day = parseLocal(s).getDay();
   return day === 0 || day === 6;
 }
 
-// ── Validators ───────────────────────────────────────────────────────────────
-
-/** From-date: must not be before today, must not be a weekend */
 function fromDateValidator(control: AbstractControl): ValidationErrors | null {
   const val: string = control.value;
   if (!val) return null;
@@ -46,33 +37,28 @@ function fromDateValidator(control: AbstractControl): ValidationErrors | null {
   return null;
 }
 
-/** Cross-field validator on the whole form for toDate rules */
 function toDateValidator(group: AbstractControl): ValidationErrors | null {
   const fromVal: string = group.get('fromDate')?.value;
   const toVal: string = group.get('toDate')?.value;
   const session: string = group.get('session')?.value;
 
-  if (!toVal) return null; // required handled separately
+  if (!toVal) return null; 
 
-  // Weekend check
   if (isWeekend(toVal)) {
     group.get('toDate')?.setErrors({ weekend: true });
     return null;
   }
 
-  // Must not be before fromDate
   if (fromVal && toVal < fromVal) {
     group.get('toDate')?.setErrors({ beforeFrom: true });
     return null;
   }
 
-  // Half Day: toDate must equal fromDate
   if (session === 'Half Day' && fromVal && toVal !== fromVal) {
     group.get('toDate')?.setErrors({ halfDayMismatch: true });
     return null;
   }
 
-  // Max 2 months ahead of fromDate
   if (fromVal) {
     const from = parseLocal(fromVal);
     const maxDate = new Date(from.getFullYear(), from.getMonth() + 2, from.getDate());
@@ -83,7 +69,6 @@ function toDateValidator(group: AbstractControl): ValidationErrors | null {
     }
   }
 
-  // Clear toDate errors if all pass
   const toCtrl = group.get('toDate');
   if (toCtrl?.errors && !toCtrl.errors['required']) {
     toCtrl.setErrors(null);
@@ -91,8 +76,6 @@ function toDateValidator(group: AbstractControl): ValidationErrors | null {
 
   return null;
 }
-
-// ── Component ─────────────────────────────────────────────────────────────────
 
 @Component({
   selector: 'app-newleavepage',
@@ -104,8 +87,8 @@ export class Newleavepage {
   leaveForm!: FormGroup;
   message = signal('');
   userid = signal<null | any>(null);
+  leaveTypes = signal<any[]>([]);
 
-  /** Exposed to template for [min] binding */
   readonly minDate = todayStr();
 
   constructor(
@@ -119,6 +102,7 @@ export class Newleavepage {
   ngOnInit() {
     const userId = this.auth.getUserId();
     this.userid.set(userId);
+    this.loadLeaveTypes();
 
     this.leaveForm = this.fb.group(
       {
@@ -133,7 +117,6 @@ export class Newleavepage {
       { validators: toDateValidator }
     );
 
-    // Re-run cross-field validation when fromDate or session changes
     this.leaveForm.get('fromDate')?.valueChanges.subscribe(() => {
       this.onFromDateChange();
     });
@@ -143,18 +126,23 @@ export class Newleavepage {
     });
   }
 
-  // ── Computed helpers for template bindings ─────────────────────────────────
+  loadLeaveTypes() {
+    this.leaveService.getLeaveTypes().subscribe({
+      next: (res: any) => {
+        this.leaveTypes.set(res.data || []);
+        console.log("leavetypes::", this.leaveTypes());
+        
+      },
+      error: (err) => {
+        console.log('Error fetching leave types', err);
+      }
+    });
+  }
 
-  /** Min value for toDate input = fromDate (or today if not set) */
   get toDateMin(): string {
     return this.leaveForm?.get('fromDate')?.value || this.minDate;
   }
 
-  /**
-   * Max value for toDate input:
-   * - Half Day → same as fromDate
-   * - Otherwise → fromDate + 2 months
-   */
   get toDateMax(): string {
     const fromVal: string = this.leaveForm?.get('fromDate')?.value;
     const session: string = this.leaveForm?.get('session')?.value;
@@ -165,28 +153,22 @@ export class Newleavepage {
     return toYMD(max);
   }
 
-  /** Whether toDate input should be disabled (no fromDate selected yet) */
   get toDateDisabled(): boolean {
     return !this.leaveForm?.get('fromDate')?.value;
   }
-
-  // ── Event handlers ─────────────────────────────────────────────────────────
 
   onFromDateChange() {
     const session = this.leaveForm.get('session')?.value;
     const fromVal = this.leaveForm.get('fromDate')?.value;
 
     if (session === 'Half Day') {
-      // Auto-set toDate = fromDate for half day
       this.leaveForm.get('toDate')?.setValue(fromVal, { emitEvent: false });
     } else {
-      // Clear toDate if it's now out of range
       const toVal = this.leaveForm.get('toDate')?.value;
       if (toVal && toVal < fromVal) {
         this.leaveForm.get('toDate')?.setValue('', { emitEvent: false });
       }
     }
-    // Re-trigger cross-field validator
     this.leaveForm.updateValueAndValidity();
   }
 
@@ -195,13 +177,10 @@ export class Newleavepage {
     const fromVal = this.leaveForm.get('fromDate')?.value;
 
     if (session === 'Half Day' && fromVal) {
-      // Lock toDate = fromDate
       this.leaveForm.get('toDate')?.setValue(fromVal, { emitEvent: false });
     }
     this.leaveForm.updateValueAndValidity();
   }
-
-  // ── Error helpers (used in template) ──────────────────────────────────────
 
   fromDateError(): string {
     const ctrl = this.leaveForm.get('fromDate');
@@ -222,8 +201,6 @@ export class Newleavepage {
     if (ctrl.errors?.['exceedsMaxRange']) return 'To date cannot exceed 2 months from From date.';
     return '';
   }
-
-  // ── Submit / Reset ─────────────────────────────────────────────────────────
 
   submitLeave() {
     this.leaveForm.markAllAsTouched();

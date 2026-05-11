@@ -12,13 +12,43 @@
                 </div>
             </div>
             <div class="ph-right">
-                <div class="month-nav">
-                    <button class="mn-btn" (click)="prevMonth()"><i class="fas fa-chevron-left"></i></button>
-                    <span class="mn-label">{{ currentMonthLabel() }}</span>
-                    <button class="mn-btn" (click)="nextMonth()" [disabled]="isNextMonthDisabled()">
-                        <i class="fas fa-chevron-right"></i>
+
+                <!-- ── MONTH/YEAR PICKER (replaces nav arrows) ── -->
+                <div class="month-picker-wrap">
+                    <button class="month-picker-btn" (click)="toggleMonthPicker()">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>{{ currentMonthLabel() }}</span>
+                        <i class="fas fa-chevron-down picker-caret" [class.open]="showMonthPicker()"></i>
                     </button>
+
+                    @if (showMonthPicker()) {
+                    <div class="month-picker-dropdown" (click)="$event.stopPropagation()">
+                        <!-- Year navigation inside picker -->
+                        <div class="mpd-year-row">
+                            <button class="mpd-yr-btn" (click)="pickerPrevYear()">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span class="mpd-yr-label">{{ pickerYear() }}</span>
+                            <button class="mpd-yr-btn" (click)="pickerNextYear()">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <!-- Month grid -->
+                        <div class="mpd-months">
+                            @for (m of MONTHS; track $index) {
+                            <button class="mpd-month-btn" [class.selected]="isMonthSelected($index)"
+                                [class.disabled]="isMonthDisabled($index)" [disabled]="isMonthDisabled($index)"
+                                (click)="selectMonth($index)">
+                                {{ m }}
+                            </button>
+                            }
+                        </div>
+                    </div>
+                    <!-- Backdrop to close picker -->
+                    <div class="picker-backdrop" (click)="closePicker()"></div>
+                    }
                 </div>
+
                 <div class="tab-switcher">
                     <button class="tab-btn" [class.active]="activeTab() === 'payroll'"
                         (click)="activeTab.set('payroll')">
@@ -55,6 +85,31 @@
             }
         </div>
         }
+
+        <!-- ══ ROLE SUMMARY CARDS ── (HR version: All / Employee / Manager / Mine) -->
+        <div class="role-summary-row">
+            <div class="rs-card rs-all" [class.active]="roleFilter() === 'all'" (click)="roleFilter.set('all')">
+                <i class="fas fa-users"></i>
+                <span class="rs-count">{{ allEmployees().length }}</span>
+                <span class="rs-label">All Users</span>
+            </div>
+            <div class="rs-card rs-emp" [class.active]="roleFilter() === 'employee'"
+                (click)="roleFilter.set('employee')">
+                <i class="fas fa-user"></i>
+                <span class="rs-count">{{ employeeCount() }}</span>
+                <span class="rs-label">Employees</span>
+            </div>
+            <div class="rs-card rs-mgr" [class.active]="roleFilter() === 'manager'" (click)="roleFilter.set('manager')">
+                <i class="fas fa-user-tie"></i>
+                <span class="rs-count">{{ managerCount() }}</span>
+                <span class="rs-label">Managers</span>
+            </div>
+            <div class="rs-card rs-mine" [class.active]="roleFilter() === 'mine'" (click)="roleFilter.set('mine')">
+                <i class="fas fa-id-badge"></i>
+                <span class="rs-count">{{ ownRow()?.hasPayroll ? 1 : 0 }}</span>
+                <span class="rs-label">Mine</span>
+            </div>
+        </div>
 
         <!-- STAT CARDS -->
         <div class="stat-row">
@@ -125,15 +180,39 @@
                     <button class="tf-btn no-f" [class.active]="statusFilter()==='no salary'"
                         (click)="statusFilter.set('no salary')">No Salary</button>
                 </div>
+                <!-- HR ROLE FILTER (like admin) -->
+                <div class="tb-role-filter">
+                    <button class="rf-btn rf-all" [class.active]="roleFilter()==='all'"
+                        (click)="roleFilter.set('all')"><i class="fas fa-users"></i> All</button>
+                    <button class="rf-btn rf-emp" [class.active]="roleFilter()==='employee'"
+                        (click)="roleFilter.set('employee')"><i class="fas fa-user"></i> Employee</button>
+                    <button class="rf-btn rf-mgr" [class.active]="roleFilter()==='manager'"
+                        (click)="roleFilter.set('manager')"><i class="fas fa-user-tie"></i> Manager</button>
+                    <button class="rf-btn rf-mine" [class.active]="roleFilter()==='mine'"
+                        (click)="roleFilter.set('mine')"><i class="fas fa-id-badge"></i> Mine</button>
+                </div>
+
+                <!-- Only show Generate All when NOT in "Mine" tab (HR cannot self-generate) -->
+                @if (roleFilter() !== 'mine') {
                 <button class="btn-generate-all" (click)="generateAll()" [disabled]="generatingAll() || !canGenerate()">
                     @if (generatingAll()) { <span class="mini-spin white-spin"></span> Generating... }
                     @else if (!canGenerate()) { <i class="fas fa-lock"></i> Locked }
                     @else { <i class="fas fa-bolt"></i> Generate All }
                 </button>
+                }
                 <button class="btn-export" (click)="exportPayrollCSV()">
                     <i class="fas fa-file-csv"></i> Export CSV
                 </button>
             </div>
+
+            <!-- Mine tab notice banner -->
+            @if (roleFilter() === 'mine') {
+            <div class="mine-notice-bar">
+                <i class="fas fa-info-circle"></i>
+                <span>Your payroll is generated by <strong>Admin</strong>. You can view and download your salary slip
+                    here once it's ready.</span>
+            </div>
+            }
 
             <div class="table-card">
                 @if (isLoading() || payrollLoading()) {
@@ -188,6 +267,23 @@
                                 <td class="td-act" (click)="$event.stopPropagation()">
                                     @if (actionLoading() === r.empId) {
                                     <span class="mini-spin teal-spin"></span>
+
+                                    <!-- "Mine" tab: HR can only VIEW, not generate/delete own payroll -->
+                                    } @else if (roleFilter() === 'mine') {
+                                    @if (r.hasPayroll) {
+                                    <button class="act-btn view" (click)="openPayrollDetail(r)" title="View My Payroll">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="act-btn slip" (click)="openSlip(r)" title="View Salary Slip">
+                                        <i class="fas fa-file-invoice-dollar"></i>
+                                    </button>
+                                    } @else {
+                                    <span class="mine-pending-tip"
+                                        title="Your payroll has not been generated yet. Please contact Admin.">
+                                        <i class="fas fa-hourglass-half"></i> Pending
+                                    </span>
+                                    }
+
                                     } @else if (r.status === 'Locked' && !r.hasPayroll) {
                                     <span class="warn-tip locked-tip" title="Generation window closed for this month">
                                         <i class="fas fa-lock"></i>
@@ -224,7 +320,13 @@
                             } @empty {
                             <tr>
                                 <td colspan="12" class="td-empty">
+                                    @if (roleFilter() === 'mine') {
+                                    <i class="fas fa-hourglass-half"></i>
+                                    <span>Your payroll for {{ currentMonthLabel() }} hasn't been generated yet. Admin
+                                        will generate it.</span>
+                                    } @else {
                                     <i class="fas fa-search"></i><span>No records found</span>
+                                    }
                                 </td>
                             </tr>
                             }
@@ -239,13 +341,33 @@
         <!-- ══ TAB: SALARY SLIPS ══ -->
         @if (activeTab() === 'slips') {
         <div class="tab-content">
-            <div class="tb-search slip-search">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search employee..." [value]="slipSearch()"
-                    (input)="slipSearch.set($any($event.target).value)">
+            <div class="slip-toolbar">
+                <div class="tb-search slip-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search employee..." [value]="slipSearch()"
+                        (input)="slipSearch.set($any($event.target).value)">
+                </div>
+                <!-- Role filter for slips -->
+                <div class="tb-role-filter">
+                    <button class="rf-btn rf-all" [class.active]="slipRoleFilter()==='all'"
+                        (click)="slipRoleFilter.set('all')"><i class="fas fa-users"></i> All</button>
+                    <button class="rf-btn rf-emp" [class.active]="slipRoleFilter()==='employee'"
+                        (click)="slipRoleFilter.set('employee')"><i class="fas fa-user"></i> Employee</button>
+                    <button class="rf-btn rf-mgr" [class.active]="slipRoleFilter()==='manager'"
+                        (click)="slipRoleFilter.set('manager')"><i class="fas fa-user-tie"></i> Manager</button>
+                    <button class="rf-btn rf-mine" [class.active]="slipRoleFilter()==='mine'"
+                        (click)="slipRoleFilter.set('mine')"><i class="fas fa-id-badge"></i> Mine</button>
+                </div>
             </div>
 
-            @if (filteredSlips().length === 0) {
+            @if (slipRoleFilter() === 'mine' && !ownRow()?.hasPayroll) {
+            <div class="empty-state">
+                <div class="es-icon"><i class="fas fa-hourglass-half"></i></div>
+                <div class="es-title">Your salary slip isn't available yet</div>
+                <div class="es-sub">Your payroll for {{ currentMonthLabel() }} will be generated by Admin. Check back
+                    later.</div>
+            </div>
+            } @else if (filteredSlips().length === 0) {
             <div class="empty-state">
                 <div class="es-icon"><i class="fas fa-file-invoice-dollar"></i></div>
                 <div class="es-title">No salary slips yet</div>
@@ -254,7 +376,7 @@
             } @else {
             <div class="slips-grid">
                 @for (r of filteredSlips(); track r.empId) {
-                <div class="slip-card" (click)="openSlip(r)">
+                <div class="slip-card" [class.own-slip]="slipRoleFilter() === 'mine'" (click)="openSlip(r)">
                     <div class="slip-top">
                         <div class="slip-av" [style.background]="getColor(r.empId)">{{ getInitials(r.userName) }}</div>
                         <div class="slip-info">
@@ -441,10 +563,10 @@
         <div class="cm-body">
             <div class="cm-title">Generate All Payrolls?</div>
             <div class="cm-msg">
-                You are about to generate payroll for <strong>all eligible employees</strong>
+                You are about to generate payroll for <strong>all eligible employees and managers</strong>
                 for <strong>{{ currentMonthLabel() }}</strong>.
                 <br><br>
-                Only employees with a configured salary structure who don't already have payroll generated will be
+                Only users with a configured salary structure who don't already have payroll generated will be
                 processed. Tax deductions will default to <strong>₹0</strong>.
             </div>
         </div>
@@ -597,14 +719,12 @@
                     <i class="fas fa-rupee-sign"></i> Payroll Breakdown
                 </div>
                 <div class="pdm-two-col">
-                    <!-- Earnings -->
                     <div class="pdm-earn-col">
                         <div class="pdm-col-head earnings">Earnings</div>
                         <div class="pdm-item">
                             <span>Basic Salary</span>
                             <span>₹{{ formatAmt(payrollDetailModal()!.basicSalary) }}</span>
                         </div>
-                        <!-- Allowances from payroll API (not broken down) -->
                         <div class="pdm-item">
                             <span>Allowances (HRA + Other)</span>
                             <span>₹{{ formatAmt(payrollDetailModal()!.allowances) }}</span>
@@ -614,7 +734,6 @@
                             <span>₹{{ formatAmt(payrollDetailModal()!.gross) }}</span>
                         </div>
                     </div>
-                    <!-- Deductions -->
                     <div class="pdm-ded-col">
                         <div class="pdm-col-head deductions">Deductions</div>
                         <div class="pdm-item">
@@ -680,7 +799,6 @@
                     </div>
                 </div>
 
-                <!-- Working days info row -->
                 <div class="pdm-working-days-bar">
                     <i class="fas fa-calendar-week"></i>
                     <span>Working days this month (excl. weekends):
@@ -697,46 +815,6 @@
                 }
                 }
             </div>
-
-            <!-- Section 3: Performance -->
-            <!-- <div class="pdm-section">
-                <div class="pdm-section-title">
-                    <i class="fas fa-chart-line"></i> Performance Overview
-                </div>
-                <div class="pdm-perf-grid">
-                    <div class="pdm-perf-card">
-                        <div class="ppc-icon perf-tasks"><i class="fas fa-tasks"></i></div>
-                        <div class="ppc-body">
-                            <div class="ppc-val">{{ payrollDetailModal()!.performanceInfo?.tasksCompleted ?? '—' }}
-                            </div>
-                            <div class="ppc-lbl">Tasks Completed</div>
-                        </div>
-                    </div>
-                    <div class="pdm-perf-card">
-                        <div class="ppc-icon perf-rating"><i class="fas fa-star"></i></div>
-                        <div class="ppc-body">
-                            <div class="ppc-val">{{ payrollDetailModal()!.performanceInfo?.rating ?? '—' }}<span
-                                    class="ppc-unit">/5</span></div>
-                            <div class="ppc-lbl">Performance Rating</div>
-                        </div>
-                    </div>
-                    <div class="pdm-perf-card">
-                        <div class="ppc-icon perf-punctuality"><i class="fas fa-clock"></i></div>
-                        <div class="ppc-body">
-                            <div class="ppc-val">{{ payrollDetailModal()!.performanceInfo?.punctuality ?? '—' }}%</div>
-                            <div class="ppc-lbl">Punctuality</div>
-                        </div>
-                    </div>
-                    <div class="pdm-perf-card">
-                        <div class="ppc-icon perf-overtime"><i class="fas fa-business-time"></i></div>
-                        <div class="ppc-body">
-                            <div class="ppc-val">{{ payrollDetailModal()!.performanceInfo?.overtimeHours ?? 0 }}<span
-                                    class="ppc-unit">hrs</span></div>
-                            <div class="ppc-lbl">Overtime Hours</div>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
 
             <!-- Generated info row -->
             <div class="pdm-info-row">

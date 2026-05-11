@@ -1,5 +1,5 @@
 import { Component, computed, signal, OnInit } from '@angular/core';
-import { LowerCasePipe } from '@angular/common';
+import { LowerCasePipe, SlicePipe } from '@angular/common';
 import { Authservice } from '../../services/Auth-service/authservice';
 import { UserService } from '../../services/user-service/user-service';
 import { LeaveService } from '../../services/leave-service/leave-service';
@@ -11,7 +11,7 @@ const REJECTED_SET = new Set(['rejected', 'managerrejected']);
 
 @Component({
   selector: 'app-manager-leave',
-  imports: [LowerCasePipe],
+  imports: [LowerCasePipe, SlicePipe],
   templateUrl: './managerleavepage.html',
   styleUrl: './managerleavepage.css',
 })

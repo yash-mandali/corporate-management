@@ -5,10 +5,11 @@ import { AttendanceService } from '../../services/attendance-service';
 import { LeaveService } from '../../services/leave-service/leave-service';
 import { Authservice } from '../../services/Auth-service/authservice';
 import { ToastService } from '../../services/toast-service/toast';
+import { SlicePipe } from '@angular/common';
 
 @Component({
   selector: 'app-hr-dashboard',
-  imports: [RouterLink],
+  imports: [RouterLink,SlicePipe],
   templateUrl: './hr-dashboard.html',
   styleUrl: './hr-dashboard.css',
 })

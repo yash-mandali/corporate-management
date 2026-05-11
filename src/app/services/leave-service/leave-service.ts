@@ -27,13 +27,17 @@ export class LeaveService {
   AutoRejectLeaveApi = `${this.apiurl}/Leave/AutoRejectLeave`;  //auto
   InitilizeApi = `${this.apiurl}/Leave/initializeUsersLeaveBalance`;  //auto
   getUserLeaveBalanceApi = `${this.apiurl}/Leave/getUserLeaveBalance`;  //All
-  updateLeaveBalanceApi = `${this.apiurl}/Leave/updateLeaveBalance`;  //Admin    
+  getLeaveTypesApi = `${this.apiurl}/Leave/getLeaveTypes`;  //All
+  updateLeaveBalanceApi = `${this.apiurl}/Leave/updateLeaveBalance`;  //Admin  
+  addLeaveTypeApi = `${this.apiurl}/Leave/AddLeaveType`;  //Admin
+  deleteLeaveTypeApi = `${this.apiurl}/Leave/deleteLeavetype`;  //Admin
+
+
 
   createNewLeave(data: any) {
     return this.http.post<any>(this.ApplyleaveApi, data);
   }
 
-  // Matches sp_UpdateLeave — only updates Pending leaves
   updateLeave(leaveId: number, data: any): Observable<any> {
     return this.http.put<any>(`${this.updateleaveApi}/${leaveId}`, data);
   }
@@ -96,11 +100,22 @@ export class LeaveService {
   getUserLeaveBalance(userId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.getUserLeaveBalanceApi}?userId=${userId}`);
   }
-  
+
+  getLeaveTypes() {
+    return this.http.get<any[]>(this.getLeaveTypesApi);
+  }
+
   // -------------------Admin----------------
 
   updateLeaveBalance(LeavetypeId: number, defaultbalance: string) {
     return this.http.put(`${this.updateLeaveBalanceApi}?leaveTypeId=${LeavetypeId}&defaultBalance=${defaultbalance}`, {});
   }
   
+  addLeaveType(leaveType: string, defaultBalance: string) {
+    return this.http.post(`${this.addLeaveTypeApi}?leaveTypeName=${leaveType}&defaultBalance=${defaultBalance}`, {});
+  }
+
+  deleteLeaveType(leaveTypeId: number) {
+    return this.http.delete(`${this.deleteLeaveTypeApi}?leaveTypeId=${leaveTypeId}`);
+  }
 }

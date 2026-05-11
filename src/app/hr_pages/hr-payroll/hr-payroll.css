@@ -656,7 +656,7 @@ tbody td {
     color: #27ae60;
 }
 
-.sp-draft{
+.sp-draft {
     background: rgba(241, 196, 15, 0.1);
     color: #f1c40f;
 }
@@ -2615,4 +2615,366 @@ tbody td {
     .pdm-perf-grid {
         grid-template-columns: 1fr 1fr;
     }
+}
+
+/* ══════════════════════════════════════════════
+   NEW: MONTH/YEAR PICKER
+══════════════════════════════════════════════ */
+.month-picker-wrap {
+    position: relative;
+}
+
+.month-picker-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    background: #fff;
+    border: 1px solid #d6eaee;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    color: #0d2d36;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 1px 5px rgba(9, 99, 126, 0.07);
+    white-space: nowrap;
+}
+
+.month-picker-btn:hover {
+    border-color: #09637e;
+    background: #f0f8fa;
+    color: #09637e;
+}
+
+.month-picker-btn i:first-child {
+    color: #09637e;
+    font-size: 13px;
+}
+
+.picker-caret {
+    font-size: 10px;
+    color: #5a8a94;
+    transition: transform 0.2s;
+}
+
+.picker-caret.open {
+    transform: rotate(180deg);
+}
+
+.month-picker-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 200;
+    background: #fff;
+    border: 1px solid #d6eaee;
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 8px 32px rgba(9, 99, 126, 0.16);
+    min-width: 240px;
+    animation: pickerFadeIn 0.15s ease;
+}
+
+@keyframes pickerFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mpd-year-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e8f3f6;
+}
+
+.mpd-yr-label {
+    font-size: 15px;
+    font-weight: 900;
+    color: #0d2d36;
+}
+
+.mpd-yr-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    border: 1px solid #d6eaee;
+    background: #fff;
+    color: #5a8a94;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 10px;
+    transition: all 0.15s;
+}
+
+.mpd-yr-btn:hover {
+    background: #09637e;
+    border-color: #09637e;
+    color: #fff;
+}
+
+.mpd-months {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.mpd-month-btn {
+    padding: 7px 4px;
+    border-radius: 8px;
+    border: 1.5px solid transparent;
+    background: #f5f9fa;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0d2d36;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+}
+
+.mpd-month-btn:hover:not(.disabled):not(:disabled) {
+    background: #e0f0f4;
+    border-color: #9dd0db;
+    color: #09637e;
+}
+
+.mpd-month-btn.selected {
+    background: #09637e;
+    border-color: #09637e;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(9, 99, 126, 0.3);
+}
+
+.mpd-month-btn.disabled,
+.mpd-month-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: #f0f0f0;
+}
+
+.picker-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 199;
+}
+
+/* ══════════════════════════════════════════════
+   NEW: ROLE SUMMARY CARDS (like admin page)
+══════════════════════════════════════════════ */
+.role-summary-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.rs-card {
+    flex: 1;
+    min-width: 120px;
+    background: #fff;
+    border: 2px solid #e0edf0;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.18s;
+    box-shadow: 0 1px 5px rgba(9, 99, 126, 0.06);
+}
+
+.rs-card:hover {
+    border-color: #09637e;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(9, 99, 126, 0.12);
+}
+
+.rs-card.active {
+    border-color: #09637e;
+    background: linear-gradient(135deg, #09637e, #088395);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(9, 99, 126, 0.28);
+}
+
+.rs-card i {
+    font-size: 18px;
+    opacity: 0.85;
+}
+
+.rs-card.active i {
+    opacity: 1;
+}
+
+.rs-count {
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.rs-label {
+    font-size: 11px;
+    font-weight: 700;
+    opacity: 0.75;
+}
+
+.rs-card.active .rs-label {
+    opacity: 0.9;
+}
+
+/* Individual card accent colors when not active */
+.rs-all:not(.active) {
+    border-color: #d6eaee;
+}
+
+.rs-emp:not(.active) i {
+    color: #2980b9;
+}
+
+.rs-mgr:not(.active) i {
+    color: #8e44ad;
+}
+
+.rs-mine:not(.active) i {
+    color: #d68910;
+}
+
+/* ══════════════════════════════════════════════
+   NEW: HR ROLE FILTER BUTTONS IN TOOLBAR
+══════════════════════════════════════════════ */
+.tb-role-filter {
+    display: flex;
+    gap: 4px;
+    background: #f5f9fa;
+    border: 1px solid #d6eaee;
+    border-radius: 9px;
+    padding: 3px;
+}
+
+.rf-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #5a8a94;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.rf-btn:hover:not(.active) {
+    background: #e0eff3;
+    color: #09637e;
+}
+
+.rf-btn.active {
+    background: #fff;
+    color: #09637e;
+    box-shadow: 0 1px 5px rgba(9, 99, 126, 0.13);
+}
+
+.rf-all.active i {
+    color: #09637e;
+}
+
+.rf-emp.active i {
+    color: #2980b9;
+}
+
+.rf-mgr.active i {
+    color: #8e44ad;
+}
+
+.rf-mine.active i {
+    color: #d68910;
+}
+
+/* ══════════════════════════════════════════════
+   NEW: MINE NOTICE BAR
+══════════════════════════════════════════════ */
+.mine-notice-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: rgba(214, 137, 16, 0.08);
+    border: 1px solid rgba(214, 137, 16, 0.25);
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #7a5200;
+}
+
+.mine-notice-bar i {
+    color: #d68910;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════
+   NEW: "MINE" PENDING CELL TIP
+══════════════════════════════════════════════ */
+.mine-pending-tip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #d68910;
+    background: rgba(214, 137, 16, 0.1);
+    border-radius: 7px;
+    padding: 4px 10px;
+}
+
+/* ══════════════════════════════════════════════
+   NEW: SLIP CARD HIGHLIGHT FOR OWN SLIP
+══════════════════════════════════════════════ */
+.slip-card.own-slip {
+    border: 2px solid #d68910;
+    background: linear-gradient(to bottom right, #fffbf2, #fff8e6);
+}
+
+/* ══════════════════════════════════════════════
+   NEW: SLIP TOOLBAR (search + role filter row)
+══════════════════════════════════════════════ */
+.slip-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+
+/* rs-mine card */
+.rs-mine {
+    flex-basis: auto;
+}
+
+/* act-btn for slip quick-view */
+.act-btn.slip {
+    background: rgba(214, 137, 16, 0.1);
+    color: #d68910;
+    border-color: rgba(214, 137, 16, 0.3);
+}
+
+.act-btn.slip:hover {
+    background: #d68910;
+    color: #fff;
+    border-color: #d68910;
 }

@@ -34,11 +34,11 @@
                             <select formControlName="requestType" class="form-control"
                                 [class.input-error]="leaveForm.get('requestType')?.invalid && leaveForm.get('requestType')?.touched">
                                 <option value="">Select Leave Type</option>
-                                <option>Annual Leave</option>
-                                <option>Sick Leave</option>
-                                <option>Comp Off</option>
-                                <option>Emergency</option>
-                                <option>Unpaid Leave</option>
+                                @for (type of leaveTypes(); track type.leavetype_Id) {
+                                <option [value]="type.leavetype_Id">
+                                    {{ type.leaveType }}
+                                </option>
+                                }
                             </select>
                             <span class="select-arrow">&#8964;</span>
                         </div>
@@ -46,7 +46,6 @@
                         <span class="field-error">Please select a leave type.</span>
                         }
                     </div>
-
                     <!-- Session -->
                     <div class="form-group">
                         <label class="form-label">

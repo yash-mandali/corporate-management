@@ -463,14 +463,12 @@ export class HrRecruitment implements OnInit {
     document.body.removeChild(a);
   }
 
-  // ── Salary display ──
   formatSalary(min: number, max: number, currency = 'INR'): string {
     const sym = currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency;
     const fmt = (n: number) => n >= 100000 ? `${(n / 100000).toFixed(1)}L` : n >= 1000 ? `${(n / 1000).toFixed(0)}K` : String(n);
     return `${sym}${fmt(min)} – ${sym}${fmt(max)}`;
   }
 
-  // ── Helpers ──
   statusColor(status: string): string {
     const m: Record<string, string> = {
       published: '#27ae60', open: '#27ae60', draft: '#2980b9',

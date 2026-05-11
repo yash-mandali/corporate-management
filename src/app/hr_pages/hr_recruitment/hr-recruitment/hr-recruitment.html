@@ -354,7 +354,7 @@
 </main>
 
 @if (jobFormModal()) {
-  <div class="modal-overlay" (click)="closeJobForm()">
+  <div class="modal-overlay">
     <div class="form-modal wide-modal" (click)="$event.stopPropagation()">
       <div class="fm-header" [class.edit-hdr]="!!editingJob()">
         <div class="fm-icon"><i class="fas fa-{{ editingJob() ? 'pen' : 'briefcase' }}"></i></div>

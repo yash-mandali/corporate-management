@@ -5,7 +5,6 @@ import { roleGuard } from './guards/role-guard/roleguard-guard';
 import { guestGuard } from './guards/guest-guard/guest-guard';
 import { Notfound } from './pages/notfound/notfound';
 
-
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
     {
@@ -199,6 +198,13 @@ export const routes: Routes = [
                 path: 'payrollmanagement',
                 loadComponent: () =>
                     import('./Admin_Pages/admin-payroll-page/admin-payroll-page').then(m => m.AdminPayrollPage),
+                canActivate: [authGuard, roleGuard],
+                data: { roles: ['Admin'] }
+            },
+            {
+                path: 'recruitmentmanagement',
+                loadComponent: () =>
+                    import('./Admin_Pages/admin-recruitment-page/admin-recruitment-page').then(m => m.AdminRecruitmentPage),
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Admin'] }
             },

@@ -16,8 +16,6 @@ export class Sidebar {
   userId = signal<any>('')
   isLoggingOut = false;
 
-  // @Output() closeSidebar = new EventEmitter<void>();
-
   constructor(
     private auth: Authservice,
     public emp: EmployeeService,
@@ -63,9 +61,9 @@ export class Sidebar {
         { label: 'Leave Management', route: '/dashboard/leavemanagement', icon: 'fas fa-calendar-alt' },
         { label: 'User Management', route: '/dashboard/usermanagement', icon: 'fas fa-users' },
         { label: 'Payroll Management', route: '/dashboard/payrollmanagement', icon: 'fas fa-coins' },
+        { label: 'Recruitment Management', route: '/dashboard/recruitmentmanagement', icon: 'fas fa-bullhorn' },
       ],
     };
-
     return menus[role] || [{ label: 'Dashboard', route: '/dashboard', icon: 'fas fa-tachometer-alt' }];
   });
 

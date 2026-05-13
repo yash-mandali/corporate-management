@@ -107,12 +107,12 @@ export class LeaveService {
 
   // -------------------Admin----------------
 
-  updateLeaveBalance(LeavetypeId: number, defaultbalance: string) {
+  updateLeaveBalance(LeavetypeId: number, defaultbalance: any) {
     return this.http.put(`${this.updateLeaveBalanceApi}?leaveTypeId=${LeavetypeId}&defaultBalance=${defaultbalance}`, {});
   }
   
-  addLeaveType(leaveType: string, defaultBalance: string) {
-    return this.http.post(`${this.addLeaveTypeApi}?leaveTypeName=${leaveType}&defaultBalance=${defaultBalance}`, {});
+  addLeaveType(leaveType: string, defaultBalance: any) {
+    return this.http.post(`${this.addLeaveTypeApi}?leaveType=${leaveType}&defaultBalance=${defaultBalance}`, {});
   }
 
   deleteLeaveType(leaveTypeId: number) {

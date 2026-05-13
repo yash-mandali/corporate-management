@@ -58,6 +58,7 @@ export class RecruitmentService {
   }
 
   updateJobApplicationStatus(applicationId: number, status: string) {
-    return this.http.put<any>(`${this.apiurl}/updateJobApplicationStatus`, { applicationId, status });
+    console.log('SERVICE PAYLOAD', { applicationId, status });
+    return this.http.put<any>(`${this.apiurl}/updateJobApplicationStatus?applicationId=${applicationId}&status=${status}`, { applicationId, status });
   }
 }

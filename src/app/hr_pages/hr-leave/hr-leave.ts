@@ -111,7 +111,7 @@ export class HrLeavePage implements OnInit {
   }
 
   loadAllEmployees() {
-    this.userService.getAllEmployee().subscribe({
+    this.userService.getAllEmployeeManager().subscribe({
       next: (res: any) => {
         this.allEmployees.set(Array.isArray(res) ? res : res ? [res] : []);
         this.loadAllEmployeeLeaveBalances();

@@ -67,7 +67,7 @@ export class Header implements OnInit, OnDestroy {
       setInterval(() => {
         console.log("loadnotification called");
         this.loadNotifications();
-      }, 10 * 1000);
+      }, 10 * 10000); // 10 * 1000 for 10 seconds, adjust as needed
     }
   }
 
@@ -86,7 +86,6 @@ export class Header implements OnInit, OnDestroy {
     });
   }
 
-  // GET /api/notifications/:userId — loads all, filter done in computed
   loadNotifications() {
     const id = this.userId();
     if (!id) return;
@@ -107,11 +106,10 @@ export class Header implements OnInit, OnDestroy {
     this.notifOpen.set(next);
     if (next) {
       this.profileOpen = false;
-      // this.loadNotifications(); // refresh on open
+      // this.loadNotifications(); // called when clicks on notification panel icon
     }
   }
 
-  // POST /api/notification/read — mark single as read, hide it optimistically
   markAsRead(notif: any, event: MouseEvent) {
     event.stopPropagation();
     const isRead = notif.IsRead ?? notif.isRead ?? false;
@@ -133,7 +131,6 @@ export class Header implements OnInit, OnDestroy {
     });
   }
 
-  // PUT /api/notification/markAllAsRead?UserId= — mark all read at once
   markAllRead() {
     if (this.markingAll()) return;
     this.markingAll.set(true);
@@ -151,7 +148,7 @@ export class Header implements OnInit, OnDestroy {
 
   notifIcon(type: string): string {
     const m: Record<string, string> = {
-      Job: 'briefcase', Leave: 'calendar-minus', Attendance: 'calendar-check',
+      Job: 'briefcase', Leave: 'calendar-minus', Attendance: 'calendar-check', Recruitment: 'user-tie',
       Payroll: 'money-bill-wave', Task: 'tasks', Alert: 'exclamation-triangle', System: 'cog',
     };
     return m[type] ?? 'bell';
@@ -159,7 +156,7 @@ export class Header implements OnInit, OnDestroy {
 
   notifIconColor(type: string): string {
     const m: Record<string, string> = {
-      Job: '#09637e', Leave: '#d68910', Attendance: '#27ae60',
+      Job: '#09637e', Leave: '#d68910', Attendance: '#27ae60', Recruitment: '#6c5ce7',
       Payroll: '#8e44ad', Task: '#2980b9', Alert: '#c0392b', System: '#5a8a94',
     };
     return m[type] ?? '#09637e';

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LeaveService } from '../../services/leave-service/leave-service';
 import { UserService } from '../../services/user-service/user-service';
+import { ToastService } from '../../services/toast-service/toast';
 
 const APPROVED_SET = new Set(['approved']);
 const REJECTED_SET = new Set(['rejected', 'managerrejected']);
@@ -25,7 +26,7 @@ export class AdminLeaveManagement implements OnInit {
   isActionLoading = signal(false);
 
   // ── Tabs ──
-  activeTab = signal<'requests' | 'balance'>('requests');
+  activeTab = signal<'requests' | 'balance' | 'settings'>('requests');
 
   // ── Filters ──
   activeFilter = signal<string>('all');
@@ -43,6 +44,23 @@ export class AdminLeaveManagement implements OnInit {
   // ── Balance modal ──
   selectedEmployeeBalance = signal<any>(null);
   showBalanceModal = signal(false);
+
+  // ── Settings – Leave Types ──
+  leaveTypes = signal<any[]>([]);
+  leaveTypesLoading = signal(false);
+  isSettingsLoading = signal(false);
+
+  // Add form
+  newLeaveTypeName = '';
+  newLeaveTypeBalance: number | null = null;
+
+  // Edit inline
+  editingLeaveTypeId = signal<number | null>(null);
+  editingBalance: number | null = null;
+
+  // Delete confirm
+  selectedLeaveType = signal<any>(null);
+  showDeleteLeaveTypeModal = signal(false);
 
   // ── Toast ──
   toastMessage = signal<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -138,12 +156,14 @@ export class AdminLeaveManagement implements OnInit {
 
   constructor(
     private leaveService: LeaveService,
-    private userService: UserService
+    private userService: UserService,
+    private toast: ToastService
   ) { }
 
   ngOnInit(): void {
     this.loadAllLeaves();
     this.loadAllEmployees();
+    this.loadLeaveTypes();
     this.runAutoReject();   // ← runs automatically on page load
   }
 
@@ -163,18 +183,18 @@ export class AdminLeaveManagement implements OnInit {
     this.leaveService.getAllLeaves().subscribe({
       next: (data) => {
         this.allLeaves.set(data || []);
-        console.log("loadallleaves called:", data);
+        // console.log("loadallleaves called:", data);
         this.isLoading.set(false);
       },
       error: () => {
         this.isLoading.set(false);
-        this.showToast('error', 'Failed to load leave data.');
+        this.toast.error('Failed to load leave data.')
       },
     });
   }
 
   loadAllEmployees() {
-    this.userService.getAllEmployee().subscribe({
+    this.userService.getAllEmployeeManagerHr().subscribe({
       next: (res: any) => {
         this.allEmployees.set(Array.isArray(res) ? res : res ? [res] : []);
         this.loadAllEmployeeBalances();
@@ -224,9 +244,9 @@ export class AdminLeaveManagement implements OnInit {
     this.histPage.set(1);
   }
 
-  // ── Leave Detail Modal ──
   openDetail(leave: any) {
     this.selectedLeave.set(leave);
+    console.log("opendetail called:: ", this.selectedLeave());
     this.showDetailModal.set(true);
   }
 
@@ -247,6 +267,8 @@ export class AdminLeaveManagement implements OnInit {
 
   confirmActionExecute() {
     const leave = this.selectedLeave();
+    console.log("conformactionexecute called:: ", leave);
+
     const action = this.confirmAction();
     if (!leave || !action) return;
 
@@ -264,12 +286,12 @@ export class AdminLeaveManagement implements OnInit {
         this.showDetailModal.set(false);
         this.confirmAction.set(null);
         this.selectedLeave.set(null);
-        this.showToast('success', action === 'approve' ? 'Leave approved successfully.' : 'Leave rejected successfully.');
+        this.toast.success(action === 'approve' ? 'Leave approved successfully.' : 'Leave rejected successfully.');
         this.loadAllLeaves();
       },
       error: () => {
         this.isActionLoading.set(false);
-        this.showToast('error', 'Action failed. Please try again.');
+        this.toast.error('Action failed. Please try again.');
       },
     });
   }
@@ -301,12 +323,6 @@ export class AdminLeaveManagement implements OnInit {
       pending: userLeaves.filter(l => ['pending', 'managerapproved'].includes(l.status?.toLowerCase())).length,
       rejected: userLeaves.filter(l => REJECTED_SET.has(l.status?.toLowerCase())).length,
     };
-  }
-
-  // ── Toast ──
-  showToast(type: 'success' | 'error', text: string) {
-    this.toastMessage.set({ type, text });
-    setTimeout(() => this.toastMessage.set(null), 3000);
   }
 
   // ── Helpers ──
@@ -387,6 +403,113 @@ export class AdminLeaveManagement implements OnInit {
       withdrawn: 'Withdrawn',
     };
     return map[status?.toLowerCase()] || status;
+  }
+
+  // ── Settings – Leave Type CRUD ──
+
+  loadLeaveTypes() {
+    this.leaveTypesLoading.set(true);
+    this.leaveService.getLeaveTypes().subscribe({
+      next: (res: any) => {
+        this.leaveTypes.set(
+          Array.isArray(res.data) ? res.data : []
+        );
+        // console.log('Loaded leave types:', this.leaveTypes());
+        this.leaveTypesLoading.set(false);
+      },
+      error: () => {
+        this.leaveTypesLoading.set(false);
+        this.toast.error('Failed to load leave types.');
+      }
+    });
+  }
+
+  addLeaveType() {
+    const name = this.newLeaveTypeName.trim();
+    const balance = this.newLeaveTypeBalance;
+    if (!name) {
+      this.toast.error('Please enter a leave type name.');
+      return;
+    }
+    if (balance === null || balance < 0) {
+      this.toast.error('Please enter a valid default balance.');
+      return;
+    }
+
+    this.isSettingsLoading.set(true);
+    this.leaveService.addLeaveType(name, parseFloat(balance.toString())).subscribe({
+      next: () => {
+        this.isSettingsLoading.set(false);
+        this.newLeaveTypeName = '';
+        this.newLeaveTypeBalance = null;
+        this.toast.success(`Leave type "${name}" added successfully.`);
+        this.loadLeaveTypes();
+      },
+      error: () => {
+        this.isSettingsLoading.set(false);
+        this.toast.error('Failed to add leave type.');
+      }
+    });
+  }
+
+  startEditLeaveType(lt: any) {
+    this.editingLeaveTypeId.set(lt.leavetype_Id);
+    this.editingBalance = lt.default_balance;
+  }
+
+  cancelEditLeaveType() {
+    this.editingLeaveTypeId.set(null);
+    this.editingBalance = null;
+  }
+
+  saveLeaveTypeBalance(leaveTypeId: number) {
+    if (this.editingBalance === null || this.editingBalance < 0) {
+      this.toast.error('Please enter a valid balance.');
+      return;
+    }
+    this.isSettingsLoading.set(true);
+    this.leaveService.updateLeaveBalance(leaveTypeId, this.editingBalance).subscribe({
+      next: () => {
+        this.isSettingsLoading.set(false);
+        this.editingLeaveTypeId.set(null);
+        this.editingBalance = null;
+        this.toast.success('Leave balance updated successfully.');
+        this.loadLeaveTypes();
+      },
+      error: () => {
+        this.isSettingsLoading.set(false);
+        this.toast.error('Failed to update balance.');
+      }
+    });
+  }
+
+  openDeleteLeaveTypeConfirm(lt: any) {
+    this.selectedLeaveType.set(lt);
+    this.showDeleteLeaveTypeModal.set(true);
+  }
+
+  cancelDeleteLeaveType() {
+    this.showDeleteLeaveTypeModal.set(false);
+    this.selectedLeaveType.set(null);
+  }
+
+  confirmDeleteLeaveType() {
+    const lt = this.selectedLeaveType();
+    if (!lt) return;
+    this.isSettingsLoading.set(true);
+    this.leaveService.deleteLeaveType(lt.leavetype_Id).subscribe({
+      next: () => {
+        this.isSettingsLoading.set(false);
+        this.showDeleteLeaveTypeModal.set(false);
+        this.selectedLeaveType.set(null);
+        this.toast.success(`"${lt.leaveType}" deleted successfully.`);
+        this.loadLeaveTypes();
+      },
+      error: () => {
+        this.isSettingsLoading.set(false);
+        this.toast.error('Failed to delete leave type.');
+      }
+    });
   }
 
   barPct(used: number, total: number): number {

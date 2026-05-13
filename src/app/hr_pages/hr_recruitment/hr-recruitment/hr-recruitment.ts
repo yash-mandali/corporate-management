@@ -30,13 +30,10 @@ export class HrRecruitment implements OnInit {
   readonly currencies = CURRENCIES;
   readonly Math = Math;
 
-  // ── API data ──
   allJobs = signal<any[]>([]);
   candidatesMap = signal<Record<number, any[]>>({});
   allEmployees = signal<any[]>([]);
-  stageOverrides = signal<Record<number, CandStage>>({});
 
-  // ── Loading ──
   isLoading = signal(false);
   actionLoading = signal<any>(null);
   formSaving = signal(false);
@@ -45,24 +42,19 @@ export class HrRecruitment implements OnInit {
   resumeUploading = signal(false);
   resumeUploadedUrl = signal<string>('');
 
-  // ── Tabs ──
   activeTab = signal<'jobs' | 'pipeline' | 'candidates'>('jobs');
 
-  // ── Job filters ──
   jobSearch = signal('');
   jobStatusFilter = signal('all');
   jobDeptFilter = signal('all');
 
-  // ── Candidate filters ──
   candSearch = signal('');
   candJobFilter = signal<number | 'all'>('all');
   candStageFilter = signal<CandStage | 'all'>('all');
 
-  // ── Pipeline filters ──
   pipelineJobFilter = signal<number | 'all'>('all');
   pipelineSearch = signal('');
 
-  // ── Modals ──
   jobFormModal = signal(false);
   editingJob = signal<any | null>(null);
   jobDetailModal = signal<any | null>(null);
@@ -71,24 +63,22 @@ export class HrRecruitment implements OnInit {
   candFormModal = signal(false);
   candDetailModal = signal<any | null>(null);
   deleteModal = signal<{ id: number; name: string } | null>(null);
-  // ── 'resume' added to union — calls publishJob API (SP allows Draft|OnHold → Published)
   statusModal = signal<{ job: any; action: 'publish' | 'onhold' | 'close' | 'resume' } | null>(null);
   stageModal = signal<{ cand: any; currentStage: CandStage } | null>(null);
 
-  // ── Drag ──
   draggingId = signal<number | null>(null);
   dragOver = signal<CandStage | null>(null);
 
   jobForm: FormGroup;
   candForm: FormGroup;
 
+  stageUpdating = signal<number | null>(null);
+
   private colorPool = [
     '#09637e', '#088395', '#27ae60', '#2980b9',
     '#8e44ad', '#d68910', '#c0392b', '#16a085', '#2c3e50', '#1e8449',
   ];
-  private readonly STAGE_STORAGE = 'hrms_recruit_stages';
 
-  // ── Stats ──
   activeCount = computed(() => this.allJobs().filter(j => j.status === 'Published' || j.status === 'Open').length);
   draftCount = computed(() => this.allJobs().filter(j => j.status === 'Draft').length);
   onHoldCount = computed(() => this.allJobs().filter(j => j.status === 'OnHold').length);
@@ -98,7 +88,7 @@ export class HrRecruitment implements OnInit {
   allCandidatesFlat = computed(() =>
     Object.values(this.candidatesMap()).flat().map(c => ({
       ...c,
-      stage: (this.stageOverrides()[c.applicationId] ?? c.applicationStatus ?? 'Applied') as CandStage,
+      stage: (c.applicationStatus ?? 'Applied') as CandStage,
     }))
   );
 
@@ -173,12 +163,10 @@ export class HrRecruitment implements OnInit {
   }
 
   ngOnInit() {
-    this.loadStageOverrides();
     this.loadJobs();
     this.loadAllEmployees();
   }
 
-  // ── Load ──
   loadJobs() {
     this.isLoading.set(true);
     this.recruitService.getAllJobs().subscribe({
@@ -212,11 +200,10 @@ export class HrRecruitment implements OnInit {
   jobCandidates(jobId: number) {
     return (this.candidatesMap()[jobId] ?? []).map(c => ({
       ...c,
-      stage: (this.stageOverrides()[c.applicationId] ?? c.applicationStatus ?? 'Applied') as CandStage,
+      stage: (c.applicationStatus ?? 'Applied') as CandStage,
     }));
   }
 
-  // ── Job form ──
   openAddJob() {
     this.editingJob.set(null); this.formError.set(null);
     this.jobForm.reset({ employment_type: 'Full-Time', vacancies: 1, currency: 'INR', salary_min: 0, salary_max: 0 });
@@ -323,7 +310,7 @@ export class HrRecruitment implements OnInit {
           next: (cr: any) => {
             const list = (Array.isArray(cr) ? cr : cr?.data ?? []).map((c: any) => ({
               ...c, jobId: job.jobId,
-              stage: (this.stageOverrides()[c.applicationId] ?? c.applicationStatus ?? 'Applied') as CandStage,
+              stage: (c.applicationStatus ?? 'Applied') as CandStage,
             }));
             this.candidatesMap.update(m => ({ ...m, [job.jobId]: list }));
             this.jobDetailCands.set(list);
@@ -403,11 +390,9 @@ export class HrRecruitment implements OnInit {
     });
   }
 
-  // ── Candidate detail ──
   openCandDetail(c: any) { this.candDetailModal.set(c); document.body.style.overflow = 'hidden'; }
   closeCandDetail() { this.candDetailModal.set(null); document.body.style.overflow = ''; }
 
-  // ── Stage modal ──
   openStageModal(cand: any, event?: Event) {
     event?.stopPropagation();
     this.stageModal.set({ cand, currentStage: cand.stage });
@@ -416,12 +401,32 @@ export class HrRecruitment implements OnInit {
   closeStageModal() { this.stageModal.set(null); document.body.style.overflow = ''; }
 
   moveStage(applicationId: number, stage: CandStage) {
-    this.stageOverrides.update(m => ({ ...m, [applicationId]: stage }));
-    this.saveStageOverrides();
-    if (this.candDetailModal()?.applicationId === applicationId)
-      this.candDetailModal.update(c => c ? { ...c, stage } : c);
-    if (this.stageModal()?.cand?.applicationId === applicationId)
-      this.stageModal.update(m => m ? { ...m, cand: { ...m.cand, stage }, currentStage: stage } : m);
+    console.log('moveStage payload:', { applicationId, status: stage }); 
+    this.stageUpdating.set(applicationId);
+    this.recruitService.updateJobApplicationStatus(Number(applicationId), stage).subscribe({
+      next: () => {
+        this.candidatesMap.update(map => {
+          const updated: Record<number, any[]> = {};
+          for (const jobId in map) {
+            updated[+jobId] = map[+jobId].map(c =>
+              c.applicationId === applicationId
+                ? { ...c, applicationStatus: stage }
+                : c
+            );
+          }
+          return updated;
+        });
+        if (this.candDetailModal()?.applicationId === applicationId)
+          this.candDetailModal.update(c => c ? { ...c, stage, applicationStatus: stage } : c);
+        if (this.stageModal()?.cand?.applicationId === applicationId)
+          this.stageModal.update(m => m ? { ...m, cand: { ...m.cand, stage, applicationStatus: stage }, currentStage: stage } : m);
+        this.stageUpdating.set(null);
+      },
+      error: err => {
+        this.toast.error(err?.error?.message || 'Failed to update status.');
+        this.stageUpdating.set(null);
+      }
+    });
   }
 
   confirmStageMove(stage: CandStage) {
@@ -437,16 +442,11 @@ export class HrRecruitment implements OnInit {
   onDragLeave() { this.dragOver.set(null); }
   onDrop(stage: CandStage) {
     const id = this.draggingId();
-    if (id !== null) { this.moveStage(id, stage); this.toast.success(`Moved to ${stage}.`); }
+    if (id !== null) {
+      this.moveStage(id, stage);
+      this.toast.success(`Moving to ${stage}...`);
+    }
     this.draggingId.set(null); this.dragOver.set(null);
-  }
-
-  // ── localStorage ──
-  loadStageOverrides() {
-    try { const r = localStorage.getItem(this.STAGE_STORAGE); if (r) this.stageOverrides.set(JSON.parse(r)); } catch { }
-  }
-  saveStageOverrides() {
-    try { localStorage.setItem(this.STAGE_STORAGE, JSON.stringify(this.stageOverrides())); } catch { }
   }
 
   // ── Resume download ──

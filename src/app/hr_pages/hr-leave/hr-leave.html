@@ -109,7 +109,6 @@
                     @if (l.reason) {
                     <div class="lac-reason"><i class="fas fa-quote-left"></i> {{ l.reason }}</div>
                     }
-
                     <div class="lac-actions">
                         <button class="lac-btn reject" (click)="rejectLeave(l.leaveRequestId)"
                             [disabled]="actionLoading() === l.leaveRequestId">
@@ -161,8 +160,7 @@
                 <div class="tbl-scroll">
                     <table>
                         <thead>
-                            <tr>
-                               
+                            <tr>                               
                                 <th>Employee</th>
                                 <th>Leave Type</th>
                                 <th>From</th>
@@ -174,8 +172,7 @@
                         </thead>
                         <tbody>
                             @for (l of pagedHistory(); track l.leaveRequestId; let i = $index) {
-                            <tr>
-                             
+                            <tr>                           
                                 <td class="td-emp">
                                     <div class="emp-cell">
                                         <div class="emp-av" [style.background]="getColor(l.userId)">{{

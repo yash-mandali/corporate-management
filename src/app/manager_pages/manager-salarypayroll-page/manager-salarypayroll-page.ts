@@ -130,7 +130,7 @@ export class ManagerSalaryPayrollPage implements OnInit {
 
   // ── Jobs ──
   visibleJobs = computed(() =>
-    this.allJobs().filter(j => j.status !== 'Deleted' && j.status !== 'deleted')
+    this.allJobs().filter(j => j.status !== 'Deleted' && j.status !== 'Closed' && j.status !== 'deleted')
   );
 
   filteredJobs = computed(() => {
@@ -209,7 +209,7 @@ export class ManagerSalaryPayrollPage implements OnInit {
       next: (res: any) => {
         const members: any[] = Array.isArray(res) ? res : res?.data ?? [];
         const ids = members.map(m => m.id ?? m.userId).filter((id: any) => id !== this.currentUserId());
-        console.log("get managerteammembers called::",ids);     
+        console.log("get managerteammembers called::", ids);
         this.teamMemberIds.set(ids);
         this.loadTeamPayrolls();
       },
@@ -217,7 +217,6 @@ export class ManagerSalaryPayrollPage implements OnInit {
     });
   }
 
-  // ── Load employee name map ──
   loadEmployeeNames() {
     this.userService.getAllUser()?.subscribe({
       next: (res: any) => {
@@ -226,10 +225,10 @@ export class ManagerSalaryPayrollPage implements OnInit {
         users.forEach(u => map.set(u.id ?? u.userId, u.userName ?? u.name ?? `EMP-${u.id}`));
         this.employeeMap.set(map);
       },
-      error: () => { /* silently skip — names degrade to EMP-{id} */ }
+      error: () => { }
     });
   }
-  
+
   loadMyPayrolls() {
     this.payrollLoading.set(true);
     this.payrollService.getPayrollByUserId(this.currentUserId()).subscribe({
@@ -245,8 +244,8 @@ export class ManagerSalaryPayrollPage implements OnInit {
 
   loadTeamPayrolls() {
     const ids = this.teamMemberIds();
-    console.log("load teampayroll called ",ids);
-    
+    console.log("load teampayroll called ", ids);
+
     if (!ids.length) return;
 
     let completed = 0;

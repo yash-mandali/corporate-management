@@ -31,6 +31,13 @@
 
         <!-- STAT CARDS -->
         <div class="stat-row">
+            <div class="stat-card total-c">
+                <div class="sc-icon"><i class="fas fa-calendar-alt"></i></div>
+                <div class="sc-body">
+                    <div class="sc-val">{{ allLeaves().length }}</div>
+                    <div class="sc-lbl">Total Requests</div>
+                </div>
+            </div>
             <div class="stat-card pending-c">
                 <div class="sc-icon"><i class="fas fa-hourglass-half"></i></div>
                 <div class="sc-body">
@@ -59,13 +66,7 @@
                     <div class="sc-lbl">Withdrawn</div>
                 </div>
             </div>
-            <div class="stat-card total-c">
-                <div class="sc-icon"><i class="fas fa-calendar-alt"></i></div>
-                <div class="sc-body">
-                    <div class="sc-val">{{ allLeaves().length }}</div>
-                    <div class="sc-lbl">Total Requests</div>
-                </div>
-            </div>
+           
         </div>
 
         <!-- ══ TAB: APPROVALS ══ -->

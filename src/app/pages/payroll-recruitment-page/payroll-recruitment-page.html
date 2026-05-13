@@ -170,7 +170,7 @@
                                 <button class="icon-action" (click)="openPayslip(p)" title="View payslip">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                <button class="icon-action" (click)="downloadPayslip(p)" title="Download CSV">
+                                <button class="icon-action" (click)="downloadPayslip(p)" title="Download">
                                     <i class="fas fa-download"></i>
                                 </button>
                             </td>
@@ -371,7 +371,7 @@
                                     </div>
                                     <div>
                                         <div class="table-strong">{{ job.title }}</div>
-                                        <div class="table-muted">Posted {{ formatDate(job.created_at ?? job.createdAt)
+                                        <div class="table-muted">Posted {{ formatDate(job.publish_date ?? job.created_At)
                                             }}</div>
                                     </div>
                                 </div>
@@ -775,8 +775,8 @@
                         {{ jobDetailModal()!.status }}
                     </strong>
                 </div>
-                <div class="jig"><span>Posted On</span><strong>{{ formatDate(jobDetailModal()!.created_at ??
-                        jobDetailModal()!.createdAt) }}</strong></div>
+                <div class="jig"><span>Posted On</span><strong>{{ formatDate(jobDetailModal()!.publish_date ??
+                        jobDetailModal()!.created_At) }}</strong></div>
             </div>
 
             @if (jobDetailModal()!.description) {

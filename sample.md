@@ -415,3 +415,6 @@ Download
 ]
 
 ========================================
+
+remaining to implement functionalities for leave related
+add leavetype,updateleavetype,deleteleavetype functionality add in admin side

@@ -109,6 +109,7 @@ export class ApplyLeave {
     this.leaveService.getUserLeaveBalance(this.Id()).subscribe({
       next: (res) => {
         this.leaveBalances.set(Array.isArray(res) ? res : res ? [res] : []);
+        console.log("loadleavebalance called: ",this.leaveBalances());      
       },
       error: (err) => {
         console.error(err);

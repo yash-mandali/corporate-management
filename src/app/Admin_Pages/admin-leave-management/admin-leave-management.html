@@ -30,6 +30,10 @@
                         (click)="activeTab.set('balance')">
                         <i class="fas fa-wallet"></i> Balance
                     </button>
+                    <button class="tab-btn" [class.active]="activeTab() === 'settings'"
+                        (click)="activeTab.set('settings')">
+                        <i class="fas fa-cog"></i> Settings
+                    </button>
                 </div>
                 <button class="btn-add" (click)="loadAllLeaves()">
                     <i class="fas fa-sync"></i> Refresh
@@ -144,11 +148,11 @@
                                     </button>
                                     @if (canHrAct(leave)) {
                                     <button class="act-btn approve-act" title="Approve"
-                                        (click)="openDetail(leave); triggerAction('approve')">
+                                        (click)="triggerAction('approve')">
                                         <i class="fas fa-check"></i>
                                     </button>
                                     <button class="act-btn del" title="Reject"
-                                        (click)="openDetail(leave); triggerAction('reject')">
+                                        (click)="triggerAction('reject')">
                                         <i class="fas fa-times"></i>
                                     </button>
                                     }
@@ -325,8 +329,157 @@
         </div>
         }
 
+        @if (activeTab() === 'settings') {
+        <div class="tab-content">
+
+            <!-- ── Add New Leave Type ── -->
+            <div class="settings-section">
+                <div class="settings-sec-header">
+                    <div class="settings-sec-icon add-icon"><i class="fas fa-plus"></i></div>
+                    <div>
+                        <div class="settings-sec-title">Add New Leave Type</div>
+                        <div class="settings-sec-sub">Create a new leave category with a default balance</div>
+                    </div>
+                </div>
+                <div class="settings-form-row">
+                    <div class="sf-field">
+                        <label class="sf-label">Leave Type Name</label>
+                        <input class="sf-input" type="text" placeholder="e.g. Paternity Leave"
+                            [(ngModel)]="newLeaveTypeName" />
+                    </div>
+                    <div class="sf-field sf-field--sm">
+                        <label class="sf-label">Default Balance (days)</label>
+                        <input class="sf-input" type="number" placeholder="e.g. 10" min="0"
+                            [(ngModel)]="newLeaveTypeBalance" />
+                    </div>
+                    <div class="sf-field sf-field--action">
+                        <label class="sf-label">&nbsp;</label>
+                        <button class="sf-btn sf-btn--add" (click)="addLeaveType()" [disabled]="isSettingsLoading()">
+                            @if (isSettingsLoading()) {
+                            <span class="mini-spin white-spin"></span>
+                            } @else {
+                            <i class="fas fa-plus"></i>
+                            }
+                            Add Leave Type
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Existing Leave Types ── -->
+            <div class="settings-section">
+                <div class="settings-sec-header">
+                    <div class="settings-sec-icon manage-icon"><i class="fas fa-list-alt"></i></div>
+                    <div>
+                        <div class="settings-sec-title">Manage Leave Types</div>
+                        <div class="settings-sec-sub">Edit balances or remove existing leave categories</div>
+                    </div>
+                </div>
+
+                @if (leaveTypesLoading()) {
+                <div class="page-loading"><i class="fas fa-spinner fa-spin"></i> Loading leave types...</div>
+                } @else if (leaveTypes().length === 0) {
+                <div class="settings-empty">
+                    <i class="fas fa-layer-group"></i>
+                    <span>No leave types found</span>
+                </div>
+                } @else {
+                <div class="lt-table-card">
+                    <div class="tbl-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <!-- <th>#</th> -->
+                                    <th>Leave Type</th>
+                                    <th>Default Balance</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (lt of leaveTypes(); track lt.leavetype_Id) {
+                                <tr>
+                                    <!-- <td class="lt-id">{{ lt.leavetype_Id }}</td> -->
+                                    <td>
+                                        <div class="lt-name-cell">
+                                            <span class="lt-dot" [class]="'lt-dot--' + (lt.leavetype_Id % 8)"></span>
+                                            <span class="lt-name">{{ lt.leaveType }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (editingLeaveTypeId() === lt.leavetype_Id) {
+                                        <div class="lt-edit-row">
+                                            <input class="sf-input sf-input--inline" type="number" min="0"
+                                                [(ngModel)]="editingBalance" placeholder="days" />
+                                            <button class="act-btn approve-act" title="Save"
+                                                (click)="saveLeaveTypeBalance(lt.leavetype_Id)"
+                                                [disabled]="isSettingsLoading()">
+                                                @if (isSettingsLoading()) {
+                                                <span class="mini-spin"></span>
+                                                } @else {
+                                                <i class="fas fa-check"></i>
+                                                }
+                                            </button>
+                                            <button class="act-btn" title="Cancel" (click)="cancelEditLeaveType()">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        } @else {
+                                        <div class="lt-balance-display">
+                                            <span class="lt-balance-val">{{ lt.default_balance }}</span>
+                                            <span class="lt-balance-unit">days</span>
+                                        </div>
+                                        }
+                                    </td>
+                                    <td class="td-act">
+                                        @if (editingLeaveTypeId() !== lt.leavetype_Id) {
+                                        <button class="act-btn view" title="Edit Balance"
+                                            (click)="startEditLeaveType(lt)">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        }
+                                        <button class="act-btn del" title="Delete"
+                                            (click)="openDeleteLeaveTypeConfirm(lt)" [disabled]="isSettingsLoading()">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                }
+            </div>
+
+        </div>
+        }
+
     </div>
 </main>
+
+<!-- ── Delete Leave Type Confirm Modal ── -->
+@if (showDeleteLeaveTypeModal() && selectedLeaveType()) {
+<div class="modal-overlay" (click)="cancelDeleteLeaveType()">
+    <div class="delete-modal" (click)="$event.stopPropagation()">
+        <div class="del-icon-wrap" style="background:rgba(192,57,43,0.1);color:#c0392b;">
+            <i class="fas fa-trash-alt"></i>
+        </div>
+        <div class="del-title">Delete Leave Type?</div>
+        <div class="del-sub">
+            Are you sure you want to delete <strong>{{ selectedLeaveType()!.leaveTypeName }}</strong>?
+            This action cannot be undone.
+        </div>
+        <div class="del-actions">
+            <button class="fm-cancel" (click)="cancelDeleteLeaveType()" [disabled]="isSettingsLoading()">Cancel</button>
+            <button class="del-confirm" (click)="confirmDeleteLeaveType()" [disabled]="isSettingsLoading()">
+                @if (isSettingsLoading()) { <span class="mini-spin white-spin"></span> } @else { <i
+                    class="fas fa-trash-alt"></i> }
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+}
 
 @if (showDetailModal() && selectedLeave()) {
 <div class="modal-overlay" (click)="closeDetail()">

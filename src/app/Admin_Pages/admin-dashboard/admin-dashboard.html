@@ -239,7 +239,7 @@
                     </div>
                     @if (filteredAttendance().length > 5) {
                     <div class="panel-footer">
-                        <a class="pf-more-link" routerLink="/dashboard/hrattendance">
+                        <a class="pf-more-link" routerLink="/dashboard/attendancemanagement">
                             <i class="fas fa-users"></i>
                             +{{ filteredAttendance().length - 5 }} more employees
                             <i class="fas fa-arrow-right"></i>
@@ -317,7 +317,7 @@
                     </div>
                     @if (filteredUsers().length > 5) {
                     <div class="panel-footer">
-                        <a class="pf-more-link" routerLink="/dashboard/hremployees">
+                        <a class="pf-more-link" routerLink="/dashboard/usermanagement">
                             <i class="fas fa-users"></i>
                             +{{ filteredUsers().length - 5 }} more users
                             <i class="fas fa-arrow-right"></i>
@@ -380,7 +380,7 @@
                             @if (openJobCount() > 0) {
                             <span class="panel-badge teal">{{ openJobCount() }} open</span>
                             }
-                            <a class="view-all-link" routerLink="/dashboard/hrRecruitment">
+                            <a class="view-all-link" routerLink="/dashboard/recruitmentmanagement">
                                 View all <i class="fas fa-arrow-right"></i>
                             </a>
                         </div>
@@ -435,7 +435,7 @@
                     </div>
                     @if (allJobs().length > 5) {
                     <div class="panel-footer">
-                        <a class="pf-more-link" routerLink="/dashboard/hrRecruitment">
+                        <a class="pf-more-link" routerLink="/dashboard/recruitmentmanagement">
                             <i class="fas fa-briefcase"></i>
                             +{{ allJobs().length - 5 }} more postings
                             <i class="fas fa-arrow-right"></i>
@@ -520,7 +520,7 @@
                     </div>
                     @if (allLeaves().length > 3) {
                     <div class="panel-footer">
-                        <a class="pf-more-link" routerLink="/dashboard/hrleave">
+                        <a class="pf-more-link" routerLink="/dashboard/leavemanagement">
                             <i class="fas fa-calendar-minus"></i>
                             +{{ allLeaves().length - 3 }} more requests
                             <i class="fas fa-arrow-right"></i>
@@ -603,7 +603,7 @@
                     </div>
                     @if (currentMonthPayroll().length > 5) {
                     <div class="panel-footer">
-                        <a class="pf-more-link red" routerLink="/dashboard/hrpayroll">
+                        <a class="pf-more-link red" routerLink="/dashboard/payrollmanagement">
                             <i class="fas fa-money-bill-wave"></i>
                             +{{ currentMonthPayroll().length - 5 }} more records
                             <i class="fas fa-arrow-right"></i>

@@ -16,45 +16,38 @@ import { Authservice } from '../../services/Auth-service/authservice';
 })
 export class PayrollRecruitmentPage implements OnInit {
 
-  currentUserId = signal<any>(0); 
+  currentUserId = signal<any>(0);
   Math = Math;
 
-  // ── Tab ──
   activeTab = signal<'payroll' | 'jobs' | 'applied'>('payroll');
   payrollView = signal<'list' | 'card'>('list');
   jobView = signal<'list' | 'card'>('list');
 
-  // ── Loading ──
   payrollLoading = signal(false);
   jobsLoading = signal(false);
   applyLoading = signal<number | null>(null);
   appliedJobsLoading = signal(false);
 
-  // ── Raw data ──
   myPayrolls = signal<any[]>([]);
   allJobs = signal<any[]>([]);
   myApplications = signal<any[]>([]);
 
-  // ── Payroll filters ──
   payrollStatusFilter = signal<'all' | 'Generated' | 'Paid'>('all');
   payrollYear = signal<number>(new Date().getFullYear());
   payrollMonth = signal<number>(0); // 0 = all
   payrollSearch = signal('');
 
-  // ── Job filters ──
   jobSearch = signal('');
   jobDeptFilter = signal('all');
   jobTypeFilter = signal('all');
   jobMonthFilter = signal<number>(0);  // 0 = all
   jobYearFilter = signal<number>(0);   // 0 = all
 
-  // ── Applied Jobs filters ──
   appliedSearch = signal('');
   appliedStatusFilter = signal('all');
   appliedMonthFilter = signal<number>(0);
   appliedYearFilter = signal<number>(0);
 
-  // ── Modals ──
   payslipModal = signal<any | null>(null);
   jobDetailModal = signal<any | null>(null);
   applyModal = signal<any | null>(null);
@@ -110,9 +103,8 @@ export class PayrollRecruitmentPage implements OnInit {
   paidCount = computed(() => this.myPayrolls().filter(p => p.status === 'Paid').length);
   pendingCount = computed(() => this.myPayrolls().filter(p => p.status !== 'Paid').length);
 
-  // Jobs: show all except Deleted
   visibleJobs = computed(() =>
-    this.allJobs().filter(j => j.status !== 'Deleted' && j.status !== 'deleted')
+    this.allJobs().filter(j => j.status !== 'Deleted' && j.status !== 'Closed' && j.status !== 'deleted')
   );
 
   filteredJobs = computed(() => {
@@ -125,7 +117,7 @@ export class PayrollRecruitmentPage implements OnInit {
       const matchQ = !q || j.title?.toLowerCase().includes(q) || j.department?.toLowerCase().includes(q) || j.location?.toLowerCase().includes(q);
       const matchD = df === 'all' || j.department === df;
       const matchT = tf === 'all' || j.employment_type === tf;
-      const postedDate = new Date(j.created_at ?? j.createdAt ?? '');
+      const postedDate = new Date(j.publish_date ?? j.created_At ?? '');
       const matchMo = !mo || postedDate.getMonth() + 1 === mo;
       const matchYr = !yr || postedDate.getFullYear() === yr;
       return matchQ && matchD && matchT && matchMo && matchYr;
@@ -157,7 +149,7 @@ export class PayrollRecruitmentPage implements OnInit {
     private recruitService: RecruitmentService,
     private userService: UserService,
     private toast: ToastService,
-    private auth:Authservice
+    private auth: Authservice
   ) { }
 
   ngOnInit() {
@@ -167,8 +159,8 @@ export class PayrollRecruitmentPage implements OnInit {
       this.loadMyPayrolls();
       this.loadJobs();
       this.loadMyApplications();
-}
-   
+    }
+
   }
 
   // ── Load payrolls ──
@@ -178,9 +170,9 @@ export class PayrollRecruitmentPage implements OnInit {
       next: (res: any) => {
         const raw = res?.data ?? res;
         const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
-        console.log("loadmypayrooll called:",list);
+        console.log("loadmypayrooll called:", list);
         this.myPayrolls.set(list.filter((p: any) => p.status === 'Generated' || p.status === 'Paid'));
-        
+
         this.payrollLoading.set(false);
       },
       error: err => { console.error(err); this.payrollLoading.set(false); }

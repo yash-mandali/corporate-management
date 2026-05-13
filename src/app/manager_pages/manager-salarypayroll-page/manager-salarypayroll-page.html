@@ -804,8 +804,8 @@
                     <strong [style.color]="canApplyJob(jobDetailModal()!) ? '#27ae60' : '#e67e22'">{{
                         jobDetailModal()!.status }}</strong>
                 </div>
-                <div class="jig"><span>Posted On</span><strong>{{ formatDate(jobDetailModal()!.created_at ??
-                        jobDetailModal()!.createdAt) }}</strong></div>
+                <div class="jig"><span>Posted On</span><strong>{{ formatDate(jobDetailModal()!.publish_date ??
+                        jobDetailModal()!.created_At) }}</strong></div>
             </div>
 
             @if (jobDetailModal()!.description) {

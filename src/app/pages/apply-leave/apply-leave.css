@@ -137,7 +137,8 @@ body {
 
 .balance-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
 }
 
 .bal-item {
@@ -216,6 +217,7 @@ body {
     box-shadow: 0 5px 18px rgba(9, 99, 126, 0.35);
     transform: translateY(-1px);
 }
+
 .edit-btn:disabled {
     opacity: 0.35;
     cursor: not-allowed;
@@ -224,6 +226,7 @@ body {
     color: #aaa;
     box-shadow: none;
 }
+
 /* Scrollable table wrapper */
 .table-scroll {
     width: 100%;
@@ -326,6 +329,7 @@ tbody td {
     background: rgba(179, 179, 179, 0.15);
     color: #616161;
 }
+
 /* ── STATUS BADGES ── */
 .status-badge {
     display: inline-flex;
@@ -354,6 +358,7 @@ tbody td {
     background: rgba(39, 174, 96, 0.12);
     color: #1e8449;
 }
+
 .status-badge.managerapproved {
     background: rgba(39, 174, 96, 0.12);
     color: #1e8449;
@@ -363,6 +368,7 @@ tbody td {
     background: rgba(224, 92, 92, 0.12);
     color: #c0392b;
 }
+
 .status-badge.managerrejected {
     background: rgba(224, 92, 92, 0.12);
     color: #c0392b;
@@ -1116,4 +1122,12 @@ tbody td {
     .modal {
         border-radius: 12px;
     }
+}
+
+.modal-lg {
+    max-width: 620px;
+}
+
+.mf-err-msg[style*="5a7d85"] {
+    color: #5a7d85 !important;
 }

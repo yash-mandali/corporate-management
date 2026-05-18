@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { LowerCasePipe } from '@angular/common';
 import { Authservice } from '../../services/Auth-service/authservice';
 import { TimesheetService } from '../../services/timesheet-service/timesheet-service';
+import { ToastService } from '../../services/toast-service/toast';
 
 @Component({
   selector: 'app-emp-timesheet',
@@ -55,6 +56,7 @@ export class Timesheetpage implements OnInit {
   constructor(
     private auth: Authservice,
     private timesheetService: TimesheetService,
+    private toast: ToastService,
     private fb: FormBuilder
   ) {
     // Set Monday as week start
@@ -408,8 +410,8 @@ export class Timesheetpage implements OnInit {
       },
       error: (err) => {
         this.isExporting.set(false);
-        if (err.status === 404) alert('No records found for selected filters.');
-        else alert('Export failed. Please try again.');
+        if (err.status === 404) this.toast.error('No records found for selected filters.');
+        else this.toast.error('Export failed. Please try again.');
       }
     });
   }

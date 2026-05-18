@@ -21,9 +21,6 @@ body {
     gap: 20px;
 }
 
-/* ══════════════════════════════════════════
-   PAGE HEADER
-══════════════════════════════════════════ */
 .page-header {
     display: flex;
     align-items: center;
@@ -98,9 +95,6 @@ body {
     box-shadow: 0 6px 20px rgba(9, 99, 126, 0.38);
 }
 
-/* ══════════════════════════════════════════
-   TAB SWITCHER
-══════════════════════════════════════════ */
 .tab-switcher {
     display: flex;
     gap: 3px;
@@ -157,9 +151,6 @@ body {
     background: rgba(255, 255, 255, 0.25);
 }
 
-/* ══════════════════════════════════════════
-   STAT ROW
-══════════════════════════════════════════ */
 .stat-row {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -274,9 +265,6 @@ body {
     text-overflow: ellipsis;
 }
 
-/* ══════════════════════════════════════════
-   TAB CONTENT
-══════════════════════════════════════════ */
 .tab-content {
     display: flex;
     flex-direction: column;
@@ -297,9 +285,6 @@ body {
     font-weight: 600;
 }
 
-/* ══════════════════════════════════════════
-   REQUESTS TAB — TOOLBAR
-══════════════════════════════════════════ */
 .history-toolbar {
     display: flex;
     align-items: center;
@@ -397,9 +382,6 @@ body {
     color: #0d2d36;
 }
 
-/* ══════════════════════════════════════════
-   TABLE — DESKTOP (scrollable wrapper)
-══════════════════════════════════════════ */
 .history-table-card {
     background: #fff;
     border-radius: 14px;
@@ -508,8 +490,6 @@ tbody td {
     text-overflow: ellipsis;
 }
 
-/* ── MOBILE CARD TABLE ─── */
-/* Hidden by default, shown on small screens */
 .mobile-leave-list {
     display: none;
     flex-direction: column;
@@ -649,9 +629,6 @@ tbody td {
     gap: 5px;
 }
 
-/* ══════════════════════════════════════════
-   CHIPS & PILLS
-══════════════════════════════════════════ */
 .type-chip {
     display: inline-flex;
     padding: 3px 9px;
@@ -730,9 +707,6 @@ tbody td {
     color: #5a8a94;
 }
 
-/* ══════════════════════════════════════════
-   ACTION BUTTONS
-══════════════════════════════════════════ */
 .act-btn {
     width: 28px;
     height: 28px;
@@ -810,9 +784,6 @@ tbody td {
     opacity: 0.15;
 }
 
-/* ══════════════════════════════════════════
-   PAGINATION
-══════════════════════════════════════════ */
 .pagination {
     display: flex;
     align-items: center;
@@ -886,9 +857,6 @@ tbody td {
     white-space: nowrap;
 }
 
-/* ══════════════════════════════════════════
-   BALANCE TAB
-══════════════════════════════════════════ */
 .balance-toolbar {
     display: flex;
     align-items: center;
@@ -947,7 +915,6 @@ tbody td {
     color: #09637e;
 }
 
-/* ── Balance grid — fluid columns ── */
 .balance-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -1140,9 +1107,6 @@ tbody td {
     opacity: 0.2;
 }
 
-/* ══════════════════════════════════════════
-   MODAL SHARED
-══════════════════════════════════════════ */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -1219,9 +1183,6 @@ tbody td {
     color: #09637e;
 }
 
-/* ══════════════════════════════════════════
-   DETAIL MODAL
-══════════════════════════════════════════ */
 .detail-modal {
     background: #fff;
     border-radius: 16px;
@@ -1326,7 +1287,6 @@ tbody td {
     white-space: nowrap;
 }
 
-/* dm-body: natural height, overlay scrolls */
 .dm-body {
     padding: 20px 24px;
     display: flex;
@@ -1704,9 +1664,6 @@ tbody td {
     border-color: #c0392b;
 }
 
-/* ══════════════════════════════════════════
-   CONFIRM / DELETE MODAL
-══════════════════════════════════════════ */
 .delete-modal {
     background: #fff;
     border-radius: 16px;
@@ -1791,9 +1748,6 @@ tbody td {
     transform: none;
 }
 
-/* ══════════════════════════════════════════
-   TOAST
-══════════════════════════════════════════ */
 .alm-toast {
     position: fixed;
     top: 20px;
@@ -1829,9 +1783,6 @@ tbody td {
     flex-shrink: 0;
 }
 
-/* ══════════════════════════════════════════
-   SPINNERS
-══════════════════════════════════════════ */
 .mini-spin {
     display: inline-block;
     width: 13px;
@@ -1857,9 +1808,6 @@ button:disabled {
     cursor: not-allowed;
 }
 
-/* ══════════════════════════════════════════
-   SCROLLBAR
-══════════════════════════════════════════ */
 ::-webkit-scrollbar {
     width: 4px;
     height: 4px;
@@ -1873,10 +1821,6 @@ button:disabled {
     background: #b2dce2;
     border-radius: 4px;
 }
-
-/* ══════════════════════════════════════════
-   RESPONSIVE BREAKPOINTS
-══════════════════════════════════════════ */
 
 /* ── ≤ 1280px ── */
 @media (max-width: 1280px) {
@@ -1928,7 +1872,6 @@ button:disabled {
     }
 }
 
-/* ── ≤ 768px: main responsive pivot ── */
 @media (max-width: 768px) {
     .content {
         padding: 12px;
@@ -1974,8 +1917,6 @@ button:disabled {
     .btn-add {
         flex: 0 0 auto;
     }
-
-    /* Stats 2-col */
     .stat-row {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
@@ -2477,9 +2418,6 @@ button:disabled {
     }
 }
 
-/* ══════════════════════════════════════════
-   SETTINGS TAB
-══════════════════════════════════════════ */
 
 .settings-section {
     background: #fff;
@@ -2734,7 +2672,6 @@ button:disabled {
     opacity: 0.4;
 }
 
-/* ── Responsive ── */
 @media (max-width: 600px) {
     .settings-form-row {
         flex-direction: column;

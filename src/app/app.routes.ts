@@ -39,13 +39,13 @@ export const routes: Routes = [
                 canActivate: [authGuard, roleGuard],
                 data: { roles: ['Employee'] }
             },
-            {
-                path: 'newleave',
-                loadComponent: () =>
-                    import('./pages/newleavepage/newleavepage').then(m => m.Newleavepage),
-                canActivate: [authGuard, roleGuard],
-                data: { roles: ['Employee'] }
-            },
+            // {
+            //     path: 'newleave',
+            //     loadComponent: () =>
+            //         import('./pages/newleavepage/newleavepage').then(m => m.Newleavepage),
+            //     canActivate: [authGuard, roleGuard],
+            //     data: { roles: ['Employee'] }
+            // },
             {
                 path: 'salarypayroll',
                 loadComponent: () =>

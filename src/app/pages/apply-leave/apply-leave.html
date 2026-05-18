@@ -49,40 +49,27 @@
       </div>
 
       <div class="balance-grid">
-
         <div class="bal-item" *ngFor="let leave of leaveBalances()">
-
-          <div class="bal-num">
-            {{ leave.remainingLeaveBalance }}
-          </div>
-
-          <div class="bal-type">
-            {{ getLeaveTypeName(leave.leavetype_Id) }}
-          </div>
-
-          <div class="bal-used">
-            Used: {{ leave.usedLeaveBalance }} / {{ leave.totalLeaveBalance }}
-          </div>
-
+          <div class="bal-num">{{ leave.remainingLeaveBalance }}</div>
+          <div class="bal-type">{{ leave.leavetype}}</div>
+          <div class="bal-used">Used: {{ leave.usedLeaveBalance }} / {{ leave.totalLeaveBalance }}</div>
           <div class="bal-bar">
             <div class="bal-fill" [style.width.%]="getPercentage(leave.usedLeaveBalance, leave.totalLeaveBalance)">
             </div>
           </div>
-
         </div>
-
       </div>
     </div>
 
-    <!-- APPLICATIONS TABLE -->
     <div class="table-section">
       <div class="section-bar">
         <div class="section-bar-title">
           <i class="fas fa-list-alt"></i> Leave Applications
         </div>
-        <a class="apply-btn" routerLink="/dashboard/newleave">
+        <!-- Changed: opens Apply modal instead of routing -->
+        <button class="apply-btn" (click)="openApplyModal()">
           <i class="fas fa-plus"></i> Apply Leave
-        </a>
+        </button>
       </div>
 
       <!-- Filter Tabs -->
@@ -97,7 +84,6 @@
           (click)="setFilter('approved')">
           Approved <span class="filter-count">{{ approvedleaves() }}</span>
         </button>
-
         <button class="filter-tab rejected" [class.active]="activeFilter() === 'rejected'"
           (click)="setFilter('rejected')">
           Rejected <span class="filter-count">{{ rejectedleaves() }}</span>
@@ -138,16 +124,13 @@
               <td>{{ r.totalDays }}</td>
               <td>{{ r.session }}</td>
               <td>{{ r.handoverTo || '—' }}</td>
-              <td>{{ r.reason.length > 25 ? (r.reason | slice:0:25)+ '...' : r.reason || '—' }}</td>
+              <td>{{ r.reason.length > 25 ? (r.reason | slice:0:25) + '...' : r.reason || '—' }}</td>
               <td>{{ formatDate(r.appliedOn) }}</td>
               <td>
-                <span class="status-badge {{ r.status.toLowerCase() }}">
-                  {{ r.status }}
-                </span>
+                <span class="status-badge {{ r.status.toLowerCase() }}">{{ r.status }}</span>
               </td>
               <td>
                 @if (r.status.toLowerCase() == 'pending') {
-
                 <div class="action-btns">
                   <button class="action-btn edit-btn" (click)="editLeave(r)" title="Edit Leave"
                     [disabled]="r.status.toLowerCase() !== 'pending'">
@@ -177,9 +160,7 @@
       <!-- Pagination -->
       @if (totalPages() >= 1) {
       <div class="pagination">
-        <span class="page-info">
-          Page {{ currentPage()}} of {{ totalPages() }}
-        </span>
+        <span class="page-info">Page {{ currentPage() }} of {{ totalPages() }}</span>
         <div class="page-controls">
           <button class="page-btn nav-btn" (click)="prevPage()" [disabled]="currentPage() === 1" title="Previous">
             <i class="fas fa-chevron-left"></i>
@@ -188,9 +169,7 @@
           @if (p === '...') {
           <span class="page-ellipsis">…</span>
           } @else {
-          <button class="page-btn" [class.active]="p === currentPage()" (click)="goToPage(p)">
-            {{ p }}
-          </button>
+          <button class="page-btn" [class.active]="p === currentPage()" (click)="goToPage(p)">{{ p }}</button>
           }
           }
           <button class="page-btn nav-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()"
@@ -205,7 +184,137 @@
   </div>
 </main>
 
-<!-- ── EDIT LEAVE MODAL ── -->
+<!-- ══════════════════════════════════════════
+     APPLY LEAVE MODAL (new)
+══════════════════════════════════════════ -->
+@if (applyModalOpen()) {
+<div class="modal-overlay" (click)="closeApplyModal()">
+  <div class="modal modal-lg" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-header-icon">
+        <i class="fas fa-calendar-plus"></i>
+      </div>
+      <div>
+        <div class="modal-title">Apply Leave</div>
+        <div class="modal-sub">Submit your leave request</div>
+      </div>
+      <button class="modal-close" (click)="closeApplyModal()" type="button">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <form [formGroup]="leaveForm" (ngSubmit)="submitLeave()">
+      <div class="modal-body">
+
+        <div class="mf-row">
+          <!-- Request Type -->
+          <div class="mf">
+            <label>Request Type <span>*</span></label>
+            <div class="mf-select-wrap">
+              <select formControlName="requestType"
+                [class.mf-error]="leaveForm.get('requestType')?.invalid && leaveForm.get('requestType')?.touched">
+                <option value="">Select Leave Type</option>
+                @for (type of leaveTypes(); track type.leavetype_Id) {
+                <option [value]="type.leaveType">
+                  {{ type.leaveType }}
+                </option>
+                }
+              </select>
+            </div>
+            @if (leaveForm.get('requestType')?.invalid && leaveForm.get('requestType')?.touched) {
+            <span class="mf-err-msg"><i class="fas fa-exclamation-circle"></i> Please select a leave type.</span>
+            }
+          </div>
+
+          <!-- Session -->
+          <div class="mf">
+            <label>Session <span>*</span></label>
+            <div class="mf-select-wrap">
+              <select formControlName="session"
+                [class.mf-error]="leaveForm.get('session')?.invalid && leaveForm.get('session')?.touched">
+                <option value="">Select Session</option>
+                <option>Full Day</option>
+                <option>Half Day</option>
+              </select>
+            </div>
+            @if (leaveForm.get('session')?.invalid && leaveForm.get('session')?.touched) {
+            <span class="mf-err-msg"><i class="fas fa-exclamation-circle"></i> Please select a session.</span>
+            }
+          </div>
+        </div>
+
+        <div class="mf-row">
+          <!-- From Date -->
+          <div class="mf">
+            <label>From Date <span>*</span></label>
+            <input type="date" formControlName="fromDate" [min]="minDate"
+              [class.mf-error]="leaveForm.get('fromDate')?.invalid && leaveForm.get('fromDate')?.touched" />
+            @if (applyFromDateError()) {
+            <span class="mf-err-msg"><i class="fas fa-exclamation-circle"></i> {{ applyFromDateError() }}</span>
+            }
+          </div>
+
+          <!-- To Date -->
+          <div class="mf">
+            <label>To Date <span>*</span></label>
+            <input type="date" formControlName="toDate" [min]="applyToDateMin" [max]="applyToDateMax"
+              [attr.disabled]="applyToDateDisabled ? true : null"
+              [class.mf-error]="leaveForm.get('toDate')?.invalid && leaveForm.get('toDate')?.touched" />
+            @if (applyToDateDisabled) {
+            <span class="mf-err-msg" style="color:#5a7d85">Select a From Date first.</span>
+            }
+            @if (!applyToDateDisabled && leaveForm.get('session')?.value === 'Half Day') {
+            <span class="mf-err-msg" style="color:#5a7d85">Half day: same date as From Date.</span>
+            }
+            @if (applyToDateError()) {
+            <span class="mf-err-msg"><i class="fas fa-exclamation-circle"></i> {{ applyToDateError() }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- Handover To -->
+        <div class="mf">
+          <label>Handover To</label>
+          <input type="text" formControlName="handoverTo" placeholder="Enter employee name (optional)" />
+        </div>
+
+        <!-- Reason -->
+        <div class="mf">
+          <label>Reason <span>*</span></label>
+          <textarea rows="3" formControlName="reason" placeholder="Describe the reason for your leave..."
+            [class.mf-error]="leaveForm.get('reason')?.invalid && leaveForm.get('reason')?.touched"></textarea>
+          @if (leaveForm.get('reason')?.invalid && leaveForm.get('reason')?.touched) {
+          <span class="mf-err-msg"><i class="fas fa-exclamation-circle"></i> Reason is required.</span>
+          }
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="resetLeaveForm()">
+          <i class="fas fa-undo"></i> Reset
+        </button>
+        <button type="button" class="btn-cancel" (click)="closeApplyModal()">
+          Cancel
+        </button>
+        <button type="submit" class="btn-submit" [disabled]="isApplying">
+          @if (isApplying) {
+          <i class="fas fa-spinner fa-spin"></i> Submitting...
+          } @else {
+          <i class="fas fa-paper-plane"></i> Apply Leave
+          }
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+}
+
+<!-- ══════════════════════════════════════════
+     EDIT LEAVE MODAL (existing)
+══════════════════════════════════════════ -->
 @if (editModalOpen()) {
 <div class="modal-overlay" (click)="closeEditModal()">
   <div class="modal" (click)="$event.stopPropagation()">
@@ -303,9 +412,7 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-cancel" (click)="closeEditModal()">
-          Cancel
-        </button>
+        <button type="button" class="btn-cancel" (click)="closeEditModal()">Cancel</button>
         <button type="submit" class="btn-submit" [disabled]="isSubmitting">
           @if (isSubmitting) {
           <i class="fas fa-spinner fa-spin"></i> Saving...

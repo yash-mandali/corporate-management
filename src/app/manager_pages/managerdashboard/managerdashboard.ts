@@ -1,13 +1,11 @@
 import { Component, computed, signal, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { LowerCasePipe } from '@angular/common';
 import { Authservice } from '../../services/Auth-service/authservice';
 import { UserService } from '../../services/user-service/user-service';
 import { AttendanceService } from '../../services/attendance-service';
 import { LeaveService } from '../../services/leave-service/leave-service';
 import { TimesheetService } from '../../services/timesheet-service/timesheet-service';
-import { ToastrService } from 'ngx-toastr';
 import { ToastService } from '../../services/toast-service/toast';
 
 @Component({
@@ -17,8 +15,7 @@ import { ToastService } from '../../services/toast-service/toast';
   styleUrl: './managerdashboard.css',
 })
 export class ManagerDashboard implements OnInit, OnDestroy {
-  leaveUserName = signal<any[]>([]);
-  // ── Core state ──
+
   managerId = signal<any>(null);
   managerInfo = signal<any>(null);
   ManagerTeam = signal<any[]>([]);

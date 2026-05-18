@@ -13,6 +13,15 @@ export interface AttendanceRecord {
   status: string;     // 'Present' | 'Absent' | 'Late' | 'Weekend'
 }
 
+export interface CalendarCell {
+  key: string;
+  day: number | null;
+  cls: string;
+  dot: boolean;
+  title: string;
+  record: AttendanceRecord | null;
+}
+
 @Component({
   selector: 'app-attendance-page',
   imports: [LowerCasePipe, SlicePipe],
@@ -26,7 +35,7 @@ export class AttendancePage {
   selectedRecord = signal<AttendanceRecord | null>(null);
   tableFilter = signal('all');
 
-  // ── Month navigation (signals for reactivity) ──
+  // ── Month navigation ──
   viewYear = signal(new Date().getFullYear());
   viewMonth = signal(new Date().getMonth());
 
@@ -34,13 +43,16 @@ export class AttendancePage {
   currentPage = signal(1);
   readonly pageSize = 10;
 
+  // ── Day-of-week labels (compact 2-char for small calendar) ──
+  readonly dowLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
   get monthLabel(): string {
     return new Date(this.viewYear(), this.viewMonth()).toLocaleDateString('en-IN', {
       month: 'long', year: 'numeric'
     });
   }
 
-  // ── Computed stats filtered by selected month ──
+  // ── Stats ──
   presentCount = computed(() =>
     this.records().filter(r =>
       r.status === 'Present' &&
@@ -84,17 +96,19 @@ export class AttendancePage {
     });
     const h = Math.floor(totalMins / 60);
     const m = totalMins % 60;
-    return m > 0 ? h + 'h ' + m + 'm' : h + 'h';
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
   });
 
   attendanceRate = computed(() => {
     const workdays = this.filteredRecords().filter(r => r.status !== 'Weekend').length;
     if (!workdays) return 0;
-    const attended = this.filteredRecords().filter(r => r.status === 'Present' || r.status === 'Late').length;
+    const attended = this.filteredRecords().filter(
+      r => r.status === 'Present' || r.status === 'Late'
+    ).length;
     return Math.round((attended / workdays) * 100);
   });
 
-  // All records for selected month, filtered by status, sorted ascending
+  // ── Filtered records for selected month ──
   filteredRecords = computed(() => {
     const recs = this.records()
       .filter(r => {
@@ -105,15 +119,13 @@ export class AttendancePage {
           d.getMonth() === this.viewMonth()
         );
       })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // latest first
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const filter = this.tableFilter();
-    if (filter === 'all') return recs;
-
-    return recs.filter(r => r.status === filter);
+    return filter === 'all' ? recs : recs.filter(r => r.status === filter);
   });
 
-  // ── Pagination computed ──
+  // ── Pagination ──
   totalPages = computed(() =>
     Math.max(1, Math.ceil(this.filteredRecords().length / this.pageSize))
   );
@@ -133,6 +145,75 @@ export class AttendancePage {
     Math.min(this.currentPage() * this.pageSize, this.filteredRecords().length)
   );
 
+  // ── Calendar cells ──
+  calendarCells = computed((): CalendarCell[] => {
+    const year = this.viewYear();
+    const month = this.viewMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date();
+    const selectedId = this.selectedRecord()?.aId ?? null;
+
+    // fast lookup map
+    const map = new Map<string, AttendanceRecord>();
+    this.records().forEach(r => map.set(r.date.slice(0, 10), r));
+
+    const cells: CalendarCell[] = [];
+
+    // leading empty cells
+    for (let i = 0; i < firstDay; i++) {
+      cells.push({ key: `empty-${i}`, day: null, cls: 'cal-cell cal-empty', dot: false, title: '', record: null });
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const mm = String(month + 1).padStart(2, '0');
+      const dd = String(d).padStart(2, '0');
+      const dateStr = `${year}-${mm}-${dd}`;
+      const rec = map.get(dateStr) ?? null;
+      const dow = new Date(year, month, d).getDay();
+      const isWeekend = dow === 0 || dow === 6;
+      const isFuture = new Date(year, month, d) > today;
+      const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+      const isSelected = rec !== null && rec.aId === selectedId;
+
+      let cls = 'cal-cell';
+      let dot = false;
+      let title = '';
+
+      if (rec) {
+        switch (rec.status) {
+          case 'Present':
+            cls += ' cc-present'; dot = true;
+            title = `Present · In: ${this.formatTime(rec.checkIn)}  Out: ${this.formatTime(rec.checkOut)}`;
+            break;
+          case 'Late':
+            cls += ' cc-late'; dot = true;
+            title = `Late · In: ${this.formatTime(rec.checkIn)}  Out: ${this.formatTime(rec.checkOut)}`;
+            break;
+          case 'Absent':
+            cls += ' cc-absent'; dot = true;
+            title = 'Absent';
+            break;
+          default:
+            cls += ' cc-weekend'; title = 'Weekend';
+        }
+      } else if (isWeekend) {
+        cls += ' cc-weekend'; title = 'Weekend';
+      } else if (isFuture) {
+        cls += ' cc-future';
+      } else {
+        cls += ' cc-absent'; dot = true; title = 'Absent';
+      }
+
+      if (isToday) cls += ' cc-today';
+      if (isSelected) cls += ' cc-selected';
+
+      cells.push({ key: dateStr, day: d, cls, dot, title, record: rec });
+    }
+
+    return cells;
+  });
+
   constructor(
     private auth: Authservice,
     private attendanceService: AttendanceService
@@ -148,42 +229,31 @@ export class AttendancePage {
 
   getAllAttendance() {
     this.attendanceService.getByUID(this.Id()).subscribe({
-      next: (res: AttendanceRecord[]) => {
-        this.records.set(res);
-      },
+      next: (res: AttendanceRecord[]) => { this.records.set(res); },
       error: err => console.error('Attendance fetch error:', err)
     });
   }
 
-  // Reset page to 1 when filter changes
   setFilter(f: string) {
     this.tableFilter.set(f);
     this.currentPage.set(1);
   }
 
   selectRecord(r: AttendanceRecord) {
-    this.selectedRecord.set(r);
+    this.selectedRecord.set(this.selectedRecord()?.aId === r.aId ? null : r);
   }
 
   prevMonth() {
-    if (this.viewMonth() === 0) {
-      this.viewMonth.set(11);
-      this.viewYear.update(y => y - 1);
-    } else {
-      this.viewMonth.update(m => m - 1);
-    }
+    if (this.viewMonth() === 0) { this.viewMonth.set(11); this.viewYear.update(y => y - 1); }
+    else { this.viewMonth.update(m => m - 1); }
     this.currentPage.set(1);
     this.selectedRecord.set(null);
   }
 
   nextMonth() {
     if (this.isCurrentMonth()) return;
-    if (this.viewMonth() === 11) {
-      this.viewMonth.set(0);
-      this.viewYear.update(y => y + 1);
-    } else {
-      this.viewMonth.update(m => m + 1);
-    }
+    if (this.viewMonth() === 11) { this.viewMonth.set(0); this.viewYear.update(y => y + 1); }
+    else { this.viewMonth.update(m => m + 1); }
     this.currentPage.set(1);
     this.selectedRecord.set(null);
   }

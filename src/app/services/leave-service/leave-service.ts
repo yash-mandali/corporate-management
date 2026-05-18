@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
@@ -6,7 +6,9 @@ import { Observable } from 'rxjs';
 @Injectable({
   providedIn: 'root',
 })
+
 export class LeaveService {
+
   constructor(private http: HttpClient) { }
 
   apiurl = environment.ApiUrl;
@@ -110,7 +112,7 @@ export class LeaveService {
   updateLeaveBalance(LeavetypeId: number, defaultbalance: any) {
     return this.http.put(`${this.updateLeaveBalanceApi}?leaveTypeId=${LeavetypeId}&defaultBalance=${defaultbalance}`, {});
   }
-  
+
   addLeaveType(leaveType: string, defaultBalance: any) {
     return this.http.post(`${this.addLeaveTypeApi}?leaveType=${leaveType}&defaultBalance=${defaultBalance}`, {});
   }

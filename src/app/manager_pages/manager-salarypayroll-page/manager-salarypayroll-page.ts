@@ -407,7 +407,6 @@ export class ManagerSalaryPayrollPage implements OnInit {
     a.click();
   }
 
-  // ── Job detail modal ──
   openJobDetail(job: any) { this.jobDetailModal.set(job); document.body.style.overflow = 'hidden'; }
   openAppliedJobDetail(app: any) {
     const job = this.allJobs().find(j => j.jobId === app.jobId);
@@ -415,7 +414,6 @@ export class ManagerSalaryPayrollPage implements OnInit {
   }
   closeJobDetail() { this.jobDetailModal.set(null); document.body.style.overflow = ''; }
 
-  // ── Apply modal (own applications only) ──
   openApplyModal(job: any) {
     if (this.appliedJobIds().has(job.jobId)) {
       this.toast.error('You have already applied for this job.');
@@ -486,7 +484,6 @@ export class ManagerSalaryPayrollPage implements OnInit {
     });
   }
 
-  // ── Helpers ──
   getEmployeeName(userId: number): string {
     return this.employeeMap().get(userId) ?? `EMP-${userId}`;
   }

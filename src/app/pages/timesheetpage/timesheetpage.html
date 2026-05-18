@@ -1,6 +1,5 @@
 <main class="main">
 
-    <!-- GLOBAL LOADING OVERLAY -->
     @if (globalLoading()) {
     <div class="global-loader">
         <div class="gl-card">
@@ -15,8 +14,6 @@
     </div>
     }
     <div class="content">
-
-        <!-- HEADER -->
         <div class="page-header">
             <div class="ph-left">
                 <div class="ph-icon"><i class="fas fa-clock"></i></div>
@@ -42,7 +39,6 @@
             </div>
         </div>
 
-        <!-- WEEK STRIP -->
         <div class="week-strip">
             @for (day of weekDays; track day.dateStr) {
             <div class="ws-day" [class.today]="day.isToday" [class.weekend]="day.isWeekend"
@@ -59,7 +55,6 @@
             }
         </div>
 
-        <!-- STAT CARDS -->
         <div class="stat-row">
             <div class="stat-card">
                 <div class="sc-icon today-icon"><i class="fas fa-sun"></i></div>
@@ -102,7 +97,6 @@
             </div>
         </div>
 
-        <!-- TABLE -->
         <div class="table-card">
             <div class="tc-head">
                 <div class="tc-title">
@@ -169,7 +163,6 @@
                 <table>
                     <thead>
                         <tr>
-                            <!-- <th class="col-idx">#</th> -->
                             <th>Date</th>
                             <th>Project</th>
                             <th>Task</th>
@@ -184,8 +177,6 @@
                     <tbody>
                         @for (e of pagedEntries(); track e.timesheetId; let i = $index) {
                         <tr>
-                            <!-- <td class="td-idx col-idx">{{ filteredEntries().length - (currentPage() - 1) * pageSize - i
-                                }}</td> -->
                             <td class="td-date">{{ formatDate(e.workDate) }}</td>
                             <td><span class="proj-tag">{{ e.projectName || '—' }}</span></td>
                             <td class="td-task" [title]="e.taskDescription">{{ e.taskDescription || '—' }}</td>
@@ -242,8 +233,6 @@
                     </tbody>
                 </table>
             </div>
-
-            <!-- PAGINATION -->
             @if (totalPages() > 1) {
             <div class="pagination">
                 <button class="pg-btn" (click)="currentPage.set(1)" [disabled]="currentPage() === 1">
@@ -276,7 +265,6 @@
     <div class="modal-overlay">
         <div class="modal-box export-modal-box" (click)="$event.stopPropagation()">
 
-            <!-- Header -->
             <div class="modal-header">
                 <div class="mh-left">
                     <div class="mh-icon"><i class="fas fa-cloud-download"></i></div>
@@ -290,10 +278,7 @@
                 </button>
             </div>
 
-            <!-- Body -->
             <div class="modal-body">
-
-                <!-- Date Range -->
                 <div class="exp-section-label">Date Range</div>
                 <div class="exp-date-row">
                     <div class="exp-field">
@@ -308,8 +293,6 @@
                             (change)="exportToDate.set($any($event.target).value)">
                     </div>
                 </div>
-
-                <!-- Filters -->
                 <div class="exp-section-label" style="margin-top:18px">
                     Filters <span class="exp-optional">Optional</span>
                 </div>
@@ -347,8 +330,6 @@
                     </div>
 
                 </div>
-
-                <!-- Summary -->
                 <div class="exp-summary">
                     <i class="fas fa-info-circle"></i>
                     <span>
@@ -362,7 +343,6 @@
 
             </div>
 
-            <!-- Footer -->
             <div class="modal-footer">
                 <button class="mf-cancel" (click)="closeExportModal()" [disabled]="isExporting()">Cancel</button>
                 <button class="mf-save" (click)="submitExport()" [disabled]="isExporting()">
@@ -382,8 +362,6 @@
 @if (modalOpen()) {
 <div class="modal-overlay" (click)="closeModal()">
     <div class="modal-box" (click)="$event.stopPropagation()">
-
-        <!-- Modal Header -->
         <div class="modal-header" [class.editing]="editingId()">
             <div class="mh-left">
                 <div class="mh-icon">
@@ -399,7 +377,6 @@
             </button>
         </div>
 
-        <!-- Modal Body -->
         <div class="modal-body" [formGroup]="entryForm">
             <div class="mform-grid">
 
@@ -441,7 +418,6 @@
                     <input type="time" formControlName="endTime">
                 </div>
 
-                <!-- Auto calculated hours -->
                 <div class="mf full">
                     <div class="auto-hours" [class.valid]="calcHoursNum() > 0 && !timeError()"
                         [class.err]="!!timeError()">
@@ -468,7 +444,6 @@
             </div>
         </div>
 
-        <!-- Modal Footer -->
         <div class="modal-footer">
             <button class="mf-cancel" (click)="closeModal()">Cancel</button>
             <button class="mf-save" (click)="saveEntry()" [disabled]="saving()">

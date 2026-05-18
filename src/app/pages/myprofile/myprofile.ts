@@ -2,7 +2,6 @@ import { Component, computed, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Authservice } from '../../services/Auth-service/authservice';
 import { UserService } from '../../services/user-service/user-service';
-import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 import { ToastService } from '../../services/toast-service/toast';
 

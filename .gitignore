@@ -42,6 +42,10 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
-*.md
+
+# Internal docs (not for GitHub)
 sample.md
+dummy.md
 DESIGN_SYSTEM_PROMPT.md
+PROJECT_DOCUMENTATION.md
+BUGS_AND_IMPROVEMENTS.md

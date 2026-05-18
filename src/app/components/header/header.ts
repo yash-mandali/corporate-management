@@ -67,7 +67,7 @@ export class Header implements OnInit, OnDestroy {
       setInterval(() => {
         console.log("loadnotification called");
         this.loadNotifications();
-      }, 10 * 10000); // 10 * 1000 for 10 seconds, adjust as needed
+      }, 10 * 1000); // 10 * 1000 for 10 seconds, adjust as needed
     }
   }
 
@@ -206,6 +206,7 @@ export class Header implements OnInit, OnDestroy {
     this.isLoggingOut = true;
     setTimeout(() => {
       this.auth.Logout();
+      this.userService.logout(this.userId()).subscribe()
       this.router.navigate(['/login']);
       this.isLoggingOut = false;
     }, 1500);

@@ -10,7 +10,6 @@ const REJECTED_SET = new Set(['rejected', 'managerrejected']);
 
 @Component({
   selector: 'app-admin-leave-management',
-  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-leave-management.html',
   styleUrl: './admin-leave-management.css',

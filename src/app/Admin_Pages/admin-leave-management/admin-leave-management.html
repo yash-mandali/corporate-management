@@ -408,21 +408,10 @@
                                     <td>
                                         @if (editingLeaveTypeId() === lt.leavetype_Id) {
                                         <div class="lt-edit-row">
-                                            <input class="sf-input sf-input--inline" type="number" min="0"
-                                                [(ngModel)]="editingBalance" placeholder="days" />
-                                            <button class="act-btn approve-act" title="Save"
-                                                (click)="saveLeaveTypeBalance(lt.leavetype_Id)"
-                                                [disabled]="isSettingsLoading()">
-                                                @if (isSettingsLoading()) {
-                                                <span class="mini-spin"></span>
-                                                } @else {
-                                                <i class="fas fa-check"></i>
-                                                }
-                                            </button>
-                                            <button class="act-btn" title="Cancel" (click)="cancelEditLeaveType()">
-                                                <i class="fas fa-times"></i>
-                                            </button>
+                                            <input class="sf-input sf-input--inline" type="number" min="0" [(ngModel)]="editingBalance"
+                                                placeholder="days" />
                                         </div>
+                                    
                                         } @else {
                                         <div class="lt-balance-display">
                                             <span class="lt-balance-val">{{ lt.default_balance }}</span>
@@ -431,16 +420,27 @@
                                         }
                                     </td>
                                     <td class="td-act">
-                                        @if (editingLeaveTypeId() !== lt.leavetype_Id) {
-                                        <button class="act-btn view" title="Edit Balance"
-                                            (click)="startEditLeaveType(lt)">
+                                        @if (editingLeaveTypeId() === lt.leavetype_Id) {
+                                        <button class="act-btn approve-act" title="Save" (click)="saveLeaveTypeBalance(lt.leavetype_Id)"
+                                            [disabled]="isSettingsLoading()">
+                                            @if (isSettingsLoading()) {
+                                            <span class="mini-spin"></span>
+                                            } @else {
+                                            <i class="fas fa-check"></i>
+                                            }
+                                        </button>
+                                        <button class="act-btn" title="Cancel" (click)="cancelEditLeaveType()">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                        } @else {
+                                        <button class="act-btn view" title="Edit Balance" (click)="startEditLeaveType(lt)">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        }
-                                        <button class="act-btn del" title="Delete"
-                                            (click)="openDeleteLeaveTypeConfirm(lt)" [disabled]="isSettingsLoading()">
+                                        <button class="act-btn del" title="Delete" (click)="openDeleteLeaveTypeConfirm(lt)"
+                                            [disabled]="isSettingsLoading()">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
+                                        }
                                     </td>
                                 </tr>
                                 }

@@ -21,7 +21,6 @@ export class ToastService {
   private nextId = 1;
   private timers = new Map<number, ReturnType<typeof setInterval>>();
 
-  // ── Public API ──────────────────────────────────────────────
 
   success(title: string, message?: string, duration = 1500) {
     this._add('success', title, message, duration);
@@ -43,7 +42,6 @@ export class ToastService {
     this._startRemove(id);
   }
 
-  // ── Internal ─────────────────────────────────────────────────
 
   private _add(type: ToastType, title: string, message?: string, duration = 4000) {
     const id = this.nextId++;
@@ -73,14 +71,11 @@ export class ToastService {
   }
 
   private _startRemove(id: number) {
-    // pause timer if still running
     const t = this.timers.get(id);
     if (t) { clearInterval(t); this.timers.delete(id); }
 
-    // mark as removing → CSS slide-out plays
     this._toasts.update(list => list.map(t => t.id === id ? { ...t, removing: true } : t));
 
-    // remove from DOM after animation (320 ms)
     setTimeout(() => {
       this._toasts.update(list => list.filter(t => t.id !== id));
     }, 320);

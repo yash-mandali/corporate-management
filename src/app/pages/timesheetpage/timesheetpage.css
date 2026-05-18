@@ -19,7 +19,6 @@ body {
     gap: 20px;
 }
 
-/* ── PAGE HEADER ── */
 .page-header {
     display: flex;
     align-items: center;
@@ -67,7 +66,6 @@ body {
     flex-wrap: wrap;
 }
 
-/* Week Nav — matches month-nav from attendance */
 .week-nav {
     display: flex;
     align-items: center;
@@ -155,7 +153,6 @@ body {
     box-shadow: 0 5px 16px rgba(9, 99, 126, 0.35);
 }
 
-/* ── WEEK STRIP ── */
 .week-strip {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -253,7 +250,6 @@ body {
     color: #c0392b;
 }
 
-/* ── STAT ROW — exact match to attendance ── */
 .stat-row {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -392,7 +388,6 @@ body {
     background: linear-gradient(90deg, #c0392b, #e05c5c);
 }
 
-/* ── TABLE CARD — exact match to attendance ── */
 .table-card {
     background: #fff;
     border-radius: 14px;
@@ -563,7 +558,6 @@ body {
     cursor: not-allowed;
 }
 
-/* Table loading */
 .tbl-loading {
     display: flex;
     align-items: center;
@@ -676,7 +670,6 @@ tbody td {
     white-space: nowrap;
 }
 
-/* type chips */
 .type-chip {
     display: inline-flex;
     padding: 2px 8px;
@@ -723,7 +716,6 @@ tbody td {
     color: #09637e;
 }
 
-/* status pills — same pattern as attendance s-badge */
 .s-pill {
     display: inline-flex;
     align-items: center;
@@ -771,7 +763,6 @@ tbody td {
     color: #c0392b;
 }
 
-/* action buttons */
 .act {
     width: 27px;
     height: 27px;
@@ -832,7 +823,6 @@ tbody td {
     font-size: 16px;
 }
 
-/* ── MODAL — same overlay/card pattern ── */
 .modal-overlay {
     position: fixed;
     inset: 0;

@@ -15,9 +15,9 @@ import { ToastService } from '../../services/toast-service/toast';
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css',
 })
+  
 export class AdminDashboard implements OnInit {
 
-  // ── Raw data signals ──
   adminInfo = signal<any>(null);
   allUsers = signal<any[]>([]);
   allAttendance = signal<any[]>([]);

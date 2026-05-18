@@ -1,4 +1,3 @@
-/* ── Global CSS Variables ────────────────────────── */
 
 
 :root {
@@ -29,7 +28,6 @@
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* ── Reset ───────────────────────────────────────── */
 *,
 *::before,
 *::after {
@@ -51,7 +49,6 @@ body {
     line-height: 1.5;
 }
 
-/* ── Typography ──────────────────────────────────── */
 h1,
 h2,
 h3,
@@ -72,7 +69,6 @@ a:hover {
     text-decoration: underline;
 }
 
-/* ── Form Elements ───────────────────────────────── */
 input,
 select,
 textarea {
@@ -108,7 +104,6 @@ label {
     margin-bottom: 5px;
 }
 
-/* ── Buttons ─────────────────────────────────────── */
 button {
     font-family: 'Inter', sans-serif;
     cursor: pointer;
@@ -167,8 +162,6 @@ button {
 .btn-new:hover {
     background: #1d4ed8;
 }
-
-/* ── Badges ──────────────────────────────────────── */
 .badge {
     display: inline-flex;
     align-items: center;
@@ -219,7 +212,6 @@ button {
     color: var(--accent);
 }
 
-/* ── Cards ───────────────────────────────────────── */
 .card {
     background: var(--white);
     border-radius: var(--radius);
@@ -228,7 +220,6 @@ button {
     border: 1px solid var(--border);
 }
 
-/* ── Tables ──────────────────────────────────────── */
 .table-wrap {
     overflow-x: auto;
 }
@@ -265,7 +256,6 @@ tbody tr:hover td {
     background: var(--bg);
 }
 
-/* ── Progress Bars ───────────────────────────────── */
 .progress-bar {
     height: 6px;
     background: var(--bg);
@@ -300,7 +290,6 @@ tbody tr:hover td {
     background: var(--purple);
 }
 
-/* ── Page Layout ─────────────────────────────────── */
 .page-header {
     display: flex;
     align-items: flex-start;
@@ -322,7 +311,6 @@ tbody tr:hover td {
     margin-top: 2px;
 }
 
-/* ── Grid Utilities ──────────────────────────────── */
 .grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -344,7 +332,6 @@ tbody tr:hover td {
     margin-bottom: 18px;
 }
 
-/* ── Modal Overlay ───────────────────────────────── */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -401,7 +388,6 @@ tbody tr:hover td {
     margin-bottom: 18px;
 }
 
-/* ── Form Groups ─────────────────────────────────── */
 .form-group {
     margin-bottom: 14px;
 }
@@ -412,7 +398,6 @@ tbody tr:hover td {
     gap: 12px;
 }
 
-/* ── Tab Navigation ──────────────────────────────── */
 .tab-nav {
     display: flex;
     gap: 2px;
@@ -445,7 +430,6 @@ tbody tr:hover td {
 }
 
 
-/* ── Scrollbar ───────────────────────────────────── */
 ::-webkit-scrollbar {
     width: 4px;
     height: 4px;
@@ -460,7 +444,6 @@ tbody tr:hover td {
     border-radius: 2px;
 }
 
-/* ── Animations ──────────────────────────────────── */
 @keyframes slideUp {
     from {
         transform: translateY(20px);
@@ -489,7 +472,6 @@ tbody tr:hover td {
     animation: fadeUp 0.25s ease;
 }
 
-/* ── Responsive ──────────────────────────────────── */
 @media (max-width: 1100px) {
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);

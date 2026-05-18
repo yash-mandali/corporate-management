@@ -11,6 +11,7 @@ import { UserService } from '../../services/user-service/user-service';
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
+  
 export class Sidebar {
   role = signal<any>('');
   userId = signal<any>('')
@@ -45,7 +46,7 @@ export class Sidebar {
         { label: 'Leave', route: '/dashboard/managerleave', icon: 'fas fa-calendar-alt' },
         { label: 'Timesheet', route: '/dashboard/managertimesheet', icon: 'fas fa-tasks' },
         { label: 'Salary & Payroll', route: '/dashboard/managersalarypayroll', icon: 'fas fa-coins' },
-        { label: 'Performance', route: '/dashboard/teamperformance', icon: 'fas fa-arrow-trend-up' },
+        // { label: 'Performance', route: '/dashboard/teamperformance', icon: 'fas fa-arrow-trend-up' },
       ],
       HR: [
         { label: 'Dashboard', route: '/dashboard/hrdashboard', icon: 'fas fa-chart-line' },

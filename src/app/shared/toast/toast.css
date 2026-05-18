@@ -1,4 +1,4 @@
-/* ══ TOAST STACK ══════════════════════════════════════════════ */
+
 .toast-stack {
     position: fixed;
     top: 24px;
@@ -6,14 +6,11 @@
     z-index: 9999;
     display: flex;
     flex-direction: column-reverse;
-    /* newest on top */
     gap: 10px;
     pointer-events: none;
-    /* let clicks pass through gaps */
     width: 340px;
 }
 
-/* ── Single Toast ── */
 .toast {
     position: relative;
     display: flex;
@@ -23,7 +20,6 @@
     border-radius: 13px;
     border: 1px solid #d6eaee;
     padding: 13px 14px 18px 0;
-    /* bottom padding for progress bar */
     box-shadow:
         0 4px 16px rgba(9, 99, 126, 0.10),
         0 1px 4px rgba(9, 99, 126, 0.06);
@@ -37,7 +33,6 @@
     animation: toast-out 0.30s cubic-bezier(0.55, 0, 1, 0.45) forwards;
 }
 
-/* ── Accent side bar ── */
 .toast__accent {
     width: 4px;
     align-self: stretch;
@@ -46,7 +41,6 @@
     margin-right: 3px;
 }
 
-/* ── Icon ── */
 .toast__icon {
     width: 32px;
     height: 32px;
@@ -57,7 +51,6 @@
     flex-shrink: 0;
 }
 
-/* ── Body ── */
 .toast__body {
     flex: 1;
     min-width: 0;
@@ -82,7 +75,6 @@
     word-break: break-word;
 }
 
-/* ── Close button ── */
 .toast__close {
     width: 24px;
     height: 24px;
@@ -106,7 +98,6 @@
     color: #09637e;
 }
 
-/* ── Progress bar ── */
 .toast__progress {
     position: absolute;
     bottom: 0;
@@ -122,9 +113,7 @@
     transition: width 30ms linear;
 }
 
-/* ══ TYPE VARIANTS ══════════════════════════════════════════ */
 
-/* SUCCESS */
 .toast--success .toast__accent {
     background: linear-gradient(180deg, #27ae60, #1e8449);
 }
@@ -138,7 +127,6 @@
     background: linear-gradient(90deg, #27ae60, #1e8449);
 }
 
-/* ERROR */
 .toast--error .toast__accent {
     background: linear-gradient(180deg, #e74c3c, #c0392b);
 }
@@ -152,7 +140,6 @@
     background: linear-gradient(90deg, #e74c3c, #c0392b);
 }
 
-/* WARNING */
 .toast--warning .toast__accent {
     background: linear-gradient(180deg, #f39c12, #d68910);
 }
@@ -166,7 +153,6 @@
     background: linear-gradient(90deg, #f39c12, #d68910);
 }
 
-/* INFO */
 .toast--info .toast__accent {
     background: linear-gradient(180deg, #09637e, #088395);
 }
@@ -180,7 +166,6 @@
     background: linear-gradient(90deg, #09637e, #0bbdcc);
 }
 
-/* ══ ANIMATIONS ══════════════════════════════════════════════ */
 @keyframes toast-in {
     from {
         opacity: 0;
@@ -209,7 +194,6 @@
     }
 }
 
-/* ── Responsive ── */
 @media (max-width: 480px) {
     .toast-stack {
         bottom: 16px;

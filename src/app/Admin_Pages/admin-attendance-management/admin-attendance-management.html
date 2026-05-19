@@ -1,7 +1,5 @@
 <main class="main">
     <div class="content">
-
-        <!-- PAGE HEADER -->
         <div class="page-header">
             <div class="ph-left">
                 <div class="ph-icon"><i class="fas fa-calendar-check"></i></div>
@@ -18,7 +16,6 @@
             </div>
         </div>
 
-        <!-- STAT CARDS -->
         <div class="stat-row">
             <div class="stat-card present">
                 <div class="sc-left">
@@ -90,7 +87,6 @@
             </div>
         </div>
 
-        <!-- FILTER CARD -->
         <div class="table-card">
             <div class="tc-header admin-filter-header">
                 <div class="tc-title">
@@ -102,13 +98,13 @@
 
                     <div class="modal-field">
                         <label class="mf-label"><i class="fas fa-calendar-alt"></i> From Date</label>
-                        <input type="date" class="mf-input" [value]="fromDate()"
+                        <input type="date" class="mf-input" [value]="fromDate()" [max]="toDate()"
                             (change)="setFromDate($any($event.target).value)">
                     </div>
 
                     <div class="modal-field">
                         <label class="mf-label"><i class="fas fa-calendar-alt"></i> To Date</label>
-                        <input type="date" class="mf-input" [value]="toDate()"
+                        <input type="date" class="mf-input" [value]="toDate()" [min]="fromDate()"
                             (change)="setToDate($any($event.target).value)">
                     </div>
                      
@@ -156,8 +152,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- MAIN GRID -->
         <div class="main-grid">
 
             <!-- TABLE CARD -->
@@ -382,7 +376,6 @@
         </div>
     </div>
 
-    <!-- EXPORT MODAL -->
     @if (showExportModal()) {
     <div class="modal-backdrop" (click)="closeExportModal()">
         <div class="modal-box" (click)="$event.stopPropagation()">

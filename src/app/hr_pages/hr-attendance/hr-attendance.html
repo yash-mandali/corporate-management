@@ -1,7 +1,5 @@
 <main class="main">
     <div class="content">
-
-        <!-- PAGE HEADER -->
         <div class="page-header">
             <div class="ph-left">
                 <div class="ph-icon"><i class="fas fa-calendar-check"></i></div>
@@ -11,19 +9,6 @@
                 </div>
             </div>
             <div class="ph-right">
-                <div class="date-nav">
-                    <button class="dnav-btn" (click)="prevDay()">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <div class="dnav-center">
-                        <input type="date" class="date-picker" [value]="selectedDate()"
-                            (change)="onDateChange($any($event.target).value)">
-                        <div class="dnav-label">{{ selectedDateLabel() }}</div>
-                    </div>
-                    <button class="dnav-btn" (click)="nextDay()" [disabled]="isToday()">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
                 <button class="btn-today" (click)="openExportModal()">
                     <i class="fas fa-cloud-download"></i> Export
                 </button>
@@ -32,8 +17,6 @@
                 </button>
             </div>
         </div>
-
-        <!-- STAT CARDS -->
         <div class="stat-row">
             <div class="stat-card present">
                 <div class="sc-left">
@@ -97,35 +80,87 @@
             </div>
         </div>
 
-        <!-- MAIN GRID -->
-        <div class="main-grid">
+        <div class="table-card">
+            <div class="tc-header admin-filter-header">
+                <div class="tc-title">
+                    <i class="fas fa-filter"></i> Filters
+                    <span class="range-pill">{{ dateRangeLabel() }}</span>
+                </div>
 
-            <!-- TABLE CARD -->
-            <div class="table-card">
-                <div class="tc-header">
-                    <div class="tc-title"><i class="fas fa-list-ul"></i> Attendance Log</div>
-                    <div class="tc-toolbar">
-                        <div class="tc-search">
-                            <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search employee..." [value]="searchQ()"
-                                (input)="searchQ.set($any($event.target).value)">
+                <div class="admin-filter-grid">
+
+                    <div class="modal-field">
+                        <label class="mf-label"><i class="fas fa-calendar-alt"></i> From Date</label>
+                        <input type="date" class="mf-input" [value]="fromDate()" [max]="toDate()"
+                            (change)="setFromDate($any($event.target).value)">
+                    </div>
+
+                    <div class="modal-field">
+                        <label class="mf-label"><i class="fas fa-calendar-alt"></i> To Date</label>
+                        <input type="date" class="mf-input" [value]="toDate()" [min]="fromDate()"
+                            (change)="setToDate($any($event.target).value)">
+                    </div>
+
+                    <div class="modal-field">
+                        <label class="mf-label"><i class="fas fa-building"></i> Department</label>
+                        <div class="mf-select-wrap">
+                            <select class="mf-select" [value]="departmentFilter()"
+                                (change)="setDepartment($any($event.target).value)">
+                                <option value="">All Departments</option>
+                                @for (dep of departments(); track dep) {
+                                <option [value]="dep">{{ dep }}</option>
+                                }
+                            </select>
+                            <i class="fas fa-chevron-down mf-chevron"></i>
                         </div>
-                        <div class="tc-filters">
+                    </div>
+
+                    <div class="modal-field admin-search-field">
+                        <label class="mf-label"><i class="fas fa-search"></i> Search</label>
+                        <input type="text" class="mf-input" placeholder="Name, role, department..." [value]="searchQ()"
+                            (input)="searchQ.set($any($event.target).value)">
+                    </div>
+
+                    <div class="modal-field">
+                        <label class="mf-label"><i class="fas fa-toggle-on"></i> Status</label>
+                        <div class="tc-filters admin-status-filter">
                             <button class="tf" [class.active]="statusFilter() === 'all'"
                                 (click)="setFilter('all')">All</button>
                             <button class="tf present" [class.active]="statusFilter() === 'Present'"
-                                (click)="setFilter('Present') ">Present</button>
+                                (click)="setFilter('Present')">Present</button>
                             <button class="tf absent" [class.active]="statusFilter() === 'Absent'"
                                 (click)="setFilter('Absent')">Absent</button>
                             <button class="tf late" [class.active]="statusFilter() === 'Late'"
                                 (click)="setFilter('Late')">Late</button>
                         </div>
                     </div>
-                </div>
 
+                    <div class="modal-field admin-reset-wrap">
+                        <label class="mf-label">&nbsp;</label>
+                        <button class="btn-reset" (click)="resetFilters()">
+                            <i class="fas fa-rotate-left"></i> Reset
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="main-grid">
+            <div class="table-card">
+                <div class="tc-header">
+                    <div class="tc-title">
+                        <i class="fas fa-list-ul"></i>
+                        Attendance Records
+                    </div>
+        
+                    <div class="record-count">
+                        {{ filteredRecords().length }} records
+                    </div>
+                </div>
+        
                 @if (isLoading()) {
                 <div class="tbl-skeleton">
-                    @for (i of [1,2,3,4,5]; track i) {
+                    @for (i of [1,2,3,4,5,6]; track i) {
                     <div class="sk-row">
                         <div class="sk sk-avatar"></div>
                         <div class="sk-lines">
@@ -144,30 +179,46 @@
                     <table>
                         <thead>
                             <tr>
+                                <th>Date</th>
                                 <th>Employee</th>
+                                <th>Department</th>
                                 <th>Clock In</th>
                                 <th>Clock Out</th>
                                 <th>Hours</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
+        
                         <tbody>
-                            @for (r of pagedRecords(); track r.userId; let i = $index) {
-                            <tr (click)="selectRecord(r)" [class.tr-selected]="selectedRecord()?.userId === r.userId"
+                            @for (r of pagedRecords(); track r.rowKey) {
+                            <tr (click)="selectRecord(r)" [class.tr-selected]="selectedRecord()?.rowKey === r.rowKey"
                                 class="tr-{{ r.status | lowercase }}">
+        
+                                <td>
+                                    <div class="date-cell">
+                                        <div class="date-main">{{ formatDate(r.date) }}</div>
+                                        <div class="date-sub">{{ r.day }}</div>
+                                    </div>
+                                </td>
+        
                                 <td class="td-emp">
                                     <div class="emp-cell">
-                                        <div class="emp-avatar" [style.background]="getColor(r.userId)">{{ r.initials }}
+                                        <div class="emp-avatar" [style.background]="getColor(r.userId)">
+                                            {{ r.initials }}
                                         </div>
                                         <div>
                                             <div class="emp-name">{{ r.userName }}</div>
-                                            <div class="emp-role">{{ r.roleName }}</div>
+                                            <div class="emp-role">EMP-{{ r.userId }} · {{ r.roleName }}</div>
                                         </div>
                                     </div>
                                 </td>
+        
+                                <td>{{ r.department }}</td>
+        
                                 <td class="td-time in">{{ formatTime(r.checkIn) }}</td>
                                 <td class="td-time out">{{ formatTime(r.checkOut) }}</td>
                                 <td class="td-hours">{{ r.hours || '—' }}</td>
+        
                                 <td>
                                     <span class="s-badge s-{{ r.status | lowercase }}">
                                         <span class="sb-dot"></span>{{ r.status }}
@@ -176,85 +227,97 @@
                             </tr>
                             } @empty {
                             <tr>
-                                <td colspan="6" class="td-empty">
+                                <td colspan="7" class="td-empty">
                                     <i class="fas fa-inbox"></i>
-                                    <span>No records found for this date</span>
+                                    <span>No attendance records found</span>
                                 </td>
                             </tr>
                             }
                         </tbody>
                     </table>
                 </div>
-
-                <!-- PAGINATION -->
-                @if (totalPages() > 1) {
+        
+                @if (filteredRecords().length > 0) {
                 <div class="pagination">
                     <button class="pg-btn" (click)="currentPage.set(1)" [disabled]="currentPage() === 1">
                         <i class="fas fa-angle-double-left"></i>
                     </button>
-                    <button class="pg-btn" (click)="currentPage.set(currentPage() - 1)"
-                        [disabled]="currentPage() === 1">
+        
+                    <button class="pg-btn" (click)="currentPage.set(currentPage() - 1)" [disabled]="currentPage() === 1">
                         <i class="fas fa-chevron-left"></i>
                     </button>
+        
                     @for (p of pageNumbers(); track p) {
-                    <button class="pg-num" [class.active]="p === currentPage()" (click)="currentPage.set(p)">{{ p
-                        }}</button>
+                    <button class="pg-num" [class.active]="p === currentPage()" (click)="currentPage.set(p)">
+                        {{ p }}
+                    </button>
                     }
+        
                     <button class="pg-btn" (click)="currentPage.set(currentPage() + 1)"
                         [disabled]="currentPage() === totalPages()">
                         <i class="fas fa-chevron-right"></i>
                     </button>
-                    <button class="pg-btn" (click)="currentPage.set(totalPages())"
-                        [disabled]="currentPage() === totalPages()">
+        
+                    <button class="pg-btn" (click)="currentPage.set(totalPages())" [disabled]="currentPage() === totalPages()">
                         <i class="fas fa-angle-double-right"></i>
                     </button>
-                    <span class="pg-info">{{ currentPage() }} of {{ totalPages() }} pages · {{ filteredRecords().length
-                        }} employees</span>
+        
+                    <span class="pg-info">
+                        {{ currentPage() }} of {{ totalPages() }} pages · {{ filteredRecords().length }} records
+                    </span>
                 </div>
                 }
                 }
             </div>
-
-            <!-- DETAIL PANEL -->
+        
             <div class="detail-panel">
                 @if (selectedRecord()) {
                 <div class="dp-hero" [class.dp-present]="selectedRecord()!.status === 'Present'"
                     [class.dp-late]="selectedRecord()!.status === 'Late'"
                     [class.dp-absent]="selectedRecord()!.status === 'Absent'">
+        
                     <div class="dp-hero-bg"></div>
+        
                     <div class="dp-avatar-wrap">
                         <div class="dp-avatar" [style.background]="getColor(selectedRecord()!.userId)">
                             {{ selectedRecord()!.initials }}
                         </div>
                     </div>
+        
                     <div class="dp-hero-info">
                         <div class="dp-name">{{ selectedRecord()!.userName }}</div>
-                        <div class="dp-role">{{ selectedRecord()!.roleName }}</div>
+                        <div class="dp-role">
+                            EMP-{{ selectedRecord()!.userId }} · {{ selectedRecord()!.roleName }}
+                        </div>
+        
                         <span class="dp-status-badge s-{{ selectedRecord()!.status | lowercase }}">
                             <span class="sb-dot"></span>{{ selectedRecord()!.status }}
                         </span>
                     </div>
                 </div>
-
+        
                 <div class="dp-body">
+        
                     <div class="dp-time-row">
                         <div class="dp-time-block">
                             <div class="dtb-icon in"><i class="fas fa-sign-in-alt"></i></div>
                             <div class="dtb-label">Clock In</div>
                             <div class="dtb-val">{{ formatTime(selectedRecord()!.checkIn) }}</div>
                         </div>
+        
                         <div class="dp-time-sep">
                             <div class="dts-line"></div>
                             <i class="fas fa-arrow-right dts-arrow"></i>
                             <div class="dts-line"></div>
                         </div>
+        
                         <div class="dp-time-block">
                             <div class="dtb-icon out"><i class="fas fa-sign-out-alt"></i></div>
                             <div class="dtb-label">Clock Out</div>
                             <div class="dtb-val">{{ formatTime(selectedRecord()!.checkOut) }}</div>
                         </div>
                     </div>
-
+        
                     <div class="dp-hours-block">
                         <div class="dhb-icon"><i class="fas fa-hourglass-half"></i></div>
                         <div>
@@ -262,42 +325,53 @@
                             <div class="dhb-val">{{ selectedRecord()!.hours || '—' }}</div>
                         </div>
                     </div>
-
+        
                     <div class="dp-info-block">
                         <div class="dib-row">
                             <span class="dib-key"><i class="fas fa-calendar"></i> Date</span>
-                            <span class="dib-val">{{ selectedDateLabel() }}</span>
+                            <span class="dib-val">{{ formatDate(selectedRecord()!.date) }}</span>
                         </div>
+        
                         <div class="dib-row">
-                            <span class="dib-key"><i class="fas fa-id-badge"></i> Employee ID</span>
-                            <span class="dib-val">EMP-{{ selectedRecord()!.userId }}</span>
+                            <span class="dib-key"><i class="fas fa-calendar-day"></i> Day</span>
+                            <span class="dib-val">{{ selectedRecord()!.day }}</span>
+                        </div>
+        
+                        <div class="dib-row">
+                            <span class="dib-key"><i class="fas fa-building"></i> Department</span>
+                            <span class="dib-val">{{ selectedRecord()!.department }}</span>
+                        </div>
+        
+                        <div class="dib-row">
+                            <span class="dib-key"><i class="fas fa-id-badge"></i> Attendance ID</span>
+                            <span class="dib-val">
+                                {{ selectedRecord()!.aId || 'Generated Absent' }}
+                            </span>
                         </div>
                     </div>
+        
                 </div>
-
                 } @else {
                 <div class="dp-empty">
                     <div class="dp-empty-icon"><i class="fas fa-hand-pointer"></i></div>
-                    <div class="dp-empty-text">Select a row</div>
-                    <div class="dp-empty-sub">Click any employee to view details</div>
+                    <div class="dp-empty-text">Select a record</div>
+                    <div class="dp-empty-sub">Click any row to view full details</div>
                 </div>
                 }
             </div>
-
+        
         </div>
     </div>
-
-    <!-- ── EXPORT MODAL ── -->
     @if (showExportModal()) {
     <div class="modal-backdrop" (click)="closeExportModal()">
         <div class="modal-box" (click)="$event.stopPropagation()">
 
             <div class="modal-header">
                 <div class="modal-header-left">
-                    <div class="modal-icon"><i class="fas fa-cloud-download"></i></div>
+                    <div class="modal-icon"><i class="fas fa-file-excel"></i></div>
                     <div>
                         <div class="modal-title">Export Attendance Report</div>
-                        <div class="modal-sub">Download filtered attendance data as Excel</div>
+                        <div class="modal-sub">Download attendance data as Excel</div>
                     </div>
                 </div>
                 <button class="modal-close" (click)="closeExportModal()">
@@ -312,14 +386,13 @@
                     <div class="modal-field">
                         <label class="mf-label"><i class="fas fa-calendar-alt"></i> From Date</label>
                         <input type="date" class="mf-input" [value]="exportFromDate()"
-                            (change)="exportFromDate.set($any($event.target).value)" [max]="exportFromDate()">
+                            (change)="exportFromDate.set($any($event.target).value)" [max]="exportToDate()">
                     </div>
                     <div class="modal-date-sep"><i class="fas fa-arrow-right"></i></div>
                     <div class="modal-field">
                         <label class="mf-label"><i class="fas fa-calendar-alt"></i> To Date</label>
                         <input type="date" class="mf-input" [value]="exportToDate()"
-                            (change)="exportToDate.set($any($event.target).value)" [max]="exportToDate()"
-                            [max]="exportToDate()">
+                            (change)="exportToDate.set($any($event.target).value)" [min]="exportFromDate()">
                     </div>
                 </div>
 
@@ -335,7 +408,7 @@
                             <option value="">All Employees</option>
                             @for (u of allUsers(); track u.id) {
                             <option [value]="u.id" [selected]="exportUserId() === u.id">
-                                {{ u.userName }} ({{ u.roleName }})
+                                EMP-{{ u.id }} · {{ u.userName }} / {{ u.roleName }}
                             </option>
                             }
                         </select>
@@ -346,10 +419,11 @@
                 <div class="modal-field" style="margin-top:12px">
                     <label class="mf-label"><i class="fas fa-building"></i> Department</label>
                     <div class="mf-select-wrap">
-                        <select class="mf-select" (change)="exportDepartment.set($any($event.target).value)">
+                        <select class="mf-select" [value]="exportDepartment()"
+                            (change)="exportDepartment.set($any($event.target).value)">
                             <option value="">All Departments</option>
                             @for (dep of departments(); track dep) {
-                            <option [value]="dep" [selected]="exportDepartment() === dep">{{ dep }}</option>
+                            <option [value]="dep">{{ dep }}</option>
                             }
                         </select>
                         <i class="fas fa-chevron-down mf-chevron"></i>
@@ -377,7 +451,7 @@
                     @if (isExporting()) {
                     <span class="export-spinner"></span> Exporting...
                     } @else {
-                    <i class="fas fa-download"></i> Export Report
+                    <i class="fas fa-download"></i> Export Excel
                     }
                 </button>
             </div>

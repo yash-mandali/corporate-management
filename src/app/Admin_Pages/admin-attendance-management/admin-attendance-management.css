@@ -21,10 +21,6 @@ body {
     gap: 20px;
 }
 
-/* ─────────────────────────────
-   PAGE HEADER
-───────────────────────────── */
-
 .page-header {
     display: flex;
     align-items: center;
@@ -99,9 +95,6 @@ body {
     cursor: not-allowed;
 }
 
-/* ─────────────────────────────
-   STAT CARDS
-───────────────────────────── */
 
 .stat-row {
     display: grid;
@@ -258,9 +251,6 @@ body {
     background: linear-gradient(90deg, #09637e, #0bbdcc);
 }
 
-/* ─────────────────────────────
-   MAIN GRID
-───────────────────────────── */
 
 .main-grid {
     display: grid;
@@ -269,9 +259,6 @@ body {
     align-items: start;
 }
 
-/* ─────────────────────────────
-   CARD / FILTER AREA
-───────────────────────────── */
 
 .table-card {
     background: #fff;
@@ -369,9 +356,6 @@ body {
     background: rgba(9, 99, 126, 0.05);
 }
 
-/* ─────────────────────────────
-   FORM FIELDS
-───────────────────────────── */
 
 .modal-field {
     flex: 1;
@@ -455,9 +439,6 @@ body {
     pointer-events: none;
 }
 
-/* ─────────────────────────────
-   STATUS FILTER BUTTONS
-───────────────────────────── */
 
 .tc-filters {
     display: flex;
@@ -513,9 +494,6 @@ body {
     color: #0d2d36;
 }
 
-/* ─────────────────────────────
-   SKELETON LOADER
-───────────────────────────── */
 
 .tbl-skeleton {
     display: flex;
@@ -582,9 +560,6 @@ body {
     border-radius: 20px;
 }
 
-/* ─────────────────────────────
-   TABLE
-───────────────────────────── */
 
 .tbl-scroll {
     overflow-x: auto;
@@ -792,9 +767,6 @@ tbody td {
     margin-bottom: 10px;
 }
 
-/* ─────────────────────────────
-   STATUS BADGE
-───────────────────────────── */
 
 .s-badge {
     display: inline-flex;
@@ -829,9 +801,6 @@ tbody td {
     color: #b7770d;
 }
 
-/* ─────────────────────────────
-   PAGINATION
-───────────────────────────── */
 
 .pagination {
     display: flex;
@@ -906,9 +875,6 @@ tbody td {
     white-space: nowrap;
 }
 
-/* ─────────────────────────────
-   DETAIL PANEL
-───────────────────────────── */
 
 .detail-panel {
     background: #fff;
@@ -1178,9 +1144,6 @@ tbody td {
     color: #5a8a94;
 }
 
-/* ─────────────────────────────
-   EXPORT MODAL
-───────────────────────────── */
 
 .modal-backdrop {
     position: fixed;
@@ -1428,10 +1391,6 @@ tbody td {
         transform: rotate(360deg);
     }
 }
-
-/* ─────────────────────────────
-   RESPONSIVE
-───────────────────────────── */
 
 @media (max-width: 1100px) {
     .stat-row {

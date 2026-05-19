@@ -1,166 +1,246 @@
 <main class="main">
     <div class="content">
-
         <div class="profile-hero">
-            <div class="hero-bg"></div>
+            <div class="hero-mesh"></div>
+            <div class="hero-circles">
+                <div class="hc hc1"></div>
+                <div class="hc hc2"></div>
+                <div class="hc hc3"></div>
+            </div>
+
             <div class="hero-body">
-                <div class="hero-avatar">
-                    <span>{{ nameinitials() }}</span>
-                </div>
-                <div class="hero-info">
-                    <h1 class="hero-name">{{ profileData()?.userName || 'Employee' }}</h1>
-                    <div class="hero-meta">
-                        <span class="hero-badge"><i class="fas fa-building"></i> {{ profileData()?.department }}</span>
-                        <span class="hero-badge"><i class="fas fa-briefcase"></i> {{ profileData()?.roleName }}</span>
-                        <span class="hero-badge"><i class="fas fa-envelope"></i> {{ profileData()?.email }}</span>
-                        <span class="hero-badge"><i class="fas fa-phone"></i> {{ profileData()?.phoneNumber }}</span>
+                <div class="hero-avatar-wrap">
+                    <div class="hero-avatar-ring">
+                        <div class="hero-avatar">{{ nameinitials() }}</div>
                     </div>
-                </div>
-                <div class="hero-status">
-                    <div class="status-pill" [class.active]="profileData()?.isActive">
-                        <span class="status-dot"></span>
+                    <div class="hero-av-badge" [class.av-active]="profileData()?.isActive">
+                        <span class="av-dot"></span>
                         {{ profileData()?.isActive ? 'Active' : 'Inactive' }}
                     </div>
-                    <div class="joined-text">
-                        <i class="fas fa-calendar-alt"></i>
-                        Joined {{ formatDate(profileData()?.createdAt) }}
+                </div>
+                <div class="hero-info">
+                    <div class="hero-name">{{ profileData()?.userName || 'Employee' }}</div>
+                    <div class="hero-role">
+                        <i class="fas fa-id-badge"></i>
+                        {{ profileData()?.roleName }} &nbsp;·&nbsp; {{ profileData()?.department }}
+                    </div>
+                    <div class="hero-chips">
+                        <span class="hchip"><i class="fas fa-envelope"></i> {{ profileData()?.email || '—' }}</span>
+                        <span class="hchip"><i class="fas fa-phone"></i> {{ profileData()?.phoneNumber || '—' }}</span>
+                        <span class="hchip"><i class="fas fa-calendar-alt"></i> Joined {{
+                            formatDate(profileData()?.createdAt) }}</span>
+                    </div>
+                </div>
+                <div class="hero-stats">
+                    <div class="hstat">
+                        <div class="hstat-val">{{ roleinitials() }}{{ profileData()?.id || '—' }}</div>
+                        <div class="hstat-lbl">Employee ID</div>
+                    </div>
+                    <div class="hstat-divider"></div>
+                    <div class="hstat">
+                        <div class="hstat-val">{{ profileData()?.gender || '—' }}</div>
+                        <div class="hstat-lbl">Gender</div>
+                    </div>
+                    <div class="hstat-divider"></div>
+                    <div class="hstat">
+                        <div class="hstat-val">{{ profileData()?.department || '—' }}</div>
+                        <div class="hstat-lbl">Department</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="tab-nav">
-            <button class="tab-btn" [class.active]="activeTab === 'info'" (click)="activeTab = 'info'">
-                <i class="fas fa-user"></i> Personal Info
-            </button>
-            <!-- <button class="tab-btn" [class.active]="activeTab === 'security'" (click)="activeTab = 'security'">
-                <i class="fas fa-shield-alt"></i> Security
-            </button> -->
-        </div>
-        @if (activeTab === 'info') {
-        <div class="tab-panel">
+        @if (!editMode) {
+        <div class="profile-layout">
+            <div class="profile-sidebar">
 
-            @if (!editMode) {
-            <div class="section-card">
-                <div class="section-card-header">
-                    <span class="section-card-title">Personal Details</span>
-                    <button class="icon-edit-btn" (click)="enableEdit()" title="Edit">
-                        <i class="fas fa-pen"></i> Edit Profile
-                    </button>
+                <div class="pcard">
+                    <div class="pcard-header">
+                        <div class="pcard-hicon teal"><i class="fas fa-address-card"></i></div>
+                        <span class="pcard-title">Contact</span>
+                    </div>
+                    <div class="pcard-rows">
+                        <div class="pcard-row">
+                            <div class="pcr-icon blue"><i class="fas fa-envelope"></i></div>
+                            <div class="pcr-body">
+                                <div class="pcr-label">Email</div>
+                                <div class="pcr-value">{{ profileData()?.email || '—' }}</div>
+                            </div>
+                        </div>
+                        <div class="pcard-row">
+                            <div class="pcr-icon green"><i class="fas fa-phone"></i></div>
+                            <div class="pcr-body">
+                                <div class="pcr-label">Phone</div>
+                                <div class="pcr-value">{{ profileData()?.phoneNumber || '—' }}</div>
+                            </div>
+                        </div>
+                        <div class="pcard-row last">
+                            <div class="pcr-icon purple"><i class="fas fa-map-marker-alt"></i></div>
+                            <div class="pcr-body">
+                                <div class="pcr-label">Address</div>
+                                <div class="pcr-value pcr-address">{{ profileData()?.address || '—' }}</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="details-rows">
-                    <div class="details-row">
-                        <div class="dr-left">
-                            <div class="dr-icon teal"><i class="fas fa-fingerprint"></i></div>
-                            <span class="dr-label">{{profileData()?.roleName}}Id</span>
-                        </div>
-                        <div class="dr-value">{{ (roleinitials() + (profileData()?.id || '')) || '—' }}</div>
+                <div class="pcard">
+                    <div class="pcard-header">
+                        <div class="pcard-hicon amber"><i class="fas fa-fingerprint"></i></div>
+                        <span class="pcard-title">Identity</span>
                     </div>
-                    <div class="details-row">
-                        <div class="dr-left">
-                            <div class="dr-icon teal"><i class="fas fa-user"></i></div>
-                            <span class="dr-label">Full Name</span>
+                    <div class="pcard-rows">
+                        <div class="pcard-row">
+                            <div class="pcr-icon teal"><i class="fas fa-hashtag"></i></div>
+                            <div class="pcr-body">
+                                <div class="pcr-label">{{ profileData()?.roleName }} ID</div>
+                                <div class="pcr-value pcr-id">{{ roleinitials() }}{{ profileData()?.id || '—' }}</div>
+                            </div>
                         </div>
-                        <div class="dr-value">{{ profileData()?.userName || '—' }}</div>
-                    </div>
-                    <div class="details-row">
-                        <div class="dr-left">
-                            <div class="dr-icon blue"><i class="fas fa-envelope"></i></div>
-                            <span class="dr-label">Email Address</span>
+                        <div class="pcard-row">
+                            <div class="pcr-icon amber"><i class="fas fa-venus-mars"></i></div>
+                            <div class="pcr-body">
+                                <div class="pcr-label">Gender</div>
+                                <div class="pcr-value">{{ profileData()?.gender || '—' }}</div>
+                            </div>
                         </div>
-                        <div class="dr-value">{{ profileData()?.email || '—' }}</div>
-                    </div>
-                    <div class="details-row">
-                        <div class="dr-left">
-                            <div class="dr-icon green"><i class="fas fa-phone"></i></div>
-                            <span class="dr-label">Phone Number</span>
+                        <div class="pcard-row last">
+                            <div class="pcr-icon purple"><i class="fas fa-calendar-check"></i></div>
+                            <div class="pcr-body">
+                                <div class="pcr-label">Joined On</div>
+                                <div class="pcr-value">{{ formatDate(profileData()?.createdAt) || '—' }}</div>
+                            </div>
                         </div>
-                        <div class="dr-value">{{ profileData()?.phoneNumber || '—' }}</div>
-                    </div>
-                    <div class="details-row">
-                        <div class="dr-left">
-                            <div class="dr-icon teal"><i class="fas fa-building"></i></div>
-                            <span class="dr-label">Department</span>
-                        </div>
-                        <div class="dr-value">{{ profileData()?.department || '—' }}</div>
-                    </div>
-                    <div class="details-row">
-                        <div class="dr-left">
-                            <div class="dr-icon amber"><i class="fas fa-venus-mars"></i></div>
-                            <span class="dr-label">Gender</span>
-                        </div>
-                        <div class="dr-value">{{ profileData()?.gender || '—' }}</div>
-                    </div>
-                    <div class="details-row">
-                        <div class="dr-left">
-                            <div class="dr-icon red"><i class="fas fa-id-badge"></i></div>
-                            <span class="dr-label">Role</span>
-                        </div>
-                        <div class="dr-value">{{ profileData()?.roleName || '—' }}</div>
-                    </div>
-                    @if(profileData()?.roleName === "Employee"){
-                    <div class="details-row">
-                        <div class="dr-left">
-                            <div class="dr-icon red"><i class="fas fa-user-tie"></i></div>
-                            <span class="dr-label">ReportingManager</span>
-                        </div>
-                        <div class="dr-value">{{ profileData()?.managerName || '—' }}</div>
-                    </div>
-                    }
-                    <div class="details-row last">
-                        <div class="dr-left">
-                            <div class="dr-icon purple"><i class="fas fa-map-marker-alt"></i></div>
-                            <span class="dr-label">Address</span>
-                        </div>
-                        <div class="dr-value">{{ profileData()?.address || '—' }}</div>
-                    </div>
-                    <div class="details-row last">
-                        <div class="dr-left">
-                            <div class="dr-icon purple"><i class="fas fa-calendar-alt"></i></div>
-                            <span class="dr-label">Joining Date</span>
-                        </div>
-                        <div class="dr-value">{{ formatDate(profileData()?.createdAt) || '—' }}</div>
                     </div>
                 </div>
             </div>
+            <div class="profile-main">
+                <div class="pcard pcard-wide">
+                    <div class="pcard-header">
+                        <div class="pcard-hicon teal"><i class="fas fa-briefcase"></i></div>
+                        <span class="pcard-title">Work Details</span>
+                        <button class="edit-fab" (click)="enableEdit()">
+                            <i class="fas fa-pen"></i> Edit Profile
+                        </button>
+                    </div>
+                    <div class="work-grid">
 
-            } @else {
-            <div class="section-card">
-                <div class="section-card-header">
-                    <span class="section-card-title">Edit Personal Details</span>
+                        <div class="wg-field">
+                            <div class="wgf-label"><i class="fas fa-user"></i> Full Name</div>
+                            <div class="wgf-value">{{ profileData()?.userName || '—' }}</div>
+                        </div>
+
+                        <div class="wg-field">
+                            <div class="wgf-label"><i class="fas fa-id-badge"></i> Role</div>
+                            <div class="wgf-value">
+                                <span class="role-badge">{{ profileData()?.roleName || '—' }}</span>
+                            </div>
+                        </div>
+
+                        <div class="wg-field">
+                            <div class="wgf-label"><i class="fas fa-building"></i> Department</div>
+                            <div class="wgf-value">{{ profileData()?.department || '—' }}</div>
+                        </div>
+
+                        <div class="wg-field">
+                            <div class="wgf-label"><i class="fas fa-circle"></i> Status</div>
+                            <div class="wgf-value">
+                                <span class="status-badge" [class.sb-active]="profileData()?.isActive">
+                                    <span class="sb-dot"></span>
+                                    {{ profileData()?.isActive ? 'Active' : 'Inactive' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        @if (profileData()?.roleName === 'Employee') {
+                        <div class="wg-field wg-field-full">
+                            <div class="wgf-label"><i class="fas fa-user-tie"></i> Reporting Manager</div>
+                            <div class="wgf-value manager-val">
+                                <div class="manager-av">{{ (profileData()?.managerName || 'M')[0] }}</div>
+                                {{ profileData()?.managerName || '—' }}
+                            </div>
+                        </div>
+                        }
+
+                    </div>
                 </div>
-                <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
-                    <div class="edit-grid">
-
-                        <div class="ef">
-                            <label>Full Name <span>*</span></label>
-                            <input type="text" formControlName="userName" placeholder="Enter full name"
-                                [class.ef-error]="profileForm.get('userName')?.invalid && profileForm.get('userName')?.touched" />
-                            @if (profileForm.get('userName')?.invalid && profileForm.get('userName')?.touched) {
-                            <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
-                            }
+                <div class="pcard timeline-card">
+                    <div class="pcard-header">
+                        <div class="pcard-hicon blue"><i class="fas fa-history"></i></div>
+                        <span class="pcard-title">Account Timeline</span>
+                    </div>
+                    <div class="timeline">
+                        <div class="tl-item">
+                            <div class="tl-dot tl-dot-teal"></div>
+                            <div class="tl-body">
+                                <div class="tl-title">Account Created</div>
+                                <div class="tl-sub">{{ formatDate(profileData()?.createdAt) }}</div>
+                            </div>
                         </div>
-
-                        <div class="ef">
-                            <label>Email Address <span>*</span></label>
-                            <input type="email" formControlName="email" readonly placeholder="Enter email"
-                                [class.ef-error]="profileForm.get('email')?.invalid && profileForm.get('email')?.touched" />
-                            @if (profileForm.get('email')?.invalid && profileForm.get('email')?.touched) {
-                            <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Valid email required</span>
-                            }
+                        <div class="tl-item">
+                            <div class="tl-dot tl-dot-blue"></div>
+                            <div class="tl-body">
+                                <div class="tl-title">Role Assigned</div>
+                                <div class="tl-sub">{{ profileData()?.roleName }} — {{ profileData()?.department }}
+                                </div>
+                            </div>
                         </div>
-
-                        <div class="ef">
-                            <label>Phone Number <span>*</span></label>
-                            <input type="text" formControlName="phoneNumber" readonly placeholder="Enter phone"
-                                [class.ef-error]="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched" />
-                            @if (profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched) {
-                            <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
-                            }
+                        <div class="tl-item tl-last">
+                            <div class="tl-dot tl-dot-green"></div>
+                            <div class="tl-body">
+                                <div class="tl-title">Current Status</div>
+                                <div class="tl-sub">{{ profileData()?.isActive ? 'Active & Working' : 'Inactive' }}
+                                </div>
+                            </div>
                         </div>
-                        <div class="ef">
-                            <label>Department <span>*</span></label>
-                            <select formControlName="department" readonly
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        } @else {
+        <div class="pcard edit-card">
+            <div class="pcard-header">
+                <div class="pcard-hicon teal"><i class="fas fa-pen"></i></div>
+                <span class="pcard-title">Edit Personal Details</span>
+                <button class="edit-fab edit-fab-cancel" (click)="cancelEdit()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+            <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+                <div class="edit-grid">
+
+                    <div class="ef">
+                        <label>Full Name <span>*</span></label>
+                        <input type="text" formControlName="userName" placeholder="Enter full name"
+                            [class.ef-error]="profileForm.get('userName')?.invalid && profileForm.get('userName')?.touched" />
+                        @if (profileForm.get('userName')?.invalid && profileForm.get('userName')?.touched) {
+                        <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
+                        }
+                    </div>
+
+                    <div class="ef">
+                        <label>Email Address <span>*</span></label>
+                        <input type="email" formControlName="email" readonly placeholder="Enter email"
+                            [class.ef-error]="profileForm.get('email')?.invalid && profileForm.get('email')?.touched" />
+                        @if (profileForm.get('email')?.invalid && profileForm.get('email')?.touched) {
+                        <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Valid email required</span>
+                        }
+                    </div>
+
+                    <div class="ef">
+                        <label>Phone Number <span>*</span></label>
+                        <input type="text" formControlName="phoneNumber" readonly placeholder="Enter phone"
+                            [class.ef-error]="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched" />
+                        @if (profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched) {
+                        <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
+                        }
+                    </div>
+
+                    <div class="ef">
+                        <label>Department <span>*</span></label>
+                        <div class="ef-select-wrap">
+                            <select formControlName="department"
                                 [class.ef-error]="profileForm.get('department')?.invalid && profileForm.get('department')?.touched">
                                 <option value="">Select Department</option>
                                 <option value="HR">Human Resources (HR)</option>
@@ -175,137 +255,46 @@
                                 <option value="Finance">Finance & Accounts</option>
                                 <option value="Admin">Administration</option>
                             </select>
-
-                            @if (profileForm.get('department')?.invalid && profileForm.get('department')?.touched) {
-                            <span class="ef-err">
-                                <i class="fas fa-exclamation-circle"></i> Required
-                            </span>
-                            }
                         </div>
-
-                        <div class="ef">
-                            <label>Gender <span>*</span></label>
-                            <div class="ef-select-wrap">
-                                <select formControlName="gender"
-                                    [class.ef-error]="profileForm.get('gender')?.invalid && profileForm.get('gender')?.touched">
-                                    <option value="">Select Gender</option>
-                                    <option>Male</option>
-                                    <option>Female</option>
-                                    <option>Other</option>
-                                </select>
-                            </div>
-                            @if (profileForm.get('gender')?.invalid && profileForm.get('gender')?.touched) {
-                            <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
-                            }
-                        </div>
-
-                        <div class="ef full">
-                            <label>Address</label>
-                            <textarea rows="2" formControlName="address" placeholder="Enter your address"></textarea>
-                        </div>
-
+                        @if (profileForm.get('department')?.invalid && profileForm.get('department')?.touched) {
+                        <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
+                        }
                     </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn-ghost" (click)="cancelEdit()">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                        <button type="submit" class="btn-primary" [disabled]="isSaving">
-                            @if (isSaving) { <i class="fas fa-spinner fa-spin"></i> Saving... }
-                            @else { <i class="fas fa-check"></i> Save Changes }
-                        </button>
+
+                    <div class="ef">
+                        <label>Gender <span>*</span></label>
+                        <div class="ef-select-wrap">
+                            <select formControlName="gender"
+                                [class.ef-error]="profileForm.get('gender')?.invalid && profileForm.get('gender')?.touched">
+                                <option value="">Select Gender</option>
+                                <option>Male</option>
+                                <option>Female</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        @if (profileForm.get('gender')?.invalid && profileForm.get('gender')?.touched) {
+                        <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
+                        }
                     </div>
-                </form>
-            </div>
-            }
+
+                    <div class="ef full">
+                        <label>Address</label>
+                        <textarea rows="2" formControlName="address" placeholder="Enter your address"></textarea>
+                    </div>
+
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-ghost" (click)="cancelEdit()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn-primary" [disabled]="isSaving">
+                        @if (isSaving) { <i class="fas fa-spinner fa-spin"></i> Saving... }
+                        @else { <i class="fas fa-check"></i> Save Changes }
+                    </button>
+                </div>
+            </form>
         </div>
         }
-
-        <!-- TAB: SECURITY -->
-        <!-- @if (activeTab === 'security') {
-        <div class="tab-panel">
-            <div class="section-card">
-                <div class="section-card-header">
-                    <span class="section-card-title">Change Password</span>
-                    @if (!pwdMode) {
-                    <button class="icon-edit-btn" (click)="pwdMode = true">
-                        <i class="fas fa-key"></i> Update Password
-                    </button>
-                    }
-                </div>
-
-                @if (!pwdMode) {
-                <div class="security-placeholder">
-                    <div class="security-icon"><i class="fas fa-lock"></i></div>
-                    <div class="security-text">
-                        <div class="security-heading">Password Protected</div>
-                        <div class="security-sub">Your password is encrypted and hidden. Click "Update Password" to
-                            change it.</div>
-                    </div>
-                </div>
-                } @else {
-                <form [formGroup]="pwdForm" (ngSubmit)="savePassword()">
-                    <div class="edit-grid">
-
-                        <div class="ef full">
-                            <label>Current Password <span>*</span></label>
-                            <div class="ef-pwd-wrap">
-                                <input [type]="showCurrent ? 'text' : 'password'" formControlName="currentPassword"
-                                    placeholder="Enter current password"
-                                    [class.ef-error]="pwdForm.get('currentPassword')?.invalid && pwdForm.get('currentPassword')?.touched" />
-                                <button type="button" class="eye-btn" (click)="showCurrent = !showCurrent">
-                                    <i class="fas" [class.fa-eye]="!showCurrent" [class.fa-eye-slash]="showCurrent"></i>
-                                </button>
-                            </div>
-                            @if (pwdForm.get('currentPassword')?.invalid && pwdForm.get('currentPassword')?.touched) {
-                            <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Required</span>
-                            }
-                        </div>
-
-                        <div class="ef">
-                            <label>New Password <span>*</span></label>
-                            <div class="ef-pwd-wrap">
-                                <input [type]="showNew ? 'text' : 'password'" formControlName="newPassword"
-                                    placeholder="Min 6 characters"
-                                    [class.ef-error]="pwdForm.get('newPassword')?.invalid && pwdForm.get('newPassword')?.touched" />
-                                <button type="button" class="eye-btn" (click)="showNew = !showNew">
-                                    <i class="fas" [class.fa-eye]="!showNew" [class.fa-eye-slash]="showNew"></i>
-                                </button>
-                            </div>
-                            @if (pwdForm.get('newPassword')?.invalid && pwdForm.get('newPassword')?.touched) {
-                            <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Min 6 characters</span>
-                            }
-                        </div>
-
-                        <div class="ef">
-                            <label>Confirm Password <span>*</span></label>
-                            <div class="ef-pwd-wrap">
-                                <input [type]="showConfirm ? 'text' : 'password'" formControlName="confirmPassword"
-                                    placeholder="Re-enter new password"
-                                    [class.ef-error]="pwdForm.get('confirmPassword')?.invalid && pwdForm.get('confirmPassword')?.touched" />
-                                <button type="button" class="eye-btn" (click)="showConfirm = !showConfirm">
-                                    <i class="fas" [class.fa-eye]="!showConfirm" [class.fa-eye-slash]="showConfirm"></i>
-                                </button>
-                            </div>
-                            @if (pwdForm.hasError('mismatch') && pwdForm.get('confirmPassword')?.touched) {
-                            <span class="ef-err"><i class="fas fa-exclamation-circle"></i> Passwords do not match</span>
-                            }
-                        </div>
-
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn-ghost" (click)="cancelPwd()">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                        <button type="submit" class="btn-primary" [disabled]="isPwdSaving">
-                            @if (isPwdSaving) { <i class="fas fa-spinner fa-spin"></i> Updating... }
-                            @else { <i class="fas fa-key"></i> Update Password }
-                        </button>
-                    </div>
-                </form>
-                }
-            </div>
-        </div>
-        } -->
 
     </div>
 </main>

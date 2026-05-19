@@ -31,25 +31,19 @@ interface AdminAttendanceRecord {
 })
 export class AdminAttendanceManagement implements OnInit {
 
-  // ── Data State ──
   allUsers = signal<any[]>([]);
   allAttendance = signal<any[]>([]);
   isLoading = signal(false);
   selectedRecord = signal<AdminAttendanceRecord | null>(null);
 
-  // ── Main Filters ──
   fromDate = signal(this.localDate(new Date()));
   toDate = signal(this.localDate(new Date()));
   employeeFilter = signal<number | null>(null);
   departmentFilter = signal('');
   statusFilter = signal('all');
   searchQ = signal('');
-
-  // ── Pagination ──
   currentPage = signal(1);
   readonly pageSize = 10;
-
-  // ── Export Modal ──
   showExportModal = signal(false);
   exportFromDate = signal(this.localDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
   exportToDate = signal(this.localDate(new Date()));
@@ -74,9 +68,6 @@ export class AdminAttendanceManagement implements OnInit {
     this.loadAllAttendance();
   }
 
-  // ─────────────────────────────
-  // API Calls
-  // ─────────────────────────────
 
   loadAllUsers() {
     this.userService.getAllEmployeeManagerHr().subscribe({
@@ -102,9 +93,6 @@ export class AdminAttendanceManagement implements OnInit {
     });
   }
 
-  // ─────────────────────────────
-  // Department List
-  // ─────────────────────────────
 
   departments = computed(() => {
     const deps = this.allUsers()
@@ -114,15 +102,11 @@ export class AdminAttendanceManagement implements OnInit {
     return [...new Set(deps)].sort();
   });
 
-  // ─────────────────────────────
-  // Date Range
-  // ─────────────────────────────
 
   dateRangeLabel = computed(() => {
     if (this.fromDate() === this.toDate()) {
       return this.formatDate(this.fromDate());
     }
-
     return `${this.formatDate(this.fromDate())} - ${this.formatDate(this.toDate())}`;
   });
 
@@ -143,35 +127,23 @@ export class AdminAttendanceManagement implements OnInit {
     return dates;
   }
 
-  // ─────────────────────────────
-  // Build Attendance Rows
-  // Includes generated absent records
-  // ─────────────────────────────
-
   summaryRecords = computed<AdminAttendanceRecord[]>(() => {
     const dates = this.datesInRange();
-
     const users = this.allUsers().filter(u => {
       const uid = Number(u.id);
       const department = this.getDepartment(u);
-
       const matchEmployee =
         !this.employeeFilter() || uid === this.employeeFilter();
-
       const matchDepartment =
         !this.departmentFilter() || department === this.departmentFilter();
-
       return matchEmployee && matchDepartment;
     });
 
     const attendanceMap = new Map<string, any>();
-
     this.allAttendance().forEach(r => {
       const date = this.normalizeDate(r.date);
       const userId = Number(r.userId ?? r.UserId);
-
       if (!date || !userId) return;
-
       attendanceMap.set(`${date}_${userId}`, r);
     });
 
@@ -230,14 +202,10 @@ export class AdminAttendanceManagement implements OnInit {
     return rows;
   });
 
-  // ─────────────────────────────
-  // Search + Status Filter
-  // ─────────────────────────────
 
   filteredRecords = computed(() => {
     const q = this.searchQ().trim().toLowerCase();
     const sf = this.statusFilter();
-
     const statusRank = (s: string) => {
       if (s === 'Present') return 0;
       if (s === 'Late') return 1;
@@ -257,26 +225,19 @@ export class AdminAttendanceManagement implements OnInit {
 
         const matchStatus =
           sf === 'all' || r.status === sf;
-
         return matchSearch && matchStatus;
       })
       .slice()
       .sort((a, b) => {
         const dateDiff =
           new Date(b.date).getTime() - new Date(a.date).getTime();
-
         if (dateDiff !== 0) return dateDiff;
-
         const statusDiff = statusRank(a.status) - statusRank(b.status);
         if (statusDiff !== 0) return statusDiff;
 
         return a.userName.localeCompare(b.userName);
       });
   });
-
-  // ─────────────────────────────
-  // Dashboard Stats
-  // ─────────────────────────────
 
   totalExpectedRecords = computed(() =>
     this.summaryRecords().filter(r => r.status !== 'Weekend').length
@@ -317,9 +278,6 @@ export class AdminAttendanceManagement implements OnInit {
     return this.minutesToText(avg);
   });
 
-  // ─────────────────────────────
-  // Pagination
-  // ─────────────────────────────
 
   totalPages = computed(() =>
     Math.max(1, Math.ceil(this.filteredRecords().length / this.pageSize))
@@ -328,7 +286,6 @@ export class AdminAttendanceManagement implements OnInit {
   pageNumbers = computed(() => {
     const total = this.totalPages();
     const current = this.currentPage();
-
     const start = Math.max(1, current - 2);
     const end = Math.min(total, current + 2);
 
@@ -342,9 +299,6 @@ export class AdminAttendanceManagement implements OnInit {
     return this.filteredRecords().slice(start, start + this.pageSize);
   });
 
-  // ─────────────────────────────
-  // Filter Methods
-  // ─────────────────────────────
 
   setFromDate(val: string) {
     this.fromDate.set(val);
@@ -358,11 +312,9 @@ export class AdminAttendanceManagement implements OnInit {
 
   setToDate(val: string) {
     this.toDate.set(val);
-
     if (new Date(this.toDate()) < new Date(this.fromDate())) {
       this.fromDate.set(val);
     }
-
     this.resetPageAndSelection();
   }
 
@@ -406,10 +358,6 @@ export class AdminAttendanceManagement implements OnInit {
       this.selectedRecord()?.rowKey === r.rowKey ? null : r
     );
   }
-
-  // ─────────────────────────────
-  // Export Modal / Excel Export
-  // ─────────────────────────────
 
   openExportModal() {
     this.exportFromDate.set(this.fromDate());
@@ -467,10 +415,6 @@ export class AdminAttendanceManagement implements OnInit {
         }
       });
   }
-
-  // ─────────────────────────────
-  // Helpers
-  // ─────────────────────────────
 
   getDepartment(u: any): string {
     return u.department || u.departmentName || u.deptName || '—';

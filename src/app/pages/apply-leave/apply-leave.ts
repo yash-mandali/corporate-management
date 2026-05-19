@@ -1,9 +1,6 @@
 import { Component, computed, signal } from '@angular/core';
 import { LeaveService } from '../../services/leave-service/leave-service';
-import {
-  FormBuilder, FormGroup, Validators, ReactiveFormsModule,
-  AbstractControl, ValidationErrors
-} from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Authservice } from '../../services/Auth-service/authservice';
 import { Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../services/toast-service/toast';
@@ -214,8 +211,8 @@ export class ApplyLeave {
     this.leaveService.getLeaveTypes().subscribe({
       next: (res: any) => {
         this.leaveTypes.set(res.data || [])
-        console.log("loadleavetypes called::",res);
-        
+        console.log("loadleavetypes called::", res);
+
       },
       error: (err) => console.error('Error fetching leave types', err)
     });

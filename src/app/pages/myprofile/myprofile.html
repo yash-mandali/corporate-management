@@ -1,15 +1,14 @@
 <main class="main">
     <div class="content">
 
-        <!-- HERO BANNER -->
         <div class="profile-hero">
             <div class="hero-bg"></div>
             <div class="hero-body">
                 <div class="hero-avatar">
-                    <span>{{ initials() }}</span>
+                    <span>{{ nameinitials() }}</span>
                 </div>
                 <div class="hero-info">
-                    <h1 class="hero-name">{{ profileData()?.userName || 'Employee' }}</h1>  
+                    <h1 class="hero-name">{{ profileData()?.userName || 'Employee' }}</h1>
                     <div class="hero-meta">
                         <span class="hero-badge"><i class="fas fa-building"></i> {{ profileData()?.department }}</span>
                         <span class="hero-badge"><i class="fas fa-briefcase"></i> {{ profileData()?.roleName }}</span>
@@ -30,22 +29,18 @@
             </div>
         </div>
 
-        <!-- TAB NAV -->
         <div class="tab-nav">
             <button class="tab-btn" [class.active]="activeTab === 'info'" (click)="activeTab = 'info'">
                 <i class="fas fa-user"></i> Personal Info
             </button>
-            <button class="tab-btn" [class.active]="activeTab === 'security'" (click)="activeTab = 'security'">
+            <!-- <button class="tab-btn" [class.active]="activeTab === 'security'" (click)="activeTab = 'security'">
                 <i class="fas fa-shield-alt"></i> Security
-            </button>
+            </button> -->
         </div>
-
-        <!-- TAB: PERSONAL INFO -->
         @if (activeTab === 'info') {
         <div class="tab-panel">
 
             @if (!editMode) {
-            <!-- VIEW MODE -->
             <div class="section-card">
                 <div class="section-card-header">
                     <span class="section-card-title">Personal Details</span>
@@ -54,6 +49,13 @@
                     </button>
                 </div>
                 <div class="details-rows">
+                    <div class="details-row">
+                        <div class="dr-left">
+                            <div class="dr-icon teal"><i class="fas fa-fingerprint"></i></div>
+                            <span class="dr-label">{{profileData()?.roleName}}Id</span>
+                        </div>
+                        <div class="dr-value">{{ (roleinitials() + (profileData()?.id || '')) || '—' }}</div>
+                    </div>
                     <div class="details-row">
                         <div class="dr-left">
                             <div class="dr-icon teal"><i class="fas fa-user"></i></div>
@@ -96,6 +98,15 @@
                         </div>
                         <div class="dr-value">{{ profileData()?.roleName || '—' }}</div>
                     </div>
+                    @if(profileData()?.roleName === "Employee"){
+                    <div class="details-row">
+                        <div class="dr-left">
+                            <div class="dr-icon red"><i class="fas fa-user-tie"></i></div>
+                            <span class="dr-label">ReportingManager</span>
+                        </div>
+                        <div class="dr-value">{{ profileData()?.managerName || '—' }}</div>
+                    </div>
+                    }
                     <div class="details-row last">
                         <div class="dr-left">
                             <div class="dr-icon purple"><i class="fas fa-map-marker-alt"></i></div>
@@ -103,11 +114,17 @@
                         </div>
                         <div class="dr-value">{{ profileData()?.address || '—' }}</div>
                     </div>
+                    <div class="details-row last">
+                        <div class="dr-left">
+                            <div class="dr-icon purple"><i class="fas fa-calendar-alt"></i></div>
+                            <span class="dr-label">Joining Date</span>
+                        </div>
+                        <div class="dr-value">{{ formatDate(profileData()?.createdAt) || '—' }}</div>
+                    </div>
                 </div>
             </div>
 
             } @else {
-            <!-- EDIT MODE -->
             <div class="section-card">
                 <div class="section-card-header">
                     <span class="section-card-title">Edit Personal Details</span>
@@ -142,7 +159,7 @@
                             }
                         </div>
                         <div class="ef">
-                            <label>Department <span>*</span></label>                    
+                            <label>Department <span>*</span></label>
                             <select formControlName="department" readonly
                                 [class.ef-error]="profileForm.get('department')?.invalid && profileForm.get('department')?.touched">
                                 <option value="">Select Department</option>
@@ -158,7 +175,7 @@
                                 <option value="Finance">Finance & Accounts</option>
                                 <option value="Admin">Administration</option>
                             </select>
-                        
+
                             @if (profileForm.get('department')?.invalid && profileForm.get('department')?.touched) {
                             <span class="ef-err">
                                 <i class="fas fa-exclamation-circle"></i> Required
@@ -169,9 +186,9 @@
                         <div class="ef">
                             <label>Gender <span>*</span></label>
                             <div class="ef-select-wrap">
-                                <select formControlName="gender" 
+                                <select formControlName="gender"
                                     [class.ef-error]="profileForm.get('gender')?.invalid && profileForm.get('gender')?.touched">
-                                    <option value="" >Select Gender</option>
+                                    <option value="">Select Gender</option>
                                     <option>Male</option>
                                     <option>Female</option>
                                     <option>Other</option>
@@ -204,7 +221,7 @@
         }
 
         <!-- TAB: SECURITY -->
-        @if (activeTab === 'security') {
+        <!-- @if (activeTab === 'security') {
         <div class="tab-panel">
             <div class="section-card">
                 <div class="section-card-header">
@@ -288,7 +305,7 @@
                 }
             </div>
         </div>
-        }
+        } -->
 
     </div>
 </main>

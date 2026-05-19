@@ -34,6 +34,7 @@ export class ManagerTimesheetpage implements OnInit {
   currentPage = signal(1);
   readonly pageSize = 10;
 
+  viewEntry = signal<any | null>(null);
   // ── Tracker ──
   trackerSearch = signal('');
   weekStart = signal(new Date());
@@ -297,6 +298,15 @@ export class ManagerTimesheetpage implements OnInit {
   closeRejectModal() {
     this.rejectModal.set(null);
     this.rejectReason = '';
+    document.body.style.overflow = '';
+  }
+
+  openViewModal(entry: any) {
+    this.viewEntry.set(entry);
+    document.body.style.overflow = 'hidden';
+  }
+  closeViewModal() {
+    this.viewEntry.set(null);
     document.body.style.overflow = '';
   }
 

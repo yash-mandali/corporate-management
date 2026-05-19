@@ -12,8 +12,6 @@ import { ToastService } from '../../services/toast-service/toast';
   styleUrl: './managerattendance.css',
 })
 export class ManagerAttendancePage implements OnInit {
-
-  // ── State ──
   managerId = signal<any>(null);
   ManagerTeam = signal<any[]>([]);
   allAttendance = signal<any[]>([]);
@@ -21,28 +19,24 @@ export class ManagerAttendancePage implements OnInit {
   managerInfo = signal<any>(null);
   selectedRecord = signal<any | null>(null);
 
-  // ── Filters ──
   selectedDate = signal(this.localDate(new Date()));
   statusFilter = signal('all');
   searchQ = signal('');
   currentPage = signal(1);
-  readonly pageSize = 6;
+  readonly pageSize = 10;
 
-  // ── Export Modal ──
   showExportModal = signal(false);
   exportFromDate = signal(this.localDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
   exportToDate = signal(this.localDate(new Date()));
   exportUserId = signal<number | any | null>(null);
   isExporting = signal(false);
 
-  // ── Color pool ──
   private colorPool = [
     '#09637e', '#088395', '#27ae60', '#2980b9',
     '#8e44ad', '#d68910', '#c0392b', '#16a085',
     '#2c3e50', '#1e8449',
   ];
 
-  // ── Computed: records for selected date enriched with user info ──
   dayRecords = computed(() => {
     const date = this.selectedDate();
     const recMap = new Map(
@@ -77,7 +71,6 @@ export class ManagerAttendancePage implements OnInit {
     });
   });
 
-  // ── Computed: after search + status filter ──
   filteredRecords = computed(() => {
     const q = this.searchQ().toLowerCase().trim();
     const sf = this.statusFilter();
@@ -99,7 +92,6 @@ export class ManagerAttendancePage implements OnInit {
       .sort((a, b) => statusRank(a.status) - statusRank(b.status));
   });
 
-  // ── Stats ──
   totalEmployees = computed(() => this.ManagerTeam().length);
   presentCount = computed(() => this.dayRecords().filter(r => r.status === 'Present' || r.status === 'Late').length);
   absentCount = computed(() => this.dayRecords().filter(r => r.status === 'Absent').length);
@@ -118,7 +110,6 @@ export class ManagerAttendancePage implements OnInit {
     return t ? Math.round((this.lateCount() / t) * 100) : 0;
   });
 
-  // ── Pagination ──
   totalPages = computed(() => Math.max(1, Math.ceil(this.filteredRecords().length / this.pageSize)));
   pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
   pagedRecords = computed(() => {
@@ -126,7 +117,6 @@ export class ManagerAttendancePage implements OnInit {
     return this.filteredRecords().slice(start, start + this.pageSize);
   });
 
-  // ── Date label ──
   selectedDateLabel = computed(() => {
     const d = new Date(this.selectedDate() + 'T00:00:00');
     const today = this.localDate(new Date());
@@ -202,7 +192,6 @@ export class ManagerAttendancePage implements OnInit {
     });
   }
 
-  // ── Date navigation ──
   onDateChange(val: string) {
     this.selectedDate.set(val);
     this.currentPage.set(1);
@@ -240,7 +229,6 @@ export class ManagerAttendancePage implements OnInit {
     this.selectedRecord.set(this.selectedRecord()?.userId === r.userId ? null : r);
   }
 
-  // ── Export Modal ──
   openExportModal() {
     this.exportFromDate.set(this.localDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
     this.exportToDate.set(this.localDate(new Date()));
@@ -289,7 +277,6 @@ export class ManagerAttendancePage implements OnInit {
       });
   }
 
-  // ── Helpers ──
   getInitials(name: string): string {
     if (!name) return '?';
     return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);

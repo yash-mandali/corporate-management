@@ -1,7 +1,6 @@
 <main class="main">
   <div class="content">
 
-    <!-- SUMMARY CARDS -->
     <div class="summary-row">
       <div class="sum-card">
         <div class="sum-icon teal"><i class="fas fa-umbrella-beach"></i></div>
@@ -40,7 +39,6 @@
       </div>
     </div>
 
-    <!-- LEAVE BALANCE -->
     <div class="balance-section">
       <div class="section-bar">
         <div class="section-bar-title">
@@ -66,13 +64,11 @@
         <div class="section-bar-title">
           <i class="fas fa-list-alt"></i> Leave Applications
         </div>
-        <!-- Changed: opens Apply modal instead of routing -->
         <button class="apply-btn" (click)="openApplyModal()">
           <i class="fas fa-plus"></i> Apply Leave
         </button>
       </div>
 
-      <!-- Filter Tabs -->
       <div class="filter-bar">
         <button class="filter-tab" [class.active]="activeFilter() === 'all'" (click)="setFilter('all')">
           All <span class="filter-count">{{ totalRequests() }}</span>
@@ -93,8 +89,6 @@
           Withdrawn <span class="filter-count">{{ withdrawnleaves() }}</span>
         </button>
       </div>
-
-      <!-- Scrollable Table -->
       <div class="table-scroll">
         <table>
           <thead>
@@ -156,8 +150,6 @@
           </tbody>
         </table>
       </div>
-
-      <!-- Pagination -->
       @if (totalPages() >= 1) {
       <div class="pagination">
         <span class="page-info">Page {{ currentPage() }} of {{ totalPages() }}</span>
@@ -184,9 +176,6 @@
   </div>
 </main>
 
-<!-- ══════════════════════════════════════════
-     APPLY LEAVE MODAL (new)
-══════════════════════════════════════════ -->
 @if (applyModalOpen()) {
 <div class="modal-overlay" (click)="closeApplyModal()">
   <div class="modal modal-lg" (click)="$event.stopPropagation()">
@@ -208,7 +197,6 @@
       <div class="modal-body">
 
         <div class="mf-row">
-          <!-- Request Type -->
           <div class="mf">
             <label>Request Type <span>*</span></label>
             <div class="mf-select-wrap">
@@ -227,7 +215,6 @@
             }
           </div>
 
-          <!-- Session -->
           <div class="mf">
             <label>Session <span>*</span></label>
             <div class="mf-select-wrap">
@@ -245,7 +232,7 @@
         </div>
 
         <div class="mf-row">
-          <!-- From Date -->
+         
           <div class="mf">
             <label>From Date <span>*</span></label>
             <input type="date" formControlName="fromDate" [min]="minDate"
@@ -273,13 +260,12 @@
           </div>
         </div>
 
-        <!-- Handover To -->
+        
         <div class="mf">
           <label>Handover To</label>
           <input type="text" formControlName="handoverTo" placeholder="Enter employee name (optional)" />
         </div>
 
-        <!-- Reason -->
         <div class="mf">
           <label>Reason <span>*</span></label>
           <textarea rows="3" formControlName="reason" placeholder="Describe the reason for your leave..."
@@ -312,9 +298,6 @@
 </div>
 }
 
-<!-- ══════════════════════════════════════════
-     EDIT LEAVE MODAL (existing)
-══════════════════════════════════════════ -->
 @if (editModalOpen()) {
 <div class="modal-overlay" (click)="closeEditModal()">
   <div class="modal" (click)="$event.stopPropagation()">
@@ -336,7 +319,6 @@
       <div class="modal-body">
 
         <div class="mf-row">
-          <!-- Request Type -->
           <div class="mf">
             <label>Request Type <span>*</span></label>
             <div class="mf-select-wrap">
@@ -354,7 +336,6 @@
             }
           </div>
 
-          <!-- Session -->
           <div class="mf">
             <label>Session <span>*</span></label>
             <div class="mf-select-wrap">
@@ -372,7 +353,6 @@
         </div>
 
         <div class="mf-row">
-          <!-- From Date -->
           <div class="mf">
             <label>From Date <span>*</span></label>
             <input type="date" formControlName="fromDate"
@@ -382,7 +362,6 @@
             }
           </div>
 
-          <!-- To Date -->
           <div class="mf">
             <label>To Date <span>*</span></label>
             <input type="date" formControlName="toDate"
@@ -392,14 +371,11 @@
             }
           </div>
         </div>
-
-        <!-- Handover To -->
         <div class="mf">
           <label>Handover To</label>
           <input type="text" formControlName="handoverTo" placeholder="Enter employee name (optional)" />
         </div>
 
-        <!-- Reason -->
         <div class="mf">
           <label>Reason <span>*</span></label>
           <textarea rows="3" formControlName="reason" placeholder="Reason for leave..."
@@ -422,7 +398,6 @@
         </button>
       </div>
     </form>
-
   </div>
 </div>
 }

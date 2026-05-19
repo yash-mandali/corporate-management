@@ -38,12 +38,16 @@ export class Timesheetpage implements OnInit {
 
   // ── Pagination ──
   currentPage    = signal(1);
-  readonly pageSize = 5;
+  readonly pageSize = 10;
 
   // ── Week ──
   weekStart = signal(new Date());
   todayStr  = this.localDate(new Date());
   entryForm: FormGroup;
+
+  // ── View Modal ──
+  viewModalOpen = signal(false);
+  viewEntry = signal<any>(null);
 
   // ── Export Report ──
   showExportModal = signal(false);
@@ -251,38 +255,73 @@ export class Timesheetpage implements OnInit {
     this.showLoader(this.editingId() ? 'Updating entry...' : 'Adding entry...');
 
     if (this.editingId()) {
-      // sp_UpdateTimesheetEntry: @TimesheetId, @ProjectName, @TaskDescription, @StartTime, @EndTime, @WorkType
-      // Only works when Status = 'Draft'
       this.timesheetService.updateEntry({ timesheetId: this.editingId(), projectName, taskDescription, startTime, endTime, workType })
         .subscribe({
-          next: () => { this.loadEntries(); this.closeModal(); this.saving.set(false); this.hideLoader(); },
-          error: err => { this.formErr.set('Update failed.'); this.saving.set(false); this.hideLoader(); console.error(err); }
+          next: () => {
+            this.toast.success("Timesheet updated")
+            this.loadEntries();
+            this.closeModal();
+            this.saving.set(false);
+            this.hideLoader();
+          },
+          error: err => {
+            this.toast.error("Update failed")
+            this.formErr.set('Update failed.');
+            this.saving.set(false);
+            this.hideLoader();
+            console.error(err);
+          }
         });
     } else {
-      // sp_AddTimesheetEntry: @UserId, @WorkDate, @ProjectName, @TaskDescription, @StartTime, @EndTime, @WorkType
       this.timesheetService.addEntry({ userId: this.userId(), workDate, projectName, taskDescription, startTime, endTime, workType })
         .subscribe({
-          next: () => { this.loadEntries(); this.closeModal(); this.saving.set(false); this.hideLoader(); },
-          error: err => { this.formErr.set('Failed to add entry.'); this.saving.set(false); this.hideLoader(); console.error(err); }
+          next: () => {
+            this.toast.success("Timesheet Added")
+            this.loadEntries();
+            this.closeModal();
+            this.saving.set(false);
+            this.hideLoader();
+          },
+          error: err => {
+            this.toast.error("Failed to add entry")
+            this.formErr.set('Failed to add entry.');
+            this.saving.set(false);
+            this.hideLoader();
+            console.error(err);
+          }
         });
     }
   }
 
   deleteEntry(id: number) {
-    // sp_deleteTimesheetEntry: @sheetId
     this.deletingId.set(id);
     this.timesheetService.deleteEntry(id).subscribe({
-      next: () => { this.deletingId.set(null); this.loadEntries(); },
-      error: err => { this.deletingId.set(null); console.error(err); }
+      next: () => {
+        this.toast.success("Timesheet Deleted")
+        this.deletingId.set(null);
+        this.loadEntries();
+      },
+      error: err => {
+        this.toast.error("Failed to delete entry")
+        this.deletingId.set(null);
+        console.error(err);
+      }
     });
   }
 
   submitEntry(id: number) {
-    // sp_SubmitTimesheet: @sheetId — only Draft → Submitted
     this.submittingId.set(id);
     this.timesheetService.submitEntry(id).subscribe({
-      next: () => { this.submittingId.set(null); this.loadEntries(); },
-      error: err => { this.submittingId.set(null); console.error(err); }
+      next: () => {     
+        this.submittingId.set(null);
+        this.loadEntries();
+        this.toast.success("Timesheet Submitted")
+      },
+      error: err => {
+        this.submittingId.set(null);
+        this.toast.error("Failed to submit entry")
+        console.error(err);
+      }
     });
   }
 
@@ -370,6 +409,19 @@ export class Timesheetpage implements OnInit {
   //       }
   //     });
   // }
+
+  openViewModal(e: any) {
+    this.viewEntry.set(e);
+    this.viewModalOpen.set(true);
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeViewModal() {
+    this.viewModalOpen.set(false);
+    this.viewEntry.set(null);
+    document.body.style.overflow = '';
+  }
+  
   openExportModal() {
     this.exportFromDate.set(this.localDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
     this.exportToDate.set(this.localDate(new Date()));

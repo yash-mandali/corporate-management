@@ -1,7 +1,5 @@
 <main class="main">
     <div class="content">
-
-        <!-- PAGE HEADER -->
         <div class="page-header">
             <div class="ph-left">
                 <div class="ph-icon"><i class="fas fa-calendar-check"></i></div>
@@ -30,8 +28,6 @@
                 </button>
             </div>
         </div>
-
-        <!-- STAT CARDS -->
         <div class="stat-row">
             <div class="stat-card present">
                 <div class="sc-left">
@@ -94,11 +90,7 @@
                 </div>
             </div>
         </div>
-
-        <!-- MAIN GRID -->
         <div class="main-grid">
-
-            <!-- TABLE CARD -->
             <div class="table-card">
                 <div class="tc-header">
                     <div class="tc-title"><i class="fas fa-list-ul"></i> Attendance Log</div>
@@ -184,7 +176,6 @@
                     </table>
                 </div>
 
-                <!-- PAGINATION -->
                 @if (totalPages() > 1) {
                 <div class="pagination">
                     <button class="pg-btn" (click)="currentPage.set(1)" [disabled]="currentPage() === 1">
@@ -213,7 +204,6 @@
                 }
             </div>
 
-            <!-- DETAIL PANEL -->
             <div class="detail-panel">
                 @if (selectedRecord()) {
                 <div class="dp-hero" [class.dp-present]="selectedRecord()!.status === 'Present'"
@@ -285,7 +275,6 @@
         </div>
     </div>
 
-    <!-- ── EXPORT MODAL ── -->
     @if (showExportModal()) {
     <div class="modal-backdrop" (click)="closeExportModal()">
         <div class="modal-box" (click)="$event.stopPropagation()">

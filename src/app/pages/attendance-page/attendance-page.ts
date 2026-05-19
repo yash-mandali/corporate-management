@@ -35,15 +35,12 @@ export class AttendancePage {
   selectedRecord = signal<AttendanceRecord | null>(null);
   tableFilter = signal('all');
 
-  // ── Month navigation ──
   viewYear = signal(new Date().getFullYear());
   viewMonth = signal(new Date().getMonth());
 
-  // ── Pagination ──
   currentPage = signal(1);
   readonly pageSize = 10;
 
-  // ── Day-of-week labels (compact 2-char for small calendar) ──
   readonly dowLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
   get monthLabel(): string {
@@ -52,10 +49,9 @@ export class AttendancePage {
     });
   }
 
-  // ── Stats ──
   presentCount = computed(() =>
     this.records().filter(r =>
-      r.status === 'Present' &&
+      r.status === 'Present' || r.status === 'Late' &&
       new Date(r.date).getFullYear() === this.viewYear() &&
       new Date(r.date).getMonth() === this.viewMonth()
     ).length
@@ -108,7 +104,6 @@ export class AttendancePage {
     return Math.round((attended / workdays) * 100);
   });
 
-  // ── Filtered records for selected month ──
   filteredRecords = computed(() => {
     const recs = this.records()
       .filter(r => {
@@ -125,7 +120,6 @@ export class AttendancePage {
     return filter === 'all' ? recs : recs.filter(r => r.status === filter);
   });
 
-  // ── Pagination ──
   totalPages = computed(() =>
     Math.max(1, Math.ceil(this.filteredRecords().length / this.pageSize))
   );
@@ -145,7 +139,6 @@ export class AttendancePage {
     Math.min(this.currentPage() * this.pageSize, this.filteredRecords().length)
   );
 
-  // ── Calendar cells ──
   calendarCells = computed((): CalendarCell[] => {
     const year = this.viewYear();
     const month = this.viewMonth();
@@ -154,13 +147,11 @@ export class AttendancePage {
     const today = new Date();
     const selectedId = this.selectedRecord()?.aId ?? null;
 
-    // fast lookup map
     const map = new Map<string, AttendanceRecord>();
     this.records().forEach(r => map.set(r.date.slice(0, 10), r));
 
     const cells: CalendarCell[] = [];
 
-    // leading empty cells
     for (let i = 0; i < firstDay; i++) {
       cells.push({ key: `empty-${i}`, day: null, cls: 'cal-cell cal-empty', dot: false, title: '', record: null });
     }

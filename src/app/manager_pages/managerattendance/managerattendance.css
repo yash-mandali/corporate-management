@@ -21,7 +21,6 @@ body {
     gap: 20px;
 }
 
-/* ── PAGE HEADER ── */
 .page-header {
     display: flex;
     align-items: center;
@@ -69,7 +68,6 @@ body {
     flex-wrap: wrap;
 }
 
-/* Date navigator */
 .date-nav {
     display: flex;
     align-items: center;
@@ -154,7 +152,6 @@ body {
     cursor: not-allowed;
 }
 
-/* ── STAT ROW ── */
 .stat-row {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -305,7 +302,6 @@ body {
     background: linear-gradient(90deg, #09637e, #0bbdcc);
 }
 
-/* ── MAIN GRID ── */
 .main-grid {
     display: grid;
     grid-template-columns: 1fr 280px;
@@ -313,7 +309,6 @@ body {
     align-items: start;
 }
 
-/* ── TABLE CARD ── */
 .table-card {
     background: #fff;
     border-radius: 14px;
@@ -430,7 +425,6 @@ body {
     color: #0d2d36;
 }
 
-/* Skeleton */
 .tbl-skeleton {
     display: flex;
     flex-direction: column;
@@ -496,7 +490,6 @@ body {
     border-radius: 20px;
 }
 
-/* Table */
 .tbl-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -667,7 +660,6 @@ tbody td {
     color: #09637e;
 }
 
-/* Status badge */
 .s-badge {
     display: inline-flex;
     align-items: center;
@@ -716,7 +708,6 @@ tbody td {
     margin-bottom: 10px;
 }
 
-/* Pagination */
 .pagination {
     display: flex;
     align-items: center;
@@ -790,7 +781,6 @@ tbody td {
     white-space: nowrap;
 }
 
-/* ── DETAIL PANEL ── */
 .detail-panel {
     background: #fff;
     border-radius: 14px;
@@ -880,7 +870,6 @@ tbody td {
     font-weight: 800;
 }
 
-/* Detail body */
 .dp-body {
     padding: 16px;
     display: flex;
@@ -1026,7 +1015,6 @@ tbody td {
     color: #0d2d36;
 }
 
-/* Empty state */
 .dp-empty {
     padding: 48px 20px;
     display: flex;
@@ -1060,7 +1048,6 @@ tbody td {
     color: #5a8a94;
 }
 
-/* ── EXPORT MODAL ── */
 .modal-backdrop {
     position: fixed;
     inset: 0;
@@ -1385,7 +1372,6 @@ tbody td {
     }
 }
 
-/* ── RESPONSIVE ── */
 @media (max-width: 1100px) {
     .stat-row {
         grid-template-columns: repeat(3, 1fr);

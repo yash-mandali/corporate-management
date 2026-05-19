@@ -3,7 +3,6 @@
         <span class="logo-text" routerLink="/dashboard">{{role()}} Portal</span>
     </div>
 
-    <!-- Navigation -->
     <nav class="sidebar-nav">
         <a *ngFor="let item of menuItems(); trackBy: trackByRoute" class="nav-item" [routerLink]="item.route"
             routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="emp.closeSidebar()">
@@ -15,7 +14,7 @@
         <button class="logout-btn" (click)="logout()">Logout</button>
     </div>
 </aside>
-<!-- Logout Loader -->
+
 <div class="page-loader" *ngIf="isLoggingOut">
     <div class="loader-content">
         <div class="fas fa-spinner fa-spin"></div>

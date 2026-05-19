@@ -14,7 +14,6 @@
         @if (notifOpen()) {
         <div class="notif-panel" (click)="$event.stopPropagation()">
 
-            <!-- Header -->
             <div class="np-header">
                 <div class="np-title-row">
                     <span class="np-title">Notifications</span>
@@ -33,7 +32,6 @@
                 }
             </div>
 
-            <!-- List: only unread, latest 10 -->
             <div class="np-list">
                 @if (notifLoading()) {
                 <div class="np-loading">
@@ -55,13 +53,11 @@
                 <div class="np-item" [class.np-unread]="!isRead" [class.np-marking]="markingId() === nId"
                     (click)="markAsRead(n, $event)">
 
-                    <!-- Type icon -->
                     <div class="np-icon" [style.background]="notifIconColor(type)+'18'"
                         [style.color]="notifIconColor(type)">
                         <i class="fas fa-{{ notifIcon(type) }}"></i>
                     </div>
 
-                    <!-- Content -->
                     <div class="np-content">
                         <div class="np-item-title">{{ n.Title ?? n.title }}</div>
                         <div class="np-item-msg">{{ n.Message ?? n.message }}</div>
@@ -70,8 +66,6 @@
                             <span class="np-time">{{ timeAgo(n.CreatedAt ?? n.createdAt) }}</span>
                         </div>
                     </div>
-
-                    <!-- Status: spinner while marking, pulse dot if unread, check if read -->
                     <div class="np-status">
                         @if (markingId() === nId) {
                         <span class="np-mini-spin"></span>
@@ -87,7 +81,6 @@
                 }
             </div>
 
-            <!-- Footer -->
             <div class="np-footer">
                 <span class="np-footer-info">
                     {{ unreadCount() }} unread · showing {{ visibleNotifs().length }}
@@ -99,7 +92,6 @@
         }
     </div>
 
-    <!-- ── PROFILE AVATAR ── -->
     <div class="profile-wrap" (click)="profileOpen = !profileOpen">
         <div class="profile-avatar">
             <span>{{ getInitials() }}</span>
@@ -128,7 +120,7 @@
 
 <div class="page-loader" *ngIf="isLoggingOut">
     <div class="loader-content">
-        <div class="spinner"></div>
+        <div class="fas fa-spinner fa-spin"></div>
         <p>Logging out...</p>
     </div>
 </div>

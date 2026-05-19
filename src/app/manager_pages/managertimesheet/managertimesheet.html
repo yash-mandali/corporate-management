@@ -102,7 +102,7 @@
                         </thead>
                         <tbody>
                             @for (t of submittedEntries(); track t.timesheetId) {
-                            <tr>
+                            <tr (click)="openViewModal(t)">
                                 <td class="td-emp">
                                     <div class="emp-cell">
                                         <div class="emp-av" [style.background]="getColor(t.userId)">{{
@@ -122,7 +122,7 @@
                                         <span class="sp-dot"></span>Submitted
                                     </span>
                                 </td>
-                                <td class="td-act">
+                            <td class="td-act" (click)="$event.stopPropagation()">
                                     <button class="act-btn approve-sm" (click)="approveEntry(t.timesheetId)"
                                         [disabled]="tsActionLoading() === t.timesheetId" title="Approve">
                                         @if (tsActionLoading() === t.timesheetId) { <span
@@ -248,8 +248,7 @@
                         </thead>
                         <tbody>
                             @for (t of pagedEntries(); track t.timesheetId; let i = $index) {
-                            <tr [class.tr-selected]="selectedEntry()?.timesheetId === t.timesheetId"
-                                (click)="selectedEntry.set(t)">
+                        <tr [class.tr-selected]="viewEntry()?.timesheetId === t.timesheetId" (click)="openViewModal(t)">
 
                                 <td class="td-emp">
                                     <div class="emp-cell">
@@ -517,9 +516,149 @@
     }
 </main>
 
+@if (viewEntry()) {
+<div class="modal-overlay">
+    <div class="modal-box vm-modal-box" (click)="$event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="modal-header vm-modal-header">
+            <div class="mh-left">
+                <div class="mh-icon vm-mh-icon">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div>
+                    <div class="mh-title vm-mh-title">Entry Details</div>
+                    <div class="mh-sub">{{ formatDate(viewEntry()!.workDate) }}</div>
+                </div>
+            </div>
+            <button class="modal-close vm-modal-close" (click)="closeViewModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body vm-modal-body">
+
+            <!-- Employee row -->
+            <div class="vm-emp-row">
+                <div class="vm-emp-av" [style.background]="getColor(viewEntry()!.userId)">
+                    {{ getInitials(viewEntry()!.userName) }}
+                </div>
+                <div class="vm-emp-info">
+                    <div class="vm-emp-name">{{ viewEntry()!.userName || '—' }}</div>
+                    <div class="vm-emp-meta">
+                        <span class="s-pill sp-{{ viewEntry()!.status | lowercase }}">
+                            <span class="sp-dot"></span>{{ viewEntry()!.status }}
+                        </span>
+                        <span class="type-chip {{ workTypeClass(viewEntry()!.workType) }}">
+                            {{ viewEntry()!.workType }}
+                        </span>
+                    </div>
+                </div>
+                <div class="vm-hours-pill">
+                    <i class="fas fa-hourglass-half"></i>
+                    {{ formatHours(viewEntry()!.totalHours) }}
+                </div>
+            </div>
+
+            <!-- Info grid -->
+            <div class="vm-info-grid">
+
+                <div class="vm-info-card">
+                    <div class="vm-ic-icon" style="background:rgba(9,99,126,0.09);color:#09637e">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="vm-ic-body">
+                        <div class="vm-ic-label">Work Date</div>
+                        <div class="vm-ic-value">{{ formatDate(viewEntry()!.workDate) }}</div>
+                    </div>
+                </div>
+
+                <div class="vm-info-card">
+                    <div class="vm-ic-icon" style="background:rgba(41,128,185,0.09);color:#2980b9">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div class="vm-ic-body">
+                        <div class="vm-ic-label">Project / Module</div>
+                        <div class="vm-ic-value vm-project">{{ viewEntry()!.projectName || '—' }}</div>
+                    </div>
+                </div>
+
+                <div class="vm-info-card">
+                    <div class="vm-ic-icon" style="background:rgba(39,174,96,0.09);color:#27ae60">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                    <div class="vm-ic-body">
+                        <div class="vm-ic-label">Start Time</div>
+                        <div class="vm-ic-value vm-time-val">{{ formatTime(viewEntry()!.startTime) }}</div>
+                    </div>
+                </div>
+
+                <div class="vm-info-card">
+                    <div class="vm-ic-icon" style="background:rgba(214,137,16,0.09);color:#d68910">
+                        <i class="fas fa-stop-circle"></i>
+                    </div>
+                    <div class="vm-ic-body">
+                        <div class="vm-ic-label">End Time</div>
+                        <div class="vm-ic-value vm-time-val">{{ formatTime(viewEntry()!.endTime) }}</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Task description -->
+            <div class="vm-section">
+                <div class="vm-section-label">
+                    <i class="fas fa-align-left"></i> Task Description
+                </div>
+                <div class="vm-task-box">{{ viewEntry()!.taskDescription || '—' }}</div>
+            </div>
+
+            <!-- Rejection reason — only when rejected -->
+            @if (viewEntry()!.rejectReason) {
+            <div class="vm-section">
+                <div class="vm-section-label vm-reject-label">
+                    <i class="fas fa-comment-times"></i> Rejection Reason
+                </div>
+                <div class="vm-reject-box">
+                    <i class="fas fa-exclamation-circle vm-reject-icon"></i>
+                    <span>{{ viewEntry()!.rejectReason }}</span>
+                </div>
+            </div>
+            }
+
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer vm-modal-footer">
+            <button class="mf-cancel" (click)="closeViewModal()">
+                <i class="fas fa-times"></i> Close
+            </button>
+            @if (viewEntry()!.status === 'Submitted') {
+            <button class="act-btn approve-sm vm-footer-btn"
+                (click)="approveEntry(viewEntry()!.timesheetId); closeViewModal()"
+                [disabled]="tsActionLoading() === viewEntry()!.timesheetId">
+                @if (tsActionLoading() === viewEntry()!.timesheetId) {
+                <span class="mini-spin green-spin"></span> Approving...
+                } @else {
+                <i class="fas fa-check"></i> Approve
+                }
+            </button>
+            <button class="act-btn reject-sm vm-footer-btn" (click)="openRejectModal(viewEntry()!); closeViewModal()"
+                [disabled]="tsActionLoading() === viewEntry()!.timesheetId">
+                <i class="fas fa-times"></i> Reject
+            </button>
+            <!-- (click)="openRejectModal(t) -->
+            }
+        </div>
+
+    </div>
+</div>
+}
 <!-- REJECT MODAL -->
 @if (rejectModal()) {
-<div class="modal-overlay" (click)="closeRejectModal()">
+<!-- <div class="modal-overlay" (click)="closeRejectModal()"> -->
+    <div class="modal-overlay">
     <div class="modal-box" (click)="$event.stopPropagation()">
         <div class="modal-header">
             <div class="mh-left">

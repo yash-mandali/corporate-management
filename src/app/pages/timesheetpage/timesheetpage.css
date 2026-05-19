@@ -1688,6 +1688,7 @@ tbody tr:nth-child(8) {
     }
 }
 
+
 /* ── PAGINATION ── */
 .pagination {
     display: flex;
@@ -1939,5 +1940,268 @@ tbody tr:nth-child(8) {
     .exp-field {
         flex: unset;
         width: 100%;
+    }
+}
+
+/* ════════════════════════════════════════════════════════════
+   VIEW MODAL — append to bottom of timesheetpage.css
+   ════════════════════════════════════════════════════════════ */
+
+.clickable-row {
+    cursor: pointer;
+}
+
+.view-modal-box {
+    max-width: 540px;
+}
+
+.vm-header {
+    background: linear-gradient(135deg, #09637e, #088395);
+}
+
+.vm-body {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 20px 22px;
+}
+
+.vm-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #d6eaee;
+}
+
+.vm-hours-badge {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: rgba(9, 99, 126, 0.08);
+    color: #09637e;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.vm-hours-badge i {
+    font-size: 10px;
+}
+.vm-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.vm-info-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 11px;
+    border: 1.5px solid #d6eaee;
+    background: #f7fbfc;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.vm-info-card:hover {
+    border-color: #a8d4db;
+    box-shadow: 0 2px 8px rgba(9, 99, 126, 0.06);
+}
+
+.vm-ic-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.vm-ic-body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.vm-ic-label {
+    font-size: 9px;
+    font-weight: 800;
+    color: #5a8a94;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.vm-ic-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0d2d36;
+    word-break: break-word;
+}
+
+.vm-time {
+    font-size: 14px;
+    font-weight: 900;
+    color: #09637e;
+}
+
+.vm-section {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.vm-section-label {
+    font-size: 10px;
+    font-weight: 800;
+    color: #5a8a94;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vm-section-label i {
+    color: #09637e;
+    font-size: 11px;
+}
+
+/* Task description box */
+.vm-task-box {
+    padding: 13px 15px;
+    border-radius: 11px;
+    border: 1.5px solid #d6eaee;
+    background: #f7fbfc;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0d2d36;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 52px;
+}
+
+/* Rejection label + box */
+.vm-reject-label {
+    color: #c0392b;
+}
+
+.vm-reject-label i {
+    color: #c0392b;
+}
+
+.vm-reject-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px 15px;
+    border-radius: 11px;
+    border: 1.5px solid rgba(192, 57, 43, 0.2);
+    background: rgba(192, 57, 43, 0.04);
+    font-size: 13px;
+    font-weight: 600;
+    color: #c0392b;
+    line-height: 1.65;
+    word-break: break-word;
+}
+
+.vm-reject-icon {
+    font-size: 14px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    color: #c0392b;
+}
+
+@media (max-width: 768px) {
+    .view-modal-box {
+        max-width: 100%;
+    }
+
+    .vm-info-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .vm-ic-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+
+    .vm-ic-value {
+        font-size: 12px;
+    }
+
+    .vm-time {
+        font-size: 13px;
+    }
+
+    .vm-body {
+        gap: 14px;
+        padding: 16px 18px;
+    }
+}
+
+
+@media (max-width: 480px) {
+    .vm-body {
+        gap: 12px;
+        padding: 14px 16px;
+    }
+
+    .vm-info-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .vm-info-card {
+        padding: 10px 12px;
+    }
+
+    .vm-ic-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 11px;
+        border-radius: 7px;
+    }
+
+    .vm-ic-label {
+        font-size: 8px;
+    }
+
+    .vm-ic-value {
+        font-size: 12px;
+    }
+
+    .vm-time {
+        font-size: 13px;
+    }
+
+    .vm-hours-badge {
+        font-size: 11px;
+        padding: 3px 10px;
+    }
+
+    .vm-task-box,
+    .vm-reject-box {
+        font-size: 12px;
+        padding: 11px 13px;
+    }
+
+    .vm-section-label {
+        font-size: 9px;
+    }
+
+    .vm-banner {
+        gap: 6px;
+        padding-bottom: 12px;
     }
 }

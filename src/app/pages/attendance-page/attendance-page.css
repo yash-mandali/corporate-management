@@ -19,7 +19,6 @@ body {
     gap: 20px;
 }
 
-/* ── PAGE HEADER ── */
 .page-header {
     display: flex;
     align-items: center;
@@ -104,7 +103,6 @@ body {
     text-align: center;
 }
 
-/* ── STAT ROW ── */
 .stat-row {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -242,7 +240,6 @@ body {
     transition: width 0.6s;
 }
 
-/* ── MAIN GRID: table | right-col ── */
 .main-grid {
     display: grid;
     grid-template-columns: 1fr 280px;
@@ -250,7 +247,6 @@ body {
     align-items: start;
 }
 
-/* ── RIGHT COLUMN: detail + calendar stacked ── */
 .right-col {
     display: flex;
     flex-direction: column;
@@ -259,7 +255,6 @@ body {
     top: calc(60px + 16px);
 }
 
-/* ── TABLE CARD ── */
 .table-card {
     background: #fff;
     border-radius: 14px;
@@ -482,7 +477,6 @@ tbody td {
     color: #b45309;
 }
 
-/* ── PAGINATION ── */
 .pagination {
     display: flex;
     align-items: center;
@@ -556,7 +550,6 @@ tbody td {
     white-space: nowrap;
 }
 
-/* ── DETAIL PANEL ── */
 .detail-panel {
     background: #fff;
     border-radius: 14px;
@@ -766,7 +759,6 @@ tbody td {
     color: #5a8a94;
 }
 
-/* ── CALENDAR CARD (compact, same 280px as detail panel) ── */
 .calendar-card {
     background: #fff;
     border-radius: 14px;
@@ -788,7 +780,6 @@ tbody td {
     padding: 10px 12px 12px;
 }
 
-/* 7-column grid for days */
 .cal-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -919,13 +910,11 @@ tbody td {
     color: #09637e !important;
 }
 
-/* selected ring */
 .cc-selected {
     box-shadow: 0 0 0 1.5px #0d2d36 !important;
     transform: scale(1.1);
 }
 
-/* bottom legend inside calendar */
 .cal-legend-full {
     display: flex;
     align-items: center;

@@ -25,8 +25,13 @@ export class MyProfile {
   profileForm!: FormGroup;
   pwdForm!: FormGroup;
 
-  initials = computed(() => {
+  nameinitials = computed(() => {
     const name = this.profileData()?.userName || '';
+    return name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2) || 'E';
+  });
+
+  roleinitials = computed(() => {
+    const name = this.profileData()?.roleName || '';
     return name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2) || 'E';
   });
 
@@ -48,7 +53,6 @@ export class MyProfile {
       address: [''],
     });
     
-    //disable to edit 
     this.profileForm.get('gender')?.disable();
     this.profileForm.get('department')?.disable();
     

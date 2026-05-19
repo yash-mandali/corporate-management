@@ -2055,3 +2055,368 @@ tbody td {
         padding-bottom: 2px;
     }
 }
+
+/* ════════════════════════════════════════════════════════════
+   MANAGER VIEW DETAIL MODAL
+   Append to bottom of managertimesheet.css
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Modal box ── */
+.vm-modal-box {
+    max-width: 520px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ── Header — teal gradient (matches export modal) ── */
+.vm-modal-header {
+    background: linear-gradient(135deg, #09637e, #088395);
+    border-bottom: none;
+    flex-shrink: 0;
+}
+
+.vm-mh-icon {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #fff !important;
+}
+
+.vm-mh-title {
+    color: #fff !important;
+}
+
+.vm-modal-header .mh-sub {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.vm-modal-close {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #fff !important;
+}
+
+.vm-modal-close:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* ── Body ── */
+.vm-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.vm-modal-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.vm-modal-body::-webkit-scrollbar-thumb {
+    background: #b2dce2;
+    border-radius: 4px;
+}
+
+/* ── Employee row ── */
+.vm-emp-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #f5fafb;
+    border-radius: 11px;
+    border: 1px solid #d6eaee;
+}
+
+.vm-emp-av {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 900;
+    flex-shrink: 0;
+}
+
+.vm-emp-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.vm-emp-name {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0d2d36;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vm-emp-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.vm-hours-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: rgba(9, 99, 126, 0.08);
+    color: #09637e;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.vm-hours-pill i {
+    font-size: 10px;
+}
+
+/* ── Info grid (2×2) ── */
+.vm-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+}
+
+.vm-info-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 13px;
+    border-radius: 10px;
+    border: 1.5px solid #d6eaee;
+    background: #f7fbfc;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.vm-info-card:hover {
+    border-color: #a8d4db;
+    box-shadow: 0 2px 8px rgba(9, 99, 126, 0.06);
+}
+
+.vm-ic-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.vm-ic-body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.vm-ic-label {
+    font-size: 9px;
+    font-weight: 800;
+    color: #5a8a94;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.vm-ic-value {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0d2d36;
+    word-break: break-word;
+}
+
+.vm-project {
+    color: #09637e;
+    font-weight: 800;
+}
+
+.vm-time-val {
+    font-size: 13px;
+    font-weight: 900;
+    color: #09637e;
+}
+
+/* ── Section ── */
+.vm-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vm-section-label {
+    font-size: 9px;
+    font-weight: 800;
+    color: #5a8a94;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.vm-section-label i {
+    color: #09637e;
+    font-size: 10px;
+}
+
+/* Task box */
+.vm-task-box {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1.5px solid #d6eaee;
+    background: #f7fbfc;
+    font-size: 12px;
+    font-weight: 600;
+    color: #0d2d36;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 48px;
+}
+
+/* Rejection box */
+.vm-reject-label {
+    color: #c0392b !important;
+}
+
+.vm-reject-label i {
+    color: #c0392b !important;
+}
+
+.vm-reject-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(192, 57, 43, 0.2);
+    background: rgba(192, 57, 43, 0.04);
+    font-size: 12px;
+    font-weight: 600;
+    color: #c0392b;
+    line-height: 1.65;
+    word-break: break-word;
+}
+
+.vm-reject-icon {
+    font-size: 13px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+/* ── Footer ── */
+.vm-modal-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Approve / Reject buttons in footer — larger than table versions */
+.vm-footer-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px !important;
+    width: auto !important;
+    height: auto !important;
+    border-radius: 9px !important;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE — 768px
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    .vm-modal-box {
+        max-width: 100%;
+    }
+
+    .vm-modal-body {
+        gap: 12px;
+        padding: 16px 16px;
+    }
+
+    .vm-info-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+}
+
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE — 480px (mobile)
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+    .vm-modal-body {
+        gap: 10px;
+        padding: 14px 14px;
+    }
+
+    /* Stack to single column on small screens */
+    .vm-info-grid {
+        grid-template-columns: 1fr;
+        gap: 7px;
+    }
+
+    .vm-info-card {
+        padding: 9px 11px;
+    }
+
+    .vm-ic-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 11px;
+        border-radius: 7px;
+    }
+
+    .vm-ic-label {
+        font-size: 8px;
+    }
+
+    .vm-ic-value {
+        font-size: 12px;
+    }
+
+    .vm-emp-av {
+        width: 34px;
+        height: 34px;
+        font-size: 12px;
+    }
+
+    .vm-emp-name {
+        font-size: 12px;
+    }
+
+    .vm-hours-pill {
+        font-size: 11px;
+        padding: 4px 10px;
+    }
+
+    .vm-task-box,
+    .vm-reject-box {
+        font-size: 12px;
+        padding: 10px 12px;
+    }
+
+    .vm-footer-btn {
+        padding: 8px 12px !important;
+        font-size: 11px !important;
+    }
+}

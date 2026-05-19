@@ -176,7 +176,7 @@
                     </thead>
                     <tbody>
                         @for (e of pagedEntries(); track e.timesheetId; let i = $index) {
-                        <tr>
+                        <tr (click)="openViewModal(e)" class="clickable-row">
                             <td class="td-date">{{ formatDate(e.workDate) }}</td>
                             <td><span class="proj-tag">{{ e.projectName || '—' }}</span></td>
                             <td class="td-task" [title]="e.taskDescription">{{ e.taskDescription || '—' }}</td>
@@ -191,11 +191,18 @@
                                 </span>
                             </td>
                             <td class="td-act" (click)="$event.stopPropagation()">
-                                @if (e.status === 'Draft' || e.status === 'Rejected') {
+
+                                @if (e.status === 'Draft'||e.status === 'Rejected') {
                                 <button class="act edit" (click)="openEditModal(e)" title="Edit"
                                     [disabled]="deletingId() === e.timesheetId">
                                     <i class="fas fa-pen"></i>
                                 </button>
+                                }
+                                @if (e.status === 'Draft') {
+                                <!-- <button class="act edit" (click)="openEditModal(e)" title="Edit"
+                                    [disabled]="deletingId() === e.timesheetId">
+                                    <i class="fas fa-pen"></i>
+                                </button> -->
                                 <button class="act del" (click)="deleteEntry(e.timesheetId)" title="Delete"
                                     [disabled]="deletingId() === e.timesheetId">
                                     @if (deletingId() === e.timesheetId) {
@@ -204,8 +211,6 @@
                                     <i class="fas fa-trash"></i>
                                     }
                                 </button>
-                                }
-                                @if (e.status === 'Draft') {
                                 <button class="act submit-one" (click)="submitEntry(e.timesheetId)"
                                     [disabled]="submittingId() === e.timesheetId" title="Submit">
                                     @if (submittingId() === e.timesheetId) {
@@ -215,11 +220,11 @@
                                     }
                                 </button>
                                 }
-                                @if (e.status === 'Rejected' && e.rejectReason) {
+                                <!-- @if (e.status === 'Rejected' && e.rejectReason) {
                                 <span class="reject-tip" [title]="e.rejectReason">
                                     <i class="fas fa-comment-alt"></i>
                                 </span>
-                                }
+                                } -->
                             </td>
                         </tr>
                         } @empty {
@@ -359,8 +364,123 @@
     }
 </main>
 
+@if (viewModalOpen()) {
+<div class="modal-overlay" (click)="closeViewModal()">
+    <div class="modal-box view-modal-box" (click)="$event.stopPropagation()">
+
+        <div class="modal-header vm-header">
+            <div class="mh-left">
+                <div class="mh-icon">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div>
+                    <div class="mh-title">Entry Details</div>
+                    <div class="mh-sub">{{ formatDateLong(dateStr(viewEntry()?.workDate)) }}</div>
+                </div>
+            </div>
+            <button class="modal-close" (click)="closeViewModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-body vm-body">
+            @if (viewEntry(); as e) {
+
+            <div class="vm-banner">
+                <span class="s-pill sp-{{ e.status | lowercase }}">
+                    <span class="spd"></span>{{ e.status }}
+                </span>
+                <span class="type-chip tc-{{ e.workType | lowercase }}">{{ e.workType }}</span>
+                <span class="vm-hours-badge">
+                    <i class="fas fa-hourglass-half"></i> {{ formatHours(e.totalHours) }}
+                </span>
+            </div>
+
+            <!-- Info grid -->
+            <div class="vm-info-grid">
+
+                <div class="vm-info-card">
+                    <div class="vm-ic-icon" style="background:rgba(9,99,126,0.09);color:#09637e">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="vm-ic-body">
+                        <div class="vm-ic-label">Work Date</div>
+                        <div class="vm-ic-value">{{ formatDateLong(dateStr(e.workDate)) }}</div>
+                    </div>
+                </div>
+
+                <div class="vm-info-card">
+                    <div class="vm-ic-icon" style="background:rgba(41,128,185,0.09);color:#2980b9">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div class="vm-ic-body">
+                        <div class="vm-ic-label">Project / Module</div>
+                        <div class="vm-ic-value">
+                            <span class="proj-tag">{{ e.projectName || '—' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vm-info-card">
+                    <div class="vm-ic-icon" style="background:rgba(39,174,96,0.09);color:#27ae60">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                    <div class="vm-ic-body">
+                        <div class="vm-ic-label">Start Time</div>
+                        <div class="vm-ic-value vm-time">{{ formatTime(e.startTime) }}</div>
+                    </div>
+                </div>
+
+                <div class="vm-info-card">
+                    <div class="vm-ic-icon" style="background:rgba(214,137,16,0.09);color:#d68910">
+                        <i class="fas fa-stop-circle"></i>
+                    </div>
+                    <div class="vm-ic-body">
+                        <div class="vm-ic-label">End Time</div>
+                        <div class="vm-ic-value vm-time">{{ formatTime(e.endTime) }}</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="vm-section">
+                <div class="vm-section-label">
+                    <i class="fas fa-align-left"></i> Task Description
+                </div>
+                <div class="vm-task-box">{{ e.taskDescription || '—' }}</div>
+            </div>
+
+            @if (e.rejectReason) {
+            <div class="vm-section">
+                <div class="vm-section-label vm-reject-label">
+                    <i class="fas fa-comment-times"></i> Rejection Reason
+                </div>
+                <div class="vm-reject-box">
+                    <i class="fas fa-exclamation-circle vm-reject-icon"></i>
+                    <span>{{ e.rejectReason }}</span>
+                </div>
+            </div>
+            }
+
+            }
+        </div>
+        <div class="modal-footer">
+            <button class="mf-cancel" (click)="closeViewModal()">
+                <i class="fas fa-times"></i> Close
+            </button>
+            @if (viewEntry()?.status === 'Draft' || viewEntry()?.status === 'Rejected') {
+            <button class="mf-save" (click)="openEditModal(viewEntry());closeViewModal()">
+                <i class="fas fa-pen"></i> Edit Entry
+            </button>
+            }
+        </div>
+
+    </div>
+</div>
+}
+
 @if (modalOpen()) {
-<div class="modal-overlay" (click)="closeModal()">
+<div class="modal-overlay">
     <div class="modal-box" (click)="$event.stopPropagation()">
         <div class="modal-header" [class.editing]="editingId()">
             <div class="mh-left">
